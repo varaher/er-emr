@@ -1223,14 +1223,17 @@ export default function CaseSheetForm() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="disposition-advice">Follow-up Advice</Label>
-                      <textarea
+                      <Label htmlFor="disposition-advice" className="flex items-center gap-2">
+                        Follow-up Advice
+                        <Mic className="h-3 w-3 text-slate-400" />
+                      </Label>
+                      <VoiceTextarea
                         id="disposition-advice"
                         data-testid="textarea-disposition-advice"
-                        className="flex min-h-[100px] w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
                         value={formData.disposition.advice}
                         onChange={(e) => updateNestedField('disposition', 'advice', e.target.value)}
                         placeholder="Follow-up instructions, medications, precautions..."
+                        rows={5}
                       />
                     </div>
                   </div>
