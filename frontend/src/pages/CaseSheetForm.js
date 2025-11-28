@@ -159,6 +159,9 @@ export default function CaseSheetForm() {
         pain_score: null
       }
     },
+    triage_id: triageData.triageId || null,
+    triage_priority: triageData.triagePriority || null,
+    triage_color: triageData.triageColor || null,
     em_resident: user?.name || '',
     em_consultant: ''
   });
