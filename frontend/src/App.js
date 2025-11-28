@@ -45,6 +45,14 @@ function App() {
               }
             />
             <Route
+              path="/triage"
+              element={
+                <ProtectedRoute>
+                  <Triage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/case/new"
               element={
                 <ProtectedRoute>
