@@ -289,7 +289,20 @@ export default function CaseSheetForm() {
                 <h1 className="text-2xl font-bold tracking-tight text-slate-900">
                   {id === 'new' ? 'New Case Sheet' : 'Edit Case Sheet'}
                 </h1>
-                <p className="text-sm text-slate-600">Complete the emergency department case documentation</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm text-slate-600">Complete the emergency department case documentation</p>
+                  {formData.triage_color && (
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full
+                      ${formData.triage_color === 'red' ? 'bg-red-100 text-red-800' : ''}
+                      ${formData.triage_color === 'orange' ? 'bg-orange-100 text-orange-800' : ''}
+                      ${formData.triage_color === 'yellow' ? 'bg-yellow-100 text-yellow-800' : ''}
+                      ${formData.triage_color === 'green' ? 'bg-green-100 text-green-800' : ''}
+                      ${formData.triage_color === 'blue' ? 'bg-blue-100 text-blue-800' : ''}
+                    `}>
+                      Triage: Priority {formData.triage_priority}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
             <div className="flex items-center gap-2">
