@@ -98,25 +98,39 @@ export default function VoiceInput({ onTranscript, append = false, language = 'e
   }
 
   return (
-    <Button
-      type="button"
-      variant={isListening ? "destructive" : "outline"}
-      size="sm"
-      onClick={toggleListening}
-      className={`${isListening ? 'animate-pulse' : ''}`}
-      data-testid="voice-input-button"
-      title={isListening ? 'Stop listening' : 'Start voice input'}
-    >
-      {isListening ? (
-        <>
-          <MicOff className="h-4 w-4" />
-        </>
-      ) : (
-        <>
-          <Mic className="h-4 w-4" />
-        </>
+    <div className="relative">
+      <Button
+        type="button"
+        variant={isListening ? "destructive" : "outline"}
+        size="sm"
+        onClick={toggleListening}
+        className={`${isListening ? 'relative' : ''}`}
+        data-testid="voice-input-button"
+        title={isListening ? 'Stop listening' : 'Start voice input'}
+      >
+        {isListening ? (
+          <>
+            <MicOff className="h-4 w-4" />
+            {/* Pulsing indicator like ChatGPT */}
+            <span className="absolute -top-1 -right-1 flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+            </span>
+          </>
+        ) : (
+          <>
+            <Mic className="h-4 w-4" />
+          </>
+        )}
+      </Button>
+      
+      {/* Processing indicator */}
+      {isProcessing && isListening && (
+        <div className="absolute -bottom-6 left-0 right-0 text-center">
+          <span className="text-xs text-green-600 font-medium animate-pulse">Processing...</span>
+        </div>
       )}
-    </Button>
+    </div>
   );
 }
 
