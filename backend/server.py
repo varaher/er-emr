@@ -294,6 +294,11 @@ class CaseSheet(BaseModel):
     treatment: Treatment
     disposition: Optional[Disposition] = None
     
+    # Triage information
+    triage_id: Optional[str] = None
+    triage_priority: Optional[int] = None  # 1-5
+    triage_color: Optional[str] = None  # red, orange, yellow, green, blue
+    
     em_resident: str
     em_consultant: str = ""
     
