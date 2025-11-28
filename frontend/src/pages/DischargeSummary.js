@@ -15,6 +15,14 @@ export default function DischargeSummary() {
   const [generating, setGenerating] = useState(false);
   const [caseData, setCaseData] = useState(null);
   const [summary, setSummary] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  
+  // Editable discharge summary fields
+  const [dischargeData, setDischargeData] = useState({
+    differential_diagnoses: '',
+    treatment_given: '',
+    follow_up_advice: ''
+  });
 
   useEffect(() => {
     fetchCaseAndSummary();
