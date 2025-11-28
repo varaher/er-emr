@@ -1254,6 +1254,7 @@ export default function CaseSheetForm() {
                         onChange={(e) => updateNestedField('disposition', 'type', e.target.value)}
                       >
                         <option value="discharged">Normal Discharge</option>
+                        <option value="observation">Observation in ER</option>
                         <option value="admitted-icu">Admitted - ICU</option>
                         <option value="admitted-hdu">Admitted - HDU</option>
                         <option value="admitted-ward">Admitted - Ward</option>
