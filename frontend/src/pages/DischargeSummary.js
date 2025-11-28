@@ -28,6 +28,17 @@ export default function DischargeSummary() {
     fetchCaseAndSummary();
   }, [caseId]);
 
+  useEffect(() => {
+    // Auto-fill treatment notes from case sheet if available
+    if (caseData && !dischargeData.treatment_given) {
+      setDischargeData(prev => ({
+        ...prev,
+        treatment_given: caseData.treatment?.intervention_notes || '',
+        differential_diagnoses: caseData.treatment?.differential_diagnoses?.join(', ') || ''
+      }));
+    }
+  }, [caseData]);
+
   const fetchCaseAndSummary = async () => {
     try {
       setLoading(true);
