@@ -824,25 +824,45 @@ Please generate a professional, well-structured discharge summary in standard me
 """
     elif request.prompt_type == "red_flags":
         prompt = f"""
-You are an emergency medicine AI assistant. Analyze the following vitals and clinical data for red flags and critical findings.
+You are an expert emergency medicine physician. Analyze this case for RED FLAGS and CRITICAL FINDINGS.
 
-Vitals:
-- HR: {case['vitals_at_arrival'].get('hr', 'N/A')}
-- BP: {case['vitals_at_arrival'].get('bp_systolic', 'N/A')}/{case['vitals_at_arrival'].get('bp_diastolic', 'N/A')}
-- RR: {case['vitals_at_arrival'].get('rr', 'N/A')}
-- SpO2: {case['vitals_at_arrival'].get('spo2', 'N/A')}%
-- Temperature: {case['vitals_at_arrival'].get('temperature', 'N/A')}°C
-- GCS: E{case['vitals_at_arrival'].get('gcs_e', '-')} V{case['vitals_at_arrival'].get('gcs_v', '-')} M{case['vitals_at_arrival'].get('gcs_m', '-')}
+=== PATIENT DATA ===
+Vitals at Arrival:
+• HR: {case['vitals_at_arrival'].get('hr', 'N/A')} bpm
+• BP: {case['vitals_at_arrival'].get('bp_systolic', 'N/A')}/{case['vitals_at_arrival'].get('bp_diastolic', 'N/A')} mmHg
+• RR: {case['vitals_at_arrival'].get('rr', 'N/A')} /min
+• SpO2: {case['vitals_at_arrival'].get('spo2', 'N/A')}%
+• Temperature: {case['vitals_at_arrival'].get('temperature', 'N/A')}°C
+• GCS: E{case['vitals_at_arrival'].get('gcs_e', '-')} V{case['vitals_at_arrival'].get('gcs_v', '-')} M{case['vitals_at_arrival'].get('gcs_m', '-')}
 
-Presenting Complaint:
-{case['presenting_complaint']['text']}
+Chief Complaint: {case['presenting_complaint']['text']}
+Duration: {case['presenting_complaint'].get('duration', 'Not specified')}
 
-Primary Assessment:
-- Airway: {case['primary_assessment'].get('airway_status', 'Not documented')}
-- Breathing: {case['primary_assessment'].get('breathing_work', 'Not documented')}
-- Circulation: {case['primary_assessment'].get('circulation_peripheral_pulses', 'Not documented')}
+Primary Survey:
+• Airway: {case['primary_assessment'].get('airway_status', 'Not documented')}
+• Breathing: {case['primary_assessment'].get('breathing_work', 'Not documented')}
+• Circulation: {case['primary_assessment'].get('circulation_peripheral_pulses', 'Not documented')}
 
-Identify any red flags, critical findings, or areas requiring immediate attention. Be concise and actionable.
+=== REQUIRED OUTPUT FORMAT ===
+Provide a structured analysis with:
+
+🚨 CRITICAL RED FLAGS (Life-threatening):
+[List any immediately life-threatening findings]
+
+⚠️ WARNING SIGNS (Urgent but stable):
+[List concerning findings requiring close monitoring]
+
+✅ REASSURING FEATURES:
+[List any positive/stable findings]
+
+📋 RECOMMENDED IMMEDIATE ACTIONS:
+1. [Specific action items in priority order]
+2. [Include tests, interventions, consultations needed]
+
+🔍 THINGS TO WATCH FOR:
+[What could deteriorate? What trends to monitor?]
+
+Be concise, specific, and clinically actionable. Focus on what the ER doctor should DO right now.
 """
     elif request.prompt_type == "diagnosis_suggestions":
         prompt = f"""
