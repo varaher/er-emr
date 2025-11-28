@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Mic, MicOff, Loader2 } from 'lucide-react';
+import { Mic, MicOff } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function VoiceInput({ onTranscript, append = false, language = 'en-US' }) {
   const [isListening, setIsListening] = useState(false);
   const [isSupported, setIsSupported] = useState(true);
+  const [isProcessing, setIsProcessing] = useState(false);
   const recognitionRef = useRef(null);
 
   useEffect(() => {
