@@ -1,0 +1,155 @@
+{
+  "identity": {
+    "persona": "E1: The Anti-AI Designer",
+    "philosophy": "Fusion over Imitation. Emotion First. Content is King. Zoom In. Negative Space. Contrast.",
+    "anti_patterns": [
+      "Generic 'SaaS Blue' everywhere",
+      "Inter font for headings",
+      "Centered layouts for everything",
+      "Gradient overload",
+      "Low contrast gray text"
+    ]
+  },
+  "typography": {
+    "fonts": {
+      "headings": {
+        "family": "Manrope",
+        "weights": ["600", "700", "800"],
+        "usage": "Page titles, Section headers, Modal titles",
+        "fallback": "sans-serif"
+      },
+      "body": {
+        "family": "Inter",
+        "weights": ["400", "500"],
+        "usage": "General text, Form labels, Notes",
+        "fallback": "sans-serif"
+      },
+      "data": {
+        "family": "JetBrains Mono",
+        "weights": ["500"],
+        "usage": "Vitals (BP, HR, SpO2), Lab results, ID numbers",
+        "fallback": "monospace"
+      }
+    },
+    "rules": {
+      "headings": "tracking-tight leading-none text-slate-900",
+      "overline": "uppercase tracking-[0.2em] text-xs font-bold text-slate-500",
+      "body": "leading-relaxed text-slate-700",
+      "data": "tabular-nums tracking-tight"
+    }
+  },
+  "colors": {
+    "palette_name": "Clinical Precision (Swiss + Organic)",
+    "mode": "light",
+    "primary": {
+      "main": "#0F172A",
+      "description": "Slate 900 - Deep Navy/Black. Used for Primary Actions, Active States, Strong Borders."
+    },
+    "accent": {
+      "main": "#0EA5E9",
+      "description": "Sky 500 - Clarity. Used for Links, Focus Rings, Active Tabs."
+    },
+    "semantic": {
+      "critical": "#EF4444",
+      "warning": "#F59E0B",
+      "success": "#10B981",
+      "neutral": "#64748B"
+    },
+    "backgrounds": {
+      "app": "#F8FAFC",
+      "surface": "#FFFFFF",
+      "subtle": "#F1F5F9"
+    },
+    "borders": {
+      "default": "#E2E8F0",
+      "strong": "#CBD5E1"
+    }
+  },
+  "grids": {
+    "dashboard": {
+      "name": "The Control Room",
+      "structure": "grid-cols-1 md:grid-cols-4 gap-4",
+      "rules": [
+        "Summary metrics: col-span-1",
+        "Main chart/list: col-span-2 or col-span-3",
+        "Alert feed: col-span-1 row-span-2",
+        "Dense packing - no wasted pixels"
+      ]
+    },
+    "case_sheet": {
+      "name": "The Tetris Grid",
+      "structure": "grid-cols-1 md:grid-cols-12 gap-6",
+      "rules": [
+        "Vitals Bar: col-span-full sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b",
+        "Primary Assessment (ABCDE): col-span-12 md:col-span-8",
+        "Quick Actions/Labs: col-span-12 md:col-span-4",
+        "Notes: col-span-full"
+      ]
+    }
+  },
+  "components": {
+    "strategy": "Shadcn/UI + Custom 'Technical' Styling",
+    "customizations": {
+      "card": {
+        "style": "rounded-lg border border-slate-200 shadow-sm bg-white",
+        "header": "p-6 border-b border-slate-100",
+        "content": "p-6"
+      },
+      "button": {
+        "primary": "bg-slate-900 text-white hover:bg-slate-800 rounded-md font-medium shadow-sm",
+        "secondary": "bg-white text-slate-900 border border-slate-200 hover:bg-slate-50 rounded-md font-medium",
+        "destructive": "bg-red-600 text-white hover:bg-red-700 rounded-md shadow-sm"
+      },
+      "input": {
+        "style": "h-10 rounded-md border-slate-300 focus:border-sky-500 focus:ring-sky-500"
+      },
+      "badge": {
+        "style": "rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+      }
+    },
+    "paths": {
+      "button": "/app/frontend/src/components/ui/button.jsx",
+      "card": "/app/frontend/src/components/ui/card.jsx",
+      "input": "/app/frontend/src/components/ui/input.jsx",
+      "badge": "/app/frontend/src/components/ui/badge.jsx",
+      "sonner": "/app/frontend/src/components/ui/sonner.jsx"
+    }
+  },
+  "visual_enhancers": {
+    "glassmorphism": "bg-white/70 backdrop-blur-xl border-b border-white/20",
+    "shadows": "shadow-[0_2px_8px_rgba(15,23,42,0.08)]",
+    "borders": "border border-slate-200",
+    "motion": {
+      "hover": "transition-all duration-200 ease-out hover:-translate-y-0.5",
+      "enter": "animate-in fade-in zoom-in-95 duration-300"
+    }
+  },
+  "images": {
+    "login_background": {
+      "url": "https://images.unsplash.com/photo-1593824261342-fd6ee146f73d?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Nzd8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjBob3NwaXRhbCUyMGVtZXJnZW5jeSUyMHJvb20lMjBhYnN0cmFjdCUyMGJsdXJ8ZW58MHx8fHwxNzY0MzA4OTg0fDA&ixlib=rb-4.1.0&q=85",
+      "description": "Abstract dark medical tech background for login screen"
+    },
+    "dashboard_empty_state": {
+      "url": "https://images.unsplash.com/photo-1675209430232-52695f9040b7?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Nzd8MHwxfHNlYXJjaHwyfHxtb2Rlcm4lMjBob3NwaXRhbCUyMGVtZXJnZW5jeSUyMHJvb20lMjBhYnN0cmFjdCUyMGJsdXJ8ZW58MHx8fHwxNzY0MzA4OTg0fDA&ixlib=rb-4.1.0&q=85",
+      "description": "Clean white hallway for empty states or loading screens"
+    }
+  },
+  "instructions_to_main_agent": [
+    "1. INSTALL FONTS: Add Manrope, Inter, and JetBrains Mono via Google Fonts in index.html or CSS.",
+    "2. THEME SETUP: Configure tailwind.config.js with the 'Clinical Precision' colors.",
+    "3. LAYOUT: Build the 'Control Room' grid for the Dashboard and 'Tetris' grid for the Case Sheet.",
+    "4. COMPONENTS: Customize Shadcn components to match the 'Technical' style (sharper corners, specific borders).",
+    "5. DATA-TESTID: Add data-testid to ALL interactive elements (buttons, inputs, cards).",
+    "6. MOTION: Add subtle entrance animations to all cards and list items.",
+    "7. DO NOT use gradients for backgrounds. Use solid colors or subtle noise textures.",
+    "8. ENSURE high contrast for all text. Medical data must be legible."
+  ],
+  "universal_guidelines": [
+    "Avoid 'AI Slop' - generic, centered, low-contrast designs.",
+    "Use 2-3x more spacing (padding) than standard.",
+    "Micro-animations for every interaction (hover, click, focus).",
+    "No 'Inter' for headings.",
+    "Use 'sonner' for all toast notifications.",
+    "Mobile-first responsive design is mandatory."
+  ]
+}
