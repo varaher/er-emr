@@ -4,7 +4,7 @@ import Login from "@/pages/Login";
 import Dashboard from "@/pages/Dashboard";
 import Triage from "@/pages/Triage";
 import CaseSheetForm from "@/pages/CaseSheetForm";
-import DischargeSummary from "@/pages/DischargeSummary";
+import DischargeSummaryNew from "@/pages/DischargeSummaryNew";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import "@/App.css";
 
