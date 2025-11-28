@@ -171,7 +171,41 @@ export default function CaseSheetForm() {
     if (id && id !== 'new') {
       fetchCase();
     }
+    
+    // Auto-populate vitals from triage if available
+    if (triageData.triageId) {
+      fetchTriageAndPopulateVitals(triageData.triageId);
+    }
   }, [id]);
+
+  const fetchTriageAndPopulateVitals = async (triageId) => {
+    try {
+      const response = await api.get(`/triage/${triageId}`);
+      const triageVitals = response.data.vitals;
+      
+      // Populate vitals from triage
+      setFormData(prev => ({
+        ...prev,
+        vitals_at_arrival: {
+          hr: triageVitals.hr || prev.vitals_at_arrival.hr,
+          bp_systolic: triageVitals.bp_systolic || prev.vitals_at_arrival.bp_systolic,
+          bp_diastolic: triageVitals.bp_diastolic || prev.vitals_at_arrival.bp_diastolic,
+          rr: triageVitals.rr || prev.vitals_at_arrival.rr,
+          spo2: triageVitals.spo2 || prev.vitals_at_arrival.spo2,
+          temperature: triageVitals.temperature || prev.vitals_at_arrival.temperature,
+          gcs_e: triageVitals.gcs_e || prev.vitals_at_arrival.gcs_e,
+          gcs_v: triageVitals.gcs_v || prev.vitals_at_arrival.gcs_v,
+          gcs_m: triageVitals.gcs_m || prev.vitals_at_arrival.gcs_m,
+          grbs: triageVitals.grbs || prev.vitals_at_arrival.grbs,
+          pain_score: prev.vitals_at_arrival.pain_score
+        }
+      }));
+      
+      toast.success('Vitals auto-populated from triage');
+    } catch (error) {
+      console.error('Failed to fetch triage data:', error);
+    }
+  };
 
   const fetchCase = async () => {
     try {
