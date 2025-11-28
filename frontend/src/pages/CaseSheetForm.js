@@ -647,7 +647,14 @@ export default function CaseSheetForm() {
             <Card>
               <CardHeader>
                 <CardTitle>Vitals at Arrival</CardTitle>
-                <CardDescription>Record initial vital signs</CardDescription>
+                <CardDescription>
+                  Record initial vital signs
+                  {formData.triage_id && (
+                    <span className="ml-2 text-xs text-green-600 font-medium">
+                      ✓ Auto-populated from triage
+                    </span>
+                  )}
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
