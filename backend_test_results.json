@@ -1,0 +1,76 @@
+{
+  "summary": {
+    "total_tests": 11,
+    "passed_tests": 9,
+    "success_rate": 81.81818181818183,
+    "timestamp": "2025-11-28T06:01:24.492883"
+  },
+  "detailed_results": [
+    {
+      "test_name": "User Login",
+      "success": true,
+      "details": "Status: 200",
+      "timestamp": "2025-11-28T06:00:53.800710"
+    },
+    {
+      "test_name": "Get Current User",
+      "success": true,
+      "details": "Status: 200",
+      "timestamp": "2025-11-28T06:00:53.840279"
+    },
+    {
+      "test_name": "User Registration",
+      "success": true,
+      "details": "Status: 200",
+      "timestamp": "2025-11-28T06:00:54.100221"
+    },
+    {
+      "test_name": "Get Existing Case",
+      "success": true,
+      "details": "Status: 200",
+      "timestamp": "2025-11-28T06:00:54.137115"
+    },
+    {
+      "test_name": "Get All Cases",
+      "success": true,
+      "details": "Status: 200",
+      "timestamp": "2025-11-28T06:00:54.179455"
+    },
+    {
+      "test_name": "Get Case by ID",
+      "success": true,
+      "details": "Status: 200",
+      "timestamp": "2025-11-28T06:00:54.218044"
+    },
+    {
+      "test_name": "Update Case",
+      "success": true,
+      "details": "Status: 200",
+      "timestamp": "2025-11-28T06:00:54.254621"
+    },
+    {
+      "test_name": "AI Generate Red Flags",
+      "success": true,
+      "details": "Status: 200",
+      "timestamp": "2025-11-28T06:01:09.130252"
+    },
+    {
+      "test_name": "AI Generate Diagnosis",
+      "success": true,
+      "details": "Status: 200",
+      "timestamp": "2025-11-28T06:01:24.388055"
+    },
+    {
+      "test_name": "Create Discharge Summary",
+      "success": false,
+      "details": "Expected 200, got 500 - Internal Server Error",
+      "timestamp": "2025-11-28T06:01:24.448930"
+    },
+    {
+      "test_name": "Get Discharge Summary",
+      "success": false,
+      "details": "Expected 200, got 404 - {'detail': 'Discharge summary not found'}",
+      "timestamp": "2025-11-28T06:01:24.492160"
+    }
+  ]
+}
