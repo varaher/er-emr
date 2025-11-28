@@ -435,6 +435,234 @@ async def login(credentials: UserLogin):
 async def get_me(current_user: UserResponse = Depends(get_current_user)):
     return current_user
 
+# Triage calculation algorithm
+def calculate_triage_priority(age_group: str, vitals: TriageVitals, symptoms: TriageSymptoms) -> Dict[str, Any]:
+    """
+    Calculate triage priority based on vitals and symptoms
+    Returns: priority level (1-5), color, name, time_to_see, and reasons
+    """
+    reasons = []
+    
+    # Calculate GCS if components are available
+    gcs_total = None
+    if vitals.gcs_e and vitals.gcs_v and vitals.gcs_m:
+        gcs_total = vitals.gcs_e + vitals.gcs_v + vitals.gcs_m
+    
+    # PRIORITY I - RED - IMMEDIATE (0 min)
+    # Check for critical airway issues
+    if symptoms.obstructed_airway or symptoms.facial_burns or symptoms.stridor:
+        reasons.append("Critical airway compromise")
+        return {"level": 1, "color": "red", "name": "IMMEDIATE", "time": "0 min", "reasons": reasons}
+    
+    # Check for critical breathing issues
+    if symptoms.severe_respiratory_distress or symptoms.cyanosis or symptoms.apnea:
+        reasons.append("Severe respiratory distress")
+        return {"level": 1, "color": "red", "name": "IMMEDIATE", "time": "0 min", "reasons": reasons}
+    
+    if vitals.rr and (vitals.rr < 10 or vitals.rr > 30):
+        reasons.append(f"Critical respiratory rate: {vitals.rr}")
+        return {"level": 1, "color": "red", "name": "IMMEDIATE", "time": "0 min", "reasons": reasons}
+    
+    if vitals.spo2 and vitals.spo2 < 90:
+        reasons.append(f"Critical SpO2: {vitals.spo2}%")
+        return {"level": 1, "color": "red", "name": "IMMEDIATE", "time": "0 min", "reasons": reasons}
+    
+    # Check for critical circulation issues
+    if symptoms.cardiac_arrest or symptoms.shock or symptoms.severe_bleeding:
+        reasons.append("Critical circulatory compromise")
+        return {"level": 1, "color": "red", "name": "IMMEDIATE", "time": "0 min", "reasons": reasons}
+    
+    if vitals.bp_systolic and vitals.bp_systolic < 90:
+        reasons.append(f"Hypotension: SBP {vitals.bp_systolic}")
+        return {"level": 1, "color": "red", "name": "IMMEDIATE", "time": "0 min", "reasons": reasons}
+    
+    if symptoms.chest_pain_with_hypotension:
+        reasons.append("Chest pain with hemodynamic instability")
+        return {"level": 1, "color": "red", "name": "IMMEDIATE", "time": "0 min", "reasons": reasons}
+    
+    # Check for critical neurological issues
+    if gcs_total and gcs_total <= 8:
+        reasons.append(f"Critically depressed consciousness: GCS {gcs_total}")
+        return {"level": 1, "color": "red", "name": "IMMEDIATE", "time": "0 min", "reasons": reasons}
+    
+    if symptoms.seizure_ongoing:
+        reasons.append("Ongoing seizure")
+        return {"level": 1, "color": "red", "name": "IMMEDIATE", "time": "0 min", "reasons": reasons}
+    
+    if symptoms.lethargic_unconscious:
+        reasons.append("Altered level of consciousness")
+        return {"level": 1, "color": "red", "name": "IMMEDIATE", "time": "0 min", "reasons": reasons}
+    
+    # Check for other critical conditions
+    if symptoms.major_trauma or symptoms.severe_burns or symptoms.anaphylaxis or symptoms.sepsis:
+        reasons.append("Critical condition requiring immediate attention")
+        return {"level": 1, "color": "red", "name": "IMMEDIATE", "time": "0 min", "reasons": reasons}
+    
+    if symptoms.suspected_stroke and symptoms.focal_deficits:
+        reasons.append("Suspected acute stroke with deficits")
+        return {"level": 1, "color": "red", "name": "IMMEDIATE", "time": "0 min", "reasons": reasons}
+    
+    # Pediatric specific RED criteria
+    if age_group == "pediatric":
+        if symptoms.non_blanching_rash and symptoms.fever:
+            reasons.append("Non-blanching rash with fever (suspected meningococcemia)")
+            return {"level": 1, "color": "red", "name": "IMMEDIATE", "time": "0 min", "reasons": reasons}
+        
+        if symptoms.severe_dehydration:
+            reasons.append("Severe dehydration")
+            return {"level": 1, "color": "red", "name": "IMMEDIATE", "time": "0 min", "reasons": reasons}
+        
+        if vitals.capillary_refill and vitals.capillary_refill > 3:
+            reasons.append(f"Prolonged capillary refill: {vitals.capillary_refill}s (shock)")
+            return {"level": 1, "color": "red", "name": "IMMEDIATE", "time": "0 min", "reasons": reasons}
+    
+    # PRIORITY II - ORANGE - VERY URGENT (5 min)
+    # Moderate respiratory issues
+    if symptoms.moderate_respiratory_distress:
+        reasons.append("Moderate respiratory distress")
+        return {"level": 2, "color": "orange", "name": "VERY URGENT", "time": "5 min", "reasons": reasons}
+    
+    if vitals.rr and (21 <= vitals.rr <= 30):
+        reasons.append(f"Elevated respiratory rate: {vitals.rr}")
+        return {"level": 2, "color": "orange", "name": "VERY URGENT", "time": "5 min", "reasons": reasons}
+    
+    if vitals.spo2 and 90 <= vitals.spo2 <= 94:
+        reasons.append(f"Low SpO2: {vitals.spo2}%")
+        return {"level": 2, "color": "orange", "name": "VERY URGENT", "time": "5 min", "reasons": reasons}
+    
+    # Cardiovascular issues
+    if symptoms.chest_pain and not symptoms.chest_pain_with_hypotension:
+        reasons.append("Chest pain (possible ACS)")
+        return {"level": 2, "color": "orange", "name": "VERY URGENT", "time": "5 min", "reasons": reasons}
+    
+    # Calculate MAP if BP available
+    if vitals.bp_systolic and vitals.bp_diastolic:
+        map_value = (vitals.bp_systolic + 2 * vitals.bp_diastolic) / 3
+        if map_value < 65:
+            reasons.append(f"Low MAP: {map_value:.0f}")
+            return {"level": 2, "color": "orange", "name": "VERY URGENT", "time": "5 min", "reasons": reasons}
+    
+    # Neurological issues
+    if gcs_total and 9 <= gcs_total <= 12:
+        reasons.append(f"Altered consciousness: GCS {gcs_total}")
+        return {"level": 2, "color": "orange", "name": "VERY URGENT", "time": "5 min", "reasons": reasons}
+    
+    if symptoms.focal_deficits and not symptoms.suspected_stroke:
+        reasons.append("New focal neurological deficit")
+        return {"level": 2, "color": "orange", "name": "VERY URGENT", "time": "5 min", "reasons": reasons}
+    
+    if symptoms.confusion:
+        reasons.append("Acute confusion")
+        return {"level": 2, "color": "orange", "name": "VERY URGENT", "time": "5 min", "reasons": reasons}
+    
+    # Other urgent conditions
+    if symptoms.moderate_trauma:
+        reasons.append("Moderate trauma")
+        return {"level": 2, "color": "orange", "name": "VERY URGENT", "time": "5 min", "reasons": reasons}
+    
+    if symptoms.gi_bleed and not symptoms.shock:
+        reasons.append("GI bleed without shock")
+        return {"level": 2, "color": "orange", "name": "VERY URGENT", "time": "5 min", "reasons": reasons}
+    
+    # PRIORITY III - YELLOW - URGENT (30 min)
+    if symptoms.mild_respiratory_symptoms:
+        reasons.append("Mild respiratory symptoms")
+        return {"level": 3, "color": "yellow", "name": "URGENT", "time": "30 min", "reasons": reasons}
+    
+    if symptoms.fever and vitals.hr and vitals.hr > 100:
+        reasons.append("Fever with tachycardia")
+        return {"level": 3, "color": "yellow", "name": "URGENT", "time": "30 min", "reasons": reasons}
+    
+    if symptoms.moderate_dehydration:
+        reasons.append("Moderate dehydration")
+        return {"level": 3, "color": "yellow", "name": "URGENT", "time": "30 min", "reasons": reasons}
+    
+    if symptoms.seizure_controlled:
+        reasons.append("Controlled seizures (post-ictal)")
+        return {"level": 3, "color": "yellow", "name": "URGENT", "time": "30 min", "reasons": reasons}
+    
+    if symptoms.abdominal_pain_moderate:
+        reasons.append("Moderate abdominal pain")
+        return {"level": 3, "color": "yellow", "name": "URGENT", "time": "30 min", "reasons": reasons}
+    
+    if gcs_total and 13 <= gcs_total <= 14:
+        reasons.append("Mild head injury with monitoring needed")
+        return {"level": 3, "color": "yellow", "name": "URGENT", "time": "30 min", "reasons": reasons}
+    
+    # PRIORITY IV - GREEN - SEMI-URGENT (60 min)
+    if symptoms.minor_injury:
+        reasons.append("Minor injury")
+        return {"level": 4, "color": "green", "name": "SEMI-URGENT", "time": "60 min", "reasons": reasons}
+    
+    if symptoms.fever and not (vitals.hr and vitals.hr > 100):
+        reasons.append("Mild fever")
+        return {"level": 4, "color": "green", "name": "SEMI-URGENT", "time": "60 min", "reasons": reasons}
+    
+    if symptoms.abdominal_pain_mild:
+        reasons.append("Mild abdominal pain")
+        return {"level": 4, "color": "green", "name": "SEMI-URGENT", "time": "60 min", "reasons": reasons}
+    
+    # PRIORITY V - BLUE - NON-URGENT (Time-permitted)
+    # Default to blue if nothing else matched
+    reasons.append("Stable condition, routine assessment")
+    return {"level": 5, "color": "blue", "name": "NON-URGENT", "time": "Time-permitted", "reasons": reasons}
+
+# Triage endpoints
+@api_router.post("/triage", response_model=TriageAssessment)
+async def create_triage(triage_data: TriageCreate, current_user: UserResponse = Depends(get_current_user)):
+    """Create a triage assessment with automatic priority calculation"""
+    
+    # Calculate priority
+    priority_result = calculate_triage_priority(
+        triage_data.age_group,
+        triage_data.vitals,
+        triage_data.symptoms
+    )
+    
+    # Create triage assessment
+    triage = TriageAssessment(
+        age_group=triage_data.age_group,
+        vitals=triage_data.vitals,
+        symptoms=triage_data.symptoms,
+        mechanism=triage_data.mechanism,
+        priority_level=priority_result["level"],
+        priority_color=priority_result["color"],
+        priority_name=priority_result["name"],
+        time_to_see=priority_result["time"],
+        triage_reason=priority_result["reasons"],
+        triaged_by=triage_data.triaged_by
+    )
+    
+    # Save to database
+    doc = triage.model_dump()
+    doc['triaged_at'] = doc['triaged_at'].isoformat()
+    await db.triage_assessments.insert_one(doc)
+    
+    return triage
+
+@api_router.get("/triage/{triage_id}", response_model=TriageAssessment)
+async def get_triage(triage_id: str, current_user: UserResponse = Depends(get_current_user)):
+    """Get a specific triage assessment"""
+    triage = await db.triage_assessments.find_one({"id": triage_id}, {"_id": 0})
+    if not triage:
+        raise HTTPException(status_code=404, detail="Triage assessment not found")
+    
+    if isinstance(triage['triaged_at'], str):
+        triage['triaged_at'] = datetime.fromisoformat(triage['triaged_at'])
+    
+    return triage
+
+@api_router.get("/triage", response_model=List[TriageAssessment])
+async def get_all_triage(current_user: UserResponse = Depends(get_current_user)):
+    """Get all triage assessments"""
+    triages = await db.triage_assessments.find({}, {"_id": 0}).sort("triaged_at", -1).to_list(1000)
+    
+    for triage in triages:
+        if isinstance(triage['triaged_at'], str):
+            triage['triaged_at'] = datetime.fromisoformat(triage['triaged_at'])
+    
+    return triages
+
 # Case Sheet endpoints
 @api_router.post("/cases", response_model=CaseSheet)
 async def create_case(case_data: CaseSheetCreate, current_user: UserResponse = Depends(get_current_user)):
