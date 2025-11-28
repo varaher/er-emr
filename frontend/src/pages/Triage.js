@@ -226,6 +226,19 @@ export default function Triage() {
                 <CardDescription>Enter patient vital signs</CardDescription>
               </CardHeader>
               <CardContent>
+                {/* Normal Vitals Reference */}
+                <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <h4 className="text-xs font-semibold text-green-900 mb-2">Normal Vitals Reference (Adult)</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs text-green-700">
+                    <div><span className="font-medium">HR:</span> 60-100 bpm</div>
+                    <div><span className="font-medium">BP:</span> 90-120/60-80 mmHg</div>
+                    <div><span className="font-medium">RR:</span> 12-20 /min</div>
+                    <div><span className="font-medium">SpO2:</span> 95-100%</div>
+                    <div><span className="font-medium">Temp:</span> 36.1-37.2°C</div>
+                    <div><span className="font-medium">GCS:</span> 15/15</div>
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="hr">HR (bpm)</Label>
