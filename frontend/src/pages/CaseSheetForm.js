@@ -393,9 +393,11 @@ export default function CaseSheetForm() {
                     onClick={() => handleAISuggestion('red_flags')}
                     disabled={aiLoading}
                     data-testid="ai-red-flags-button"
+                    className="border-red-200 hover:bg-red-50 hover:text-red-700"
+                    title="Analyze vitals and symptoms for critical findings requiring immediate attention"
                   >
                     <AlertCircle className="h-4 w-4 mr-2" />
-                    AI Red Flags
+                    {aiLoading ? 'Analyzing...' : 'AI Red Flags'}
                   </Button>
                   <Button 
                     variant="outline" 
@@ -403,9 +405,11 @@ export default function CaseSheetForm() {
                     onClick={() => handleAISuggestion('diagnosis_suggestions')}
                     disabled={aiLoading}
                     data-testid="ai-diagnosis-button"
+                    className="border-purple-200 hover:bg-purple-50 hover:text-purple-700"
+                    title="Get AI-powered differential diagnosis suggestions based on case data"
                   >
                     <Sparkles className="h-4 w-4 mr-2" />
-                    AI Diagnosis
+                    {aiLoading ? 'Thinking...' : 'AI Diagnosis'}
                   </Button>
                 </>
               )}
