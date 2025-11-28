@@ -8,8 +8,9 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
+import { VoiceTextInput, VoiceTextarea } from '@/components/VoiceTextInput';
 import { toast } from 'sonner';
-import { ArrowLeft, Save, Sparkles, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Save, Sparkles, AlertCircle, Mic } from 'lucide-react';
 
 export default function CaseSheetForm() {
   const navigate = useNavigate();
