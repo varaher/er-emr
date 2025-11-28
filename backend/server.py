@@ -345,6 +345,19 @@ async def get_me(current_user: UserResponse = Depends(get_current_user)):
 @api_router.post("/cases", response_model=CaseSheet)
 async def create_case(case_data: CaseSheetCreate, current_user: UserResponse = Depends(get_current_user)):
     case_dict = case_data.model_dump()
+    
+    # Provide defaults for optional fields
+    if case_dict.get('primary_assessment') is None:
+        case_dict['primary_assessment'] = PrimaryAssessment().model_dump()
+    if case_dict.get('history') is None:
+        case_dict['history'] = History().model_dump()
+    if case_dict.get('examination') is None:
+        case_dict['examination'] = Examination().model_dump()
+    if case_dict.get('investigations') is None:
+        case_dict['investigations'] = Investigations().model_dump()
+    if case_dict.get('treatment') is None:
+        case_dict['treatment'] = Treatment().model_dump()
+    
     case_obj = CaseSheet(**case_dict, created_by_user_id=current_user.id)
     
     doc = case_obj.model_dump()
