@@ -346,6 +346,20 @@ export default function CaseSheetForm() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Voice Input Info Banner */}
+        <div className="mb-6 p-4 bg-sky-50 border border-sky-200 rounded-lg">
+          <div className="flex items-start gap-3">
+            <Mic className="h-5 w-5 text-sky-600 mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <h3 className="text-sm font-semibold text-sky-900 mb-1">Voice Input Enabled</h3>
+              <p className="text-sm text-sky-700">
+                Click the <Mic className="h-3 w-3 inline" /> microphone icon next to any text field to use voice dictation. 
+                Speak clearly and the text will be transcribed automatically. You can mix voice and keyboard input.
+              </p>
+            </div>
+          </div>
+        </div>
+
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid grid-cols-7 mb-6">
             <TabsTrigger value="patient" data-testid="tab-patient">Patient Info</TabsTrigger>
