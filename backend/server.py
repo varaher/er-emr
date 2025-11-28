@@ -348,6 +348,16 @@ class DischargeSummary(BaseModel):
     summary_text: str
     generated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
+class SaveToEMR(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    case_sheet_id: str
+    saved_at: datetime
+    saved_by: str
+    save_type: str  # "final", "draft", "backup"
+    notes: str = ""
+
 class AIGenerateRequest(BaseModel):
     case_sheet_id: str
     prompt_type: str  # discharge_summary, red_flags, diagnosis_suggestions
