@@ -13,11 +13,15 @@ import { ArrowLeft, Save, Sparkles, AlertCircle } from 'lucide-react';
 
 export default function CaseSheetForm() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { id } = useParams();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('patient');
+  
+  // Get triage data from navigation state
+  const triageData = location.state || {};
 
   const [formData, setFormData] = useState({
     patient: {
