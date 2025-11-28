@@ -270,6 +270,37 @@ export default function CaseSheetForm() {
     }
   };
 
+  const handleSaveToEMR = async () => {
+    if (!id || id === 'new') {
+      toast.error('Please save the case first');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await api.post('/save-to-emr', null, {
+        params: {
+          case_sheet_id: id,
+          save_type: saveType,
+          save_date: saveDateTime,
+          notes: saveNotes
+        }
+      });
+      
+      toast.success(`Case saved to EMR successfully`, {
+        description: `Saved at ${new Date(response.data.saved_at).toLocaleString()}`
+      });
+      
+      setShowSaveModal(false);
+      setSaveNotes('');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to save to EMR');
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const updateNestedField = (section, field, value) => {
     setFormData(prev => ({
       ...prev,
