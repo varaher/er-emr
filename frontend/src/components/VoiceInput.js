@@ -64,6 +64,7 @@ export default function VoiceInput({ onTranscript, append = false, language = 'e
 
     recognition.onend = () => {
       setIsListening(false);
+      setIsProcessing(false);
     };
 
     recognitionRef.current = recognition;
