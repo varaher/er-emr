@@ -153,8 +153,12 @@ export default function DischargeSummary() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {!summary ? (
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {!caseData ? (
+          <div className="text-center py-12">
+            <p className="text-slate-600">Loading case data...</p>
+          </div>
+        ) : (
           <Card>
             <CardHeader>
               <CardTitle>No Discharge Summary Available</CardTitle>
