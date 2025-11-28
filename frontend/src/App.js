@@ -72,7 +72,7 @@ function App() {
               path="/discharge/:caseId"
               element={
                 <ProtectedRoute>
-                  <DischargeSummary />
+                  <DischargeSummaryNew />
                 </ProtectedRoute>
               }
             />
