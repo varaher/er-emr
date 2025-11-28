@@ -562,18 +562,52 @@ export default function CaseSheetForm() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Voice Input Info Banner */}
-        <div className="mb-6 p-4 bg-sky-50 border border-sky-200 rounded-lg">
-          <div className="flex items-start gap-3">
-            <Mic className="h-5 w-5 text-sky-600 mt-0.5 flex-shrink-0" />
-            <div className="flex-1">
-              <h3 className="text-sm font-semibold text-sky-900 mb-1">Voice Input Enabled</h3>
-              <p className="text-sm text-sky-700">
-                Click the <Mic className="h-3 w-3 inline" /> microphone icon next to any text field to use voice dictation. 
-                Speak clearly and the text will be transcribed automatically. You can mix voice and keyboard input.
-              </p>
+        {/* Info Banners */}
+        <div className="mb-6 space-y-3">
+          {/* Voice Input Banner */}
+          <div className="p-4 bg-sky-50 border border-sky-200 rounded-lg">
+            <div className="flex items-start gap-3">
+              <Mic className="h-5 w-5 text-sky-600 mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <h3 className="text-sm font-semibold text-sky-900 mb-1">Voice Input Enabled</h3>
+                <p className="text-sm text-sky-700">
+                  Click the <Mic className="h-3 w-3 inline" /> microphone icon next to any text field to use voice dictation. 
+                  Speak clearly and the text will be transcribed automatically. You can mix voice and keyboard input.
+                </p>
+              </div>
             </div>
           </div>
+
+          {/* AI Features Guide */}
+          {id && id !== 'new' && (
+            <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
+              <div className="flex items-start gap-3">
+                <Sparkles className="h-5 w-5 text-purple-600 mt-0.5 flex-shrink-0" />
+                <div className="flex-1">
+                  <h3 className="text-sm font-semibold text-purple-900 mb-2">AI Clinical Decision Support</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-purple-700">
+                    <div className="flex items-start gap-2">
+                      <AlertCircle className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="font-medium text-red-700">AI Red Flags</p>
+                        <p className="text-xs">Analyzes vitals and symptoms to identify critical findings requiring immediate attention. Use this to catch potentially missed emergency indicators.</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <Sparkles className="h-4 w-4 text-purple-500 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="font-medium text-purple-700">AI Diagnosis</p>
+                        <p className="text-xs">Suggests differential diagnoses based on presenting complaint, vitals, and examination. Use this to consider alternative diagnoses you might not have thought of.</p>
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-xs text-purple-600 mt-2 italic">
+                    💡 Tip: Fill in vitals, presenting complaint, and examination findings before using AI features for best results.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
