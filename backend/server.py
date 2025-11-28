@@ -57,6 +57,100 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
     user: UserResponse
 
+# Triage Models
+class TriageVitals(BaseModel):
+    hr: Optional[float] = None
+    bp_systolic: Optional[float] = None
+    bp_diastolic: Optional[float] = None
+    rr: Optional[float] = None
+    spo2: Optional[float] = None
+    temperature: Optional[float] = None
+    gcs_e: Optional[int] = None
+    gcs_v: Optional[int] = None
+    gcs_m: Optional[int] = None
+    capillary_refill: Optional[float] = None
+
+class TriageSymptoms(BaseModel):
+    # Airway symptoms
+    obstructed_airway: bool = False
+    facial_burns: bool = False
+    stridor: bool = False
+    
+    # Breathing symptoms
+    severe_respiratory_distress: bool = False
+    moderate_respiratory_distress: bool = False
+    mild_respiratory_symptoms: bool = False
+    cyanosis: bool = False
+    apnea: bool = False
+    
+    # Circulation symptoms
+    shock: bool = False
+    severe_bleeding: bool = False
+    cardiac_arrest: bool = False
+    chest_pain: bool = False
+    chest_pain_with_hypotension: bool = False
+    
+    # Neurological symptoms
+    seizure_ongoing: bool = False
+    seizure_controlled: bool = False
+    confusion: bool = False
+    focal_deficits: bool = False
+    lethargic_unconscious: bool = False
+    
+    # Trauma
+    major_trauma: bool = False
+    moderate_trauma: bool = False
+    minor_injury: bool = False
+    
+    # Other critical
+    severe_burns: bool = False
+    anaphylaxis: bool = False
+    suspected_stroke: bool = False
+    sepsis: bool = False
+    gi_bleed: bool = False
+    fever: bool = False
+    non_blanching_rash: bool = False
+    
+    # Pediatric specific
+    severe_dehydration: bool = False
+    moderate_dehydration: bool = False
+    
+    # General
+    abdominal_pain_severe: bool = False
+    abdominal_pain_moderate: bool = False
+    abdominal_pain_mild: bool = False
+    
+    other_symptoms: List[str] = []
+
+class TriageAssessment(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    age_group: str  # "adult" or "pediatric"
+    vitals: TriageVitals
+    symptoms: TriageSymptoms
+    mechanism: str = ""  # trauma, medical, etc.
+    
+    # Calculated fields
+    priority_level: int  # 1-5 (1=Red, 2=Orange, 3=Yellow, 4=Green, 5=Blue)
+    priority_color: str  # "red", "orange", "yellow", "green", "blue"
+    priority_name: str  # "IMMEDIATE", "VERY URGENT", "URGENT", "SEMI-URGENT", "NON-URGENT"
+    time_to_see: str  # "0 min", "5 min", "30 min", "60 min", "Time-permitted"
+    triage_reason: List[str] = []  # reasons for the assigned priority
+    
+    triaged_by: str
+    triaged_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    
+    # Link to case sheet
+    case_sheet_id: Optional[str] = None
+
+class TriageCreate(BaseModel):
+    age_group: str
+    vitals: TriageVitals
+    symptoms: TriageSymptoms
+    mechanism: str = ""
+    triaged_by: str
+
 class PatientInfo(BaseModel):
     uhid: Optional[str] = None
     name: str
