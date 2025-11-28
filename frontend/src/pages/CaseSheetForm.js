@@ -437,6 +437,65 @@ export default function CaseSheetForm() {
         </div>
       </header>
 
+      {/* AI Suggestion Modal */}
+      <Dialog open={showAIModal} onOpenChange={setShowAIModal}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl">{aiTitle}</DialogTitle>
+            <DialogDescription>
+              AI-powered clinical decision support based on your case data
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4">
+            {/* Explanation Banner */}
+            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm">
+              <div className="flex items-start gap-2">
+                <Sparkles className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-blue-900 font-medium mb-1">How to use this AI suggestion:</p>
+                  <ul className="text-blue-700 space-y-1 list-disc ml-4">
+                    <li>Review the AI analysis carefully</li>
+                    <li>Use as clinical decision support, not replacement for judgment</li>
+                    <li>Copy relevant points to your documentation</li>
+                    <li>Always verify with clinical findings</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* AI Response */}
+            <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
+              <div className="prose prose-slate max-w-none">
+                <pre className="whitespace-pre-wrap font-sans text-sm text-slate-700 leading-relaxed">
+                  {aiResponse}
+                </pre>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="flex items-center justify-between">
+            <div className="text-xs text-slate-500">
+              Powered by OpenAI GPT-5.1 • Always verify AI suggestions
+            </div>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  navigator.clipboard.writeText(aiResponse);
+                  toast.success('AI response copied to clipboard');
+                }}
+              >
+                Copy to Clipboard
+              </Button>
+              <Button onClick={() => setShowAIModal(false)}>
+                Close
+              </Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Save to EMR Modal */}
       <Dialog open={showSaveModal} onOpenChange={setShowSaveModal}>
         <DialogContent>
