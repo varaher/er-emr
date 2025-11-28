@@ -866,26 +866,60 @@ Be concise, specific, and clinically actionable. Focus on what the ER doctor sho
 """
     elif request.prompt_type == "diagnosis_suggestions":
         prompt = f"""
-You are an emergency medicine AI assistant. Suggest differential diagnoses based on the following case data.
+You are an expert emergency medicine physician. Provide DIFFERENTIAL DIAGNOSIS suggestions for this case.
 
-Presenting Complaint:
-{case['presenting_complaint']['text']}
-Duration: {case['presenting_complaint']['duration']}
+=== PATIENT PRESENTATION ===
+Chief Complaint: {case['presenting_complaint']['text']}
+Duration: {case['presenting_complaint'].get('duration', 'Not specified')}
+Onset: {case['presenting_complaint'].get('onset_type', 'Not specified')}
 
-Vitals:
-- HR: {case['vitals_at_arrival'].get('hr', 'N/A')}, BP: {case['vitals_at_arrival'].get('bp_systolic', 'N/A')}/{case['vitals_at_arrival'].get('bp_diastolic', 'N/A')}
-- RR: {case['vitals_at_arrival'].get('rr', 'N/A')}, SpO2: {case['vitals_at_arrival'].get('spo2', 'N/A')}%
-- Temperature: {case['vitals_at_arrival'].get('temperature', 'N/A')}°C
+Vital Signs:
+• HR: {case['vitals_at_arrival'].get('hr', 'N/A')} bpm
+• BP: {case['vitals_at_arrival'].get('bp_systolic', 'N/A')}/{case['vitals_at_arrival'].get('bp_diastolic', 'N/A')} mmHg  
+• RR: {case['vitals_at_arrival'].get('rr', 'N/A')} /min
+• SpO2: {case['vitals_at_arrival'].get('spo2', 'N/A')}%
+• Temperature: {case['vitals_at_arrival'].get('temperature', 'N/A')}°C
 
-History:
+History of Present Illness:
 {case['history'].get('hpi', 'Not documented')}
 
-Past Medical History: {', '.join(case['history'].get('past_medical', ['None']))}
+Past Medical History: {', '.join(case['history'].get('past_medical', ['None documented']))}
 
-Examination Findings:
-{case['examination'].get('general_notes', 'Not documented')}
+Examination:
+General: {case['examination'].get('general_notes', 'Not documented')}
+Respiratory: {case['examination'].get('respiratory_summary', 'Not documented')}
+CVS: {case['examination'].get('cvs_summary', 'Not documented')}
+Abdomen: {case['examination'].get('abdomen_summary', 'Not documented')}
 
-Provide a list of likely differential diagnoses in order of probability, with brief rationale for each.
+=== REQUIRED OUTPUT FORMAT ===
+
+🎯 MOST LIKELY DIAGNOSES (in order of probability):
+
+1. [Diagnosis Name]
+   📌 Why: [Key supporting features]
+   🔬 To confirm: [Specific tests/findings needed]
+   ⚡ If this: [Key management step]
+
+2. [Diagnosis Name]
+   📌 Why: [Key supporting features]
+   🔬 To confirm: [Specific tests/findings needed]
+   ⚡ If this: [Key management step]
+
+3. [Continue for 4-6 differential diagnoses]
+
+⚠️ DON'T MISS (Rule these out):
+• [Dangerous diagnosis 1]: [Why to consider / How to rule out]
+• [Dangerous diagnosis 2]: [Why to consider / How to rule out]
+
+📊 NEXT DIAGNOSTIC STEPS (Priority order):
+1. [Test/Exam]
+2. [Test/Exam]
+3. [Test/Exam]
+
+💡 CLINICAL PEARLS:
+[Any helpful clinical tips or patterns that apply to this case]
+
+Be specific, practical, and help the ER doctor think through the case systematically.
 """
     else:
         raise HTTPException(status_code=400, detail="Invalid prompt type")
