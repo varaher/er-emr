@@ -1532,6 +1532,77 @@ export default function CaseSheetForm() {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Prepare Discharge Summary Section */}
+              {id && id !== 'new' && (
+                <Card className="border-2 border-green-200 bg-green-50/30">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-green-900">
+                      <FileText className="h-5 w-5" />
+                      Prepare Discharge Summary
+                    </CardTitle>
+                    <CardDescription>
+                      Review and complete the discharge summary. All case sheet data is auto-filled. 
+                      Complete the treatment details and follow-up advice.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <Button 
+                        onClick={() => navigate(`/discharge/${id}`)}
+                        size="lg"
+                        className="w-full bg-green-600 hover:bg-green-700"
+                        data-testid="prepare-discharge-button"
+                      >
+                        <FileText className="h-5 w-5 mr-2" />
+                        Open Discharge Summary Editor
+                      </Button>
+                      
+                      <div className="p-4 bg-white rounded-lg border border-green-200">
+                        <h4 className="text-sm font-semibold text-slate-900 mb-3">Discharge Summary Will Include:</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-slate-700">
+                          <div className="flex items-center gap-2">
+                            <span className="text-green-600">✓</span>
+                            <span>Patient demographics</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-green-600">✓</span>
+                            <span>Vitals at arrival</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-green-600">✓</span>
+                            <span>Presenting complaint</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-green-600">✓</span>
+                            <span>History & examination</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-green-600">✓</span>
+                            <span>Investigation results</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-green-600">✓</span>
+                            <span>Provisional diagnosis</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-amber-600">⚠</span>
+                            <span className="text-amber-700 font-medium">Treatment given (You will fill)</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-amber-600">⚠</span>
+                            <span className="text-amber-700 font-medium">Follow-up advice (You will fill)</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-amber-600">⚠</span>
+                            <span className="text-amber-700 font-medium">Differential diagnoses (You will add)</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </TabsContent>
         </Tabs>
