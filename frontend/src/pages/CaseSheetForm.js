@@ -367,12 +367,16 @@ export default function CaseSheetForm() {
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="patient-name">Patient Name *</Label>
-                    <Input
+                    <Label htmlFor="patient-name" className="flex items-center gap-2">
+                      Patient Name *
+                      <Mic className="h-3 w-3 text-slate-400" />
+                    </Label>
+                    <VoiceTextInput
                       id="patient-name"
                       data-testid="input-patient-name"
                       value={formData.patient.name}
                       onChange={(e) => updateNestedField('patient', 'name', e.target.value)}
+                      placeholder="Enter patient name..."
                       required
                     />
                   </div>
