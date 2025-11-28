@@ -633,13 +633,19 @@ export default function CaseSheetForm() {
                 <CardContent>
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="complaint-text">Chief Complaint *</Label>
-                      <textarea
+                      <Label htmlFor="complaint-text" className="flex items-center gap-2">
+                        Chief Complaint *
+                        <span className="text-xs text-slate-500 flex items-center gap-1">
+                          <Mic className="h-3 w-3" />
+                          Voice enabled
+                        </span>
+                      </Label>
+                      <VoiceTextarea
                         id="complaint-text"
                         data-testid="textarea-complaint"
-                        className="flex min-h-[80px] w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
                         value={formData.presenting_complaint.text}
                         onChange={(e) => updateNestedField('presenting_complaint', 'text', e.target.value)}
+                        placeholder="Describe the chief complaint..."
                         required
                       />
                     </div>
