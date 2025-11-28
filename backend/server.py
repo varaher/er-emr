@@ -914,6 +914,62 @@ async def get_discharge_summary(case_sheet_id: str, current_user: UserResponse =
     
     return summary
 
+# Save to EMR endpoints
+@api_router.post("/save-to-emr")
+async def save_to_emr(case_sheet_id: str, save_type: str = "final", save_date: Optional[str] = None, notes: str = "", current_user: UserResponse = Depends(get_current_user)):
+    """Save case to EMR with timestamp"""
+    
+    # Check if case exists
+    case = await db.cases.find_one({"id": case_sheet_id})
+    if not case:
+        raise HTTPException(status_code=404, detail="Case not found")
+    
+    # Use provided date or current time
+    if save_date:
+        try:
+            saved_at = datetime.fromisoformat(save_date)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid date format")
+    else:
+        saved_at = datetime.now(timezone.utc)
+    
+    save_record = SaveToEMR(
+        case_sheet_id=case_sheet_id,
+        saved_at=saved_at,
+        saved_by=current_user.name,
+        save_type=save_type,
+        notes=notes
+    )
+    
+    doc = save_record.model_dump()
+    doc['saved_at'] = doc['saved_at'].isoformat()
+    
+    await db.emr_saves.insert_one(doc)
+    
+    # Update case status
+    await db.cases.update_one(
+        {"id": case_sheet_id},
+        {"$set": {"status": "completed" if save_type == "final" else "draft"}}
+    )
+    
+    return {
+        "message": f"Case saved to EMR successfully",
+        "save_id": save_record.id,
+        "saved_at": doc['saved_at'],
+        "save_type": save_type
+    }
+
+@api_router.get("/save-history/{case_sheet_id}")
+async def get_save_history(case_sheet_id: str, current_user: UserResponse = Depends(get_current_user)):
+    """Get save history for a case"""
+    saves = await db.emr_saves.find({"case_sheet_id": case_sheet_id}, {"_id": 0}).sort("saved_at", -1).to_list(100)
+    
+    for save in saves:
+        if isinstance(save['saved_at'], str):
+            save['saved_at'] = datetime.fromisoformat(save['saved_at'])
+    
+    return saves
+
 app.include_router(api_router)
 
 app.add_middleware(
