@@ -25,6 +25,9 @@ export default function CaseSheetForm() {
   const [saveDateTime, setSaveDateTime] = useState(new Date().toISOString().slice(0, 16));
   const [saveType, setSaveType] = useState('final');
   const [saveNotes, setSaveNotes] = useState('');
+  const [showAIModal, setShowAIModal] = useState(false);
+  const [aiResponse, setAiResponse] = useState('');
+  const [aiTitle, setAiTitle] = useState('');
   
   // Get triage data from navigation state
   const triageData = location.state || {};
