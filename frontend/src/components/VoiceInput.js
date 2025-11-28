@@ -26,9 +26,11 @@ export default function VoiceInput({ onTranscript, append = false, language = 'e
 
     recognition.onstart = () => {
       setIsListening(true);
+      setIsProcessing(false);
     };
 
     recognition.onresult = (event) => {
+      setIsProcessing(true);
       let finalTranscript = '';
       let interimTranscript = '';
 
@@ -43,6 +45,7 @@ export default function VoiceInput({ onTranscript, append = false, language = 'e
 
       if (finalTranscript) {
         onTranscript(finalTranscript.trim(), append);
+        setIsProcessing(false);
       }
     };
 
