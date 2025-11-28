@@ -317,6 +317,9 @@ class CaseSheetCreate(BaseModel):
     investigations: Optional[Investigations] = None
     treatment: Optional[Treatment] = None
     disposition: Optional[Disposition] = None
+    triage_id: Optional[str] = None
+    triage_priority: Optional[int] = None
+    triage_color: Optional[str] = None
     em_resident: str
     em_consultant: str = ""
 
