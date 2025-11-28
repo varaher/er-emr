@@ -409,10 +409,85 @@ export default function CaseSheetForm() {
                 <Save className="h-4 w-4 mr-2" />
                 {loading ? 'Saving...' : 'Save Case'}
               </Button>
+              {id && id !== 'new' && (
+                <Button 
+                  onClick={() => setShowSaveModal(true)} 
+                  variant="default"
+                  className="bg-green-600 hover:bg-green-700"
+                  data-testid="save-to-emr-button"
+                >
+                  <Database className="h-4 w-4 mr-2" />
+                  Save to EMR
+                </Button>
+              )}
             </div>
           </div>
         </div>
       </header>
+
+      {/* Save to EMR Modal */}
+      <Dialog open={showSaveModal} onOpenChange={setShowSaveModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Save to EMR</DialogTitle>
+            <DialogDescription>
+              Save this case to the Electronic Medical Record system with a timestamp
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="save-type">Save Type</Label>
+              <select
+                id="save-type"
+                className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+                value={saveType}
+                onChange={(e) => setSaveType(e.target.value)}
+              >
+                <option value="final">Final Save</option>
+                <option value="draft">Draft Save</option>
+                <option value="backup">Backup</option>
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="save-datetime" className="flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                Save Date & Time
+              </Label>
+              <Input
+                id="save-datetime"
+                type="datetime-local"
+                value={saveDateTime}
+                onChange={(e) => setSaveDateTime(e.target.value)}
+                className="w-full"
+              />
+              <p className="text-xs text-slate-500">Adjust the date/time if needed</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="save-notes">Notes (Optional)</Label>
+              <textarea
+                id="save-notes"
+                className="flex min-h-[80px] w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+                value={saveNotes}
+                onChange={(e) => setSaveNotes(e.target.value)}
+                placeholder="Add any notes about this save..."
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowSaveModal(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveToEMR} disabled={loading}>
+              <Database className="h-4 w-4 mr-2" />
+              {loading ? 'Saving...' : 'Save to EMR'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
