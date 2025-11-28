@@ -156,14 +156,24 @@ export default function Dashboard() {
         </div>
 
         {/* Actions */}
-        <div className="mb-6">
+        <div className="mb-6 flex gap-3">
+          <Button 
+            onClick={() => navigate('/triage')} 
+            size="lg"
+            className="bg-sky-600 hover:bg-sky-700"
+            data-testid="start-triage-button"
+          >
+            <AlertTriangle className="h-5 w-5 mr-2" />
+            Start Triage
+          </Button>
           <Button 
             onClick={() => navigate('/case/new')} 
             size="lg"
+            variant="outline"
             data-testid="create-new-case-button"
           >
             <Plus className="h-5 w-5 mr-2" />
-            Create New Case
+            Create Case (Skip Triage)
           </Button>
         </div>
 
