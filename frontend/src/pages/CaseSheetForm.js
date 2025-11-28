@@ -1015,46 +1015,58 @@ export default function CaseSheetForm() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="respiratory-summary">Respiratory System</Label>
-                    <textarea
+                    <Label htmlFor="respiratory-summary" className="flex items-center gap-2">
+                      Respiratory System
+                      <Mic className="h-3 w-3 text-slate-400" />
+                    </Label>
+                    <VoiceTextarea
                       id="respiratory-summary"
                       data-testid="textarea-respiratory"
-                      className="flex min-h-[80px] w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
                       value={formData.examination.respiratory_summary}
                       onChange={(e) => updateNestedField('examination', 'respiratory_summary', e.target.value)}
+                      placeholder="Document respiratory examination findings..."
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="cvs-summary">Cardiovascular System</Label>
-                    <textarea
+                    <Label htmlFor="cvs-summary" className="flex items-center gap-2">
+                      Cardiovascular System
+                      <Mic className="h-3 w-3 text-slate-400" />
+                    </Label>
+                    <VoiceTextarea
                       id="cvs-summary"
                       data-testid="textarea-cvs"
-                      className="flex min-h-[80px] w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
                       value={formData.examination.cvs_summary}
                       onChange={(e) => updateNestedField('examination', 'cvs_summary', e.target.value)}
+                      placeholder="Document cardiovascular examination findings..."
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="abdomen-summary">Abdomen</Label>
-                    <textarea
+                    <Label htmlFor="abdomen-summary" className="flex items-center gap-2">
+                      Abdomen
+                      <Mic className="h-3 w-3 text-slate-400" />
+                    </Label>
+                    <VoiceTextarea
                       id="abdomen-summary"
                       data-testid="textarea-abdomen"
-                      className="flex min-h-[80px] w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
                       value={formData.examination.abdomen_summary}
                       onChange={(e) => updateNestedField('examination', 'abdomen_summary', e.target.value)}
+                      placeholder="Document abdominal examination findings..."
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="cns-summary">Central Nervous System</Label>
-                    <textarea
+                    <Label htmlFor="cns-summary" className="flex items-center gap-2">
+                      Central Nervous System
+                      <Mic className="h-3 w-3 text-slate-400" />
+                    </Label>
+                    <VoiceTextarea
                       id="cns-summary"
                       data-testid="textarea-cns"
-                      className="flex min-h-[80px] w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
                       value={formData.examination.cns_summary}
                       onChange={(e) => updateNestedField('examination', 'cns_summary', e.target.value)}
+                      placeholder="Document neurological examination findings..."
                     />
                   </div>
                 </div>
