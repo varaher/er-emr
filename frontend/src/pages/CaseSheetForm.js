@@ -260,14 +260,19 @@ export default function CaseSheetForm() {
         prompt_type: type
       });
       
-      toast.success('AI suggestion generated', {
-        description: response.data.response.substring(0, 100) + '...'
-      });
-
-      // Show AI response in a modal or alert
-      alert(response.data.response);
+      // Set title based on type
+      const titles = {
+        'red_flags': '🚨 AI Red Flags & Critical Findings',
+        'diagnosis_suggestions': '💡 AI Differential Diagnosis Suggestions'
+      };
+      
+      setAiTitle(titles[type] || 'AI Suggestion');
+      setAiResponse(response.data.response);
+      setShowAIModal(true);
+      
+      toast.success('AI analysis complete');
     } catch (error) {
-      toast.error('AI suggestion failed');
+      toast.error(error.response?.data?.detail || 'AI suggestion failed');
       console.error(error);
     } finally {
       setAiLoading(false);
