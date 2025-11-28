@@ -20,6 +20,10 @@ export default function CaseSheetForm() {
   const [loading, setLoading] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('patient');
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [saveDateTime, setSaveDateTime] = useState(new Date().toISOString().slice(0, 16));
+  const [saveType, setSaveType] = useState('final');
+  const [saveNotes, setSaveNotes] = useState('');
   
   // Get triage data from navigation state
   const triageData = location.state || {};
