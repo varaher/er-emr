@@ -96,7 +96,7 @@ class PresentingComplaint(BaseModel):
     course: str
 
 class PrimaryAssessment(BaseModel):
-    airway_status: str
+    airway_status: str = "Patent"
     airway_obstruction: List[str] = []
     airway_interventions: List[str] = []
     airway_notes: str = ""
