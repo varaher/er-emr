@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
 import Login from "@/pages/Login";
 import Dashboard from "@/pages/Dashboard";
+import Triage from "@/pages/Triage";
 import CaseSheetForm from "@/pages/CaseSheetForm";
 import DischargeSummary from "@/pages/DischargeSummary";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
