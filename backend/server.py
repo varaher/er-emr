@@ -474,8 +474,8 @@ Provisional Diagnosis:
 {', '.join(case['treatment'].get('provisional_diagnoses', ['Not documented']))}
 
 Disposition:
-{case.get('disposition', {}).get('type', 'Not documented')}
-Condition: {case.get('disposition', {}).get('condition_at_discharge', 'Not documented')}
+{case.get('disposition', {}).get('type', 'Not documented') if case.get('disposition') else 'Not documented'}
+Condition: {case.get('disposition', {}).get('condition_at_discharge', 'Not documented') if case.get('disposition') else 'Not documented'}
 
 Please generate a professional, well-structured discharge summary in standard medical format.
 """
