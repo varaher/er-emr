@@ -919,13 +919,20 @@ export default function CaseSheetForm() {
               <CardContent>
                 <div className="space-y-6">
                   <div className="space-y-2">
-                    <Label htmlFor="hpi">History of Present Illness</Label>
-                    <textarea
+                    <Label htmlFor="hpi" className="flex items-center gap-2">
+                      History of Present Illness
+                      <span className="text-xs text-slate-500 flex items-center gap-1">
+                        <Mic className="h-3 w-3" />
+                        Voice enabled
+                      </span>
+                    </Label>
+                    <VoiceTextarea
                       id="hpi"
                       data-testid="textarea-hpi"
-                      className="flex min-h-[120px] w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
                       value={formData.history.hpi}
                       onChange={(e) => updateNestedField('history', 'hpi', e.target.value)}
+                      placeholder="Document the history of present illness..."
+                      rows={6}
                     />
                   </div>
 
