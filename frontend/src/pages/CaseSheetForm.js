@@ -1463,19 +1463,11 @@ export default function CaseSheetForm() {
                         data-testid="input-provisional-diagnoses"
                         value={formData.treatment.provisional_diagnoses.join(', ')}
                         onChange={(e) => updateNestedField('treatment', 'provisional_diagnoses', e.target.value.split(',').map(s => s.trim()).filter(s => s))}
-                        placeholder="Enter diagnoses separated by commas"
+                        placeholder="Enter provisional diagnoses separated by commas"
                       />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="differential-diagnoses">Differential Diagnoses</Label>
-                      <Input
-                        id="differential-diagnoses"
-                        data-testid="input-differential-diagnoses"
-                        value={formData.treatment.differential_diagnoses.join(', ')}
-                        onChange={(e) => updateNestedField('treatment', 'differential_diagnoses', e.target.value.split(',').map(s => s.trim()).filter(s => s))}
-                        placeholder="Enter differential diagnoses separated by commas"
-                      />
+                      <p className="text-xs text-slate-500">
+                        💡 Differential diagnoses will be documented in the discharge summary
+                      </p>
                     </div>
                   </div>
                 </CardContent>
