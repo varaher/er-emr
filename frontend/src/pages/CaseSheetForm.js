@@ -1142,14 +1142,17 @@ export default function CaseSheetForm() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="intervention-notes">Treatment Notes</Label>
-                      <textarea
+                      <Label htmlFor="intervention-notes" className="flex items-center gap-2">
+                        Treatment Notes
+                        <Mic className="h-3 w-3 text-slate-400" />
+                      </Label>
+                      <VoiceTextarea
                         id="intervention-notes"
                         data-testid="textarea-intervention-notes"
-                        className="flex min-h-[100px] w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
                         value={formData.treatment.intervention_notes}
                         onChange={(e) => updateNestedField('treatment', 'intervention_notes', e.target.value)}
                         placeholder="Detailed treatment plan, medications, dosages..."
+                        rows={5}
                       />
                     </div>
 
