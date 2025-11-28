@@ -213,6 +213,17 @@ export default function Dashboard() {
                           <h3 className="font-semibold text-slate-900">
                             {caseItem.patient.name}
                           </h3>
+                          {caseItem.triage_color && (
+                            <Badge className={`
+                              ${caseItem.triage_color === 'red' ? 'bg-red-600 text-white' : ''}
+                              ${caseItem.triage_color === 'orange' ? 'bg-orange-500 text-white' : ''}
+                              ${caseItem.triage_color === 'yellow' ? 'bg-yellow-500 text-black' : ''}
+                              ${caseItem.triage_color === 'green' ? 'bg-green-600 text-white' : ''}
+                              ${caseItem.triage_color === 'blue' ? 'bg-blue-600 text-white' : ''}
+                            `}>
+                              P{caseItem.triage_priority}
+                            </Badge>
+                          )}
                           <Badge className={getStatusColor(caseItem.status)}>
                             {caseItem.status}
                           </Badge>
