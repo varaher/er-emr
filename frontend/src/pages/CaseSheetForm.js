@@ -342,6 +342,22 @@ export default function CaseSheetForm() {
     }
   };
 
+  const handleDownloadPDF = () => {
+    if (!id || id === 'new') {
+      toast.error('Please save the case first before downloading PDF');
+      return;
+    }
+
+    try {
+      const pdf = generateCaseSheetPDF(formData);
+      pdf.save(`Case_Sheet_${formData.patient.name}_${new Date().toISOString().split('T')[0]}.pdf`);
+      toast.success('PDF downloaded successfully');
+    } catch (error) {
+      console.error('PDF generation error:', error);
+      toast.error('Failed to generate PDF');
+    }
+  };
+
   const handleSaveToEMR = async () => {
     if (!id || id === 'new') {
       toast.error('Please save the case first');
