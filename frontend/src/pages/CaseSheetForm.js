@@ -534,11 +534,59 @@ export default function CaseSheetForm() {
                 </pre>
               </div>
             </div>
+
+            {/* Sources Section */}
+            {aiSources && aiSources.length > 0 && (
+              <div className="mt-6 border-t pt-4">
+                <h3 className="text-sm font-semibold text-slate-900 mb-3 flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-blue-600" />
+                  📚 Clinical References & Sources
+                </h3>
+                <div className="space-y-3">
+                  {aiSources.map((source, index) => (
+                    <div key={index} className="bg-white rounded-lg p-3 border border-slate-200 hover:border-blue-300 transition-colors">
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-semibold">
+                          {index + 1}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <a 
+                            href={source.url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline block"
+                          >
+                            {source.title}
+                          </a>
+                          <p className="text-xs text-slate-600 mt-1 line-clamp-2">
+                            {source.snippet}
+                          </p>
+                          <a 
+                            href={source.url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-xs text-slate-400 hover:text-slate-600 mt-1 inline-flex items-center gap-1"
+                          >
+                            {source.url}
+                            <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-slate-500 mt-3 italic">
+                  💡 These references provide evidence-based context for the AI analysis. Always consult primary sources and current institutional protocols.
+                </p>
+              </div>
+            )}
           </div>
 
           <DialogFooter className="flex items-center justify-between">
             <div className="text-xs text-slate-500">
-              Powered by OpenAI GPT-5.1 • Always verify AI suggestions
+              Powered by OpenAI GPT-5.1 • Evidence-based clinical references • Always verify AI suggestions
             </div>
             <div className="flex gap-2">
               <Button 
