@@ -336,7 +336,8 @@ export const generateCaseSheetPDF = (caseData) => {
 };
 
 export const generateDischargeSummaryPDF = (summaryData, caseData) => {
-  const doc = new jsPDF();
+  try {
+    const doc = new jsPDF();
   
   // Header
   doc.setFontSize(18);
