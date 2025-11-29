@@ -4,70 +4,84 @@
 The user wants to build a full-stack application named **ER-EMR** designed for Emergency Room doctors. The primary goal is to simplify and automate ER workflows.
 
 **PRODUCT REQUIREMENTS:**
-1.  **AI-Ready Case Sheet:** A unified, digital case sheet with smart UI elements (checkboxes, dropdowns, expandable notes).
-2.  **Data Flow Automation:** Data entered in the case sheet should automatically populate the discharge summary to eliminate redundant data entry.
-3.  **EMR Integration:** The application should produce an EMR-integratable JSON structure for easy integration with existing hospital systems.
+1.  **AI-Ready Case Sheet:** A unified, digital case sheet with smart UI elements.
+2.  **Data Flow Automation:** Data entered in the case sheet should automatically populate the discharge summary.
+3.  **EMR Integration:** The application should produce an EMR-integratable JSON structure.
 4.  **AI Assistant Features:**
-    *   Flag red flags based on vital signs.
+    *   Flag red flags based on vital signs and provide sources.
     *   Interpret clinical data (ABG/ECG/POCUS).
-    *   Auto-fill documentation and generate discharge/referral summaries.
+    *   Auto-fill documentation from continuous voice recording.
     *   Provide a Documentation Score for completeness.
-5.  **Triage System:** Implement a 5-level color-coded triage system (for both Adults and Pediatrics) based on user-provided guidelines to prioritize patients.
-6.  **Voice-to-Text:** Integrate voice recognition for hands-free note-taking in various sections of the case sheet.
+5.  **Triage System:** A 5-level color-coded triage system.
+6.  **Voice-to-Text:** Integrate voice recognition (including Indian languages) for hands-free note-taking.
 7.  **Workflow Enhancements:**
-    *   Auto-populate vitals from triage.
-    *   Add an Observation in ER disposition option.
-    *   Implement a Save to EMR feature with an adjustable timestamp and audit trail.
-    *   Improve the UX for AI features to make them more actionable and clear.
-    *   Provide details for investigation panels and a reference for normal vital signs.
-    *   Restructure the case sheet and discharge summary to move differential diagnosis to the summary and make the summary editable.
-8.  **Latest Request:** Review newly uploaded images of a case sheet format, incorporate any missing fields (especially under Systemic Examination), and refactor UI elements to a Normal/Abnormal pattern, where selecting Abnormal reveals more detailed options.
+    *   **Immutability:** Lock case sheets after saving for medico-legal security, with an option to add addendums.
+    *   **Custom Timestamps:** Allow doctors to select a custom save date/time (in IST) within a 2-hour window.
+    *   **Document Downloads:** Provide PDF and Word download options for case sheets and discharge summaries.
+    *   **Auto-Save:** Automatically save form progress.
+    *   **Navigation:** Implement Next and Back buttons for tabbing through the case sheet.
+    *   **UI/UX:** Improve save confirmations and overall user flow.
+8.  **Discharge Summary Automation:** Auto-populate the discharge summary with relevant data from the case sheet (e.g., presenting complaints, examination findings, course in ER).
 
 ### **User's preferred language**:
 English
 
 ### **what currently exists?**
-A functional full-stack application (React frontend, FastAPI backend, MongoDB) has been developed. Key features include JWT-based user authentication, a 5-level triage system, a comprehensive multi-tab case sheet form, OpenAI GPT-5.1 integration for AI-driven Red Flags and Differential Diagnosis, and voice-to-text capabilities using the Web Speech API. The application also supports auto-population of data from triage to the case sheet and from the case sheet to an editable discharge summary. A Save to EMR feature with an audit log is also implemented.
+A comprehensive full-stack application (React/FastAPI/MongoDB) for ER doctors. It includes user authentication, a multi-level triage system, a detailed multi-tab case sheet, and an editable discharge summary. Major features implemented are AI-driven suggestions with sources, extensive voice-to-text capabilities (including continuous recording and Indian language support), auto-saving, case locking with addendums, custom IST-based timestamps, and Next/Back tab navigation. The UI has been refined with Normal/Abnormal toggles and expanded investigation panels. PDF and Word download functionalities have been added but are currently under review.
 
 ### **Last working item**:
-*   **Last item agent was working:** The agent was analyzing new requirements from the user. The user uploaded four images of a desired case sheet format and requested updates.
-*   **Status:** NOT STARTED
-*   **Agent Testing Done:** N/A
+*   **Last item agent was working:** The agent was addressing a user report that PDF generation was failing. The implemented solution was to disable download buttons (both PDF and the newly-added Word format) for unsaved cases and to add more robust error handling.
+*   **Status:** IN PROGRESS
+*   **Agent Testing Done:** N
 *   **Which testing method agent to use?** Frontend testing agent
-*   **User Testing Done:** N/A
+*   **User Testing Done:** N
 
 ### **All Pending/In progress Issue list**:
-There are no outstanding bugs. The work is focused on implementing the next set of user-requested features.
+*   **Issue 1: PDF/Word Download Functionality (P0)**
+    *   **Description:** The user reported failed to generate pdf. The agent's fix, which restricts downloads to saved cases, has been implemented but not tested. The functionality remains unverified.
+    *   **Status:** IN PROGRESS
+    *   **Is recurring issue?** Y
+
+### Issues Detail:
+*   **Issue 1: PDF/Word Download Functionality**
+    *   **Attempted fixes:** The agent previously refactored  to be more defensive against null values. The latest fix involves disabling the download buttons in  and  for new cases (where ).
+    *   **Next debug checklist:**
+        1.  Create a new case and confirm the Download as PDF and Download as Word buttons are disabled.
+        2.  Save the case.
+        3.  Confirm the download buttons are now enabled.
+        4.  Attempt to download both the PDF and Word documents.
+        5.  If downloads fail, inspect browser console errors and review the logic in  and  to ensure all data fields are safely accessed.
+    *   **Why fix this issue and what will be achieved with the fix?** This is a critical feature for hospitals without EMR systems, allowing them to maintain physical records.
+    *   **Should Test frontend/backend/both after fix?** Frontend
 
 ### **In progress Task List**:
-There are no tasks currently in progress.
+There are no other tasks currently in progress.
 
 ### **Upcoming and Future Tasks**
+
 **Upcoming Tasks:**
-*   **P0: Update Case Sheet from User-Provided Images:**
-    *   Analyze the 4 new images of the case sheet format provided by the user.
-    *   Compare the fields with the existing case sheet in  and add any missing items, particularly under the Systemic Examination section.
-    *   Refactor the UI for examination sections to a Normal/Abnormal two-step input pattern. If a user selects Abnormal, the detailed checklist of findings should become visible. This will require frontend state management changes and possible backend model adjustments in .
+*   **P1: Implement Frontend for Timestamp & Addendum Features:** The backend logic for custom timestamps and addendums is complete, but the frontend modals and UI to support this are missing. This needs to be added to .
+*   **P2: Complete Discharge Summary Auto-Population:** The user requested full auto-population of the discharge summary (presenting complaint, physical exam, course in ER). This was planned but needs to be fully implemented and verified in  and .
+*   **P3: AI-powered Interpretation:** Implement AI interpretation for clinical data like ABG, ECG, and POCUS reports.
 
 **Future Tasks:**
-*   P1: Implement a Documentation Score to check for case sheet completeness.
-*   P2: Dynamically adjust the case sheet's documentation depth based on the triage level (Red, Orange, Yellow, etc.).
-*   P2: Implement AI-powered interpretation for clinical data like ABG, ECG, and POCUS reports.
-*   P3: Develop a feature to auto-generate referral letters.
+*   P4: Implement a Documentation Score to check for case sheet completeness.
+*   P5: Dynamically adjust the case sheet's documentation depth based on the triage level.
+*   P6: Develop a feature to auto-generate referral letters.
 
 ### **Completed work in this session**
-*   **Application Foundation:** Built the initial full-stack React/FastAPI/MongoDB application.
-*   **Authentication:** Implemented secure JWT-based user registration and login.
-*   **Triage System:** Created a 5-level priority calculation engine for both adult and pediatric patients.
-*   **Case Sheet Implementation:** Developed a comprehensive 11-section digital case sheet.
-*   **AI Clinical Support:** Integrated OpenAI GPT-5.1 to provide Red Flags and Differential Diagnosis suggestions with improved, actionable UI.
-*   **Voice-to-Text Feature:** Added hands-free documentation capabilities to all major text fields using the Web Speech API.
-*   **Discharge Summary Workflow:** Created a new, editable discharge summary page that auto-populates data from the case sheet, with specific sections left blank for the doctor to complete.
-*   **UX & Workflow Enhancements:** Added features like auto-filling vitals from triage, Observation in ER disposition, Save to EMR with adjustable timestamps, and details for investigation panels.
-*   **Documentation:** Created  and  for users.
+-   **Case Sheet Overhaul:** Added numerous fields from user images, implemented Normal/Abnormal UI, and added Additional Notes to all sections.
+-   **AI Enhancements:** Integrated source attribution for AI-generated red flags and diagnoses.
+-   **Case Immutability:** Implemented case locking upon save, with a confirmation modal and a read-only view for locked cases.
+-   **Addendum & Timestamps (Backend):** Added backend support for adding notes to locked cases and saving with a custom date/time in IST.
+-   **Auto-Save:** Implemented a  hook for auto-saving form data.
+-   **UI/UX Improvements:** Added Next and Back buttons for tab navigation and improved save confirmation pop-ups.
+-   **Voice Recognition:** Added support for all Indian languages and improved microphone permission handling.
+-   **Continuous Voice Recording:** Created a feature to continuously record audio and use AI to auto-populate the case sheet.
+-   **Document Generation (Initial):** Added the foundational code for PDF and Word downloads.
 
 ### **Earlier issues found/mentioned but not fixed**
-*   None. The agent has resolved all identified issues during development.
+*   None.
 
 ### **Known issue recurrence from previous fork**
 *   None.
@@ -76,67 +90,73 @@ There are no tasks currently in progress.
 
 
 ### **Key Technical Concepts**
-*   **Backend:** FastAPI, Pydantic for data modeling, Motor for asynchronous MongoDB access, JWT for auth.
-*   **Frontend:** React, React Router for navigation, Tailwind CSS and Shadcn UI for styling, Axios for API calls, Web Speech API for voice input.
-*   **AI:**  library for secure calls to OpenAI GPT-5.1.
+*   **Backend:** FastAPI, Pydantic, Motor (MongoDB), JWT,  for timezones.
+*   **Frontend:** React, React Router, Tailwind CSS, Shadcn UI, Axios, , , Web Speech API.
+*   **AI:**  library for OpenAI GPT-5.1 calls.
 *   **Database:** MongoDB.
 
 ### **key DB schema**
-*   **users:** Stores user credentials and roles.
-*   **cases:** A comprehensive document storing all information related to a single patient case, including patient info, vitals, assessments, history, and treatment.
-*   **triage_assessments:** Stores the initial triage data, including vitals, symptoms, and the calculated priority.
-*   **emr_saves:** Audit log for when a case is saved, including timestamp, user, and save type.
-*   **discharge_summaries:** Stores generated discharge summaries linked to a case.
+*   **cases:**
+    *   : boolean (to prevent edits after saving).
+    *   : list (stores addendum objects with user, notes, and timestamp).
+    *   All sub-documents (, , ) have been significantly expanded.
+*   **addendums (sub-document):** 
 
 ### **changes in tech stack**
-*   None. The stack has remained consistent (React, FastAPI, MongoDB).
+*   **Frontend:** Added , , and  for document generation.
+*   **Backend:** Added  for timezone handling.
 
 ### **All files**
-*   **/app/frontend/src/pages/CaseSheetForm.js**: The most heavily modified file, containing the entire case sheet UI and logic. It will be the focus of the next task.
-*   **/app/backend/server.py**: Contains all backend logic, including API endpoints and Pydantic models for all features. It may need updates for the next task.
-*   **/app/frontend/src/pages/DischargeSummaryNew.js**: A newly created page for the editable discharge summary.
-*   **/app/frontend/src/pages/Triage.js**: The UI for the triage assessment.
-*   **/app/frontend/src/components/VoiceInput.js**: The core component for the voice-to-text feature.
+*   **/app/frontend/src/pages/CaseSheetForm.js**: The core component, now over 2900 lines. Handles state for the entire case, auto-saving, navigation, locking, and download logic.
+*   **/app/backend/server.py**: Contains all backend logic. Updated with endpoints for addendums, transcript parsing, and custom timestamps, plus locking checks.
+*   **/app/frontend/src/utils/pdfGenerator.js**: Utility for creating PDFs, heavily modified for robustness.
+*   **/app/frontend/src/utils/wordGenerator.js**: New utility for creating Word documents.
+*   **/app/frontend/src/components/ContinuousVoiceRecorder.js**: New component for continuous voice capture and processing.
+*   **/app/backend/utils/time_utils.py**: New utility for handling Indian Standard Time.
 
 ### **Areas that need refactoring**:
-*   **/app/frontend/src/pages/CaseSheetForm.js**: This component has grown very large. It should be broken down into smaller, more manageable sub-components for each section of the case sheet (e.g., , ).
-*   **/app/backend/server.py**: This single file now contains the entire backend application. For better maintainability, it should be refactored into a standard FastAPI project structure, with API routers, models, and business logic separated into different modules.
+*   **/app/frontend/src/pages/CaseSheetForm.js**: This file is excessively large and complex. It urgently needs to be broken down into smaller, manageable components (e.g., one component per tab) and custom hooks (e.g., , ).
+*   **/app/backend/server.py**: This monolithic file should be refactored into a standard FastAPI project structure with separate modules for routes, models, and services.
 
 ### **key api endpoints**
-*    (register, login, me)
-*    (POST, GET)
-*    (GET, POST, PUT, DELETE)
-*    (POST) - For Red Flags and Diagnosis suggestions.
-*    (POST)
-*    (GET)
+*    (PUT): Updated to check for  status and handle a custom .
+*    (POST): New endpoint to add an addendum to a locked case.
+*    (POST): New endpoint for AI-powered parsing of voice transcripts.
 
 ### **Critical Info for New Agent**
-*   **Prioritize the user's latest request:** The immediate task is to update the  component based on the four new images provided by the user. This involves adding missing fields and implementing the Normal/Abnormal UI pattern.
-*   **File Complexity:** Be aware that  and  are very large. Navigate them carefully. Consider refactoring them after implementing the current user request if time permits.
-*   **User Interaction:** The user is highly responsive and provides detailed, specific feedback. Expect further iterations and be prepared to build features exactly as described.
+*   Your immediate priority is to test and fix the PDF/Word download functionality. The latest unimplemented change was to disable download buttons for unsaved cases.
+*   The  file is extremely large and fragile. Make edits surgically and consider it a high-priority candidate for refactoring after the current issue is resolved.
+*   Several backend features (custom timestamps, addendums) are awaiting their frontend UI implementation. The agent noted this in their thoughts before being interrupted.
 
 ### **documents created in this job**
 *   
 *   
+*   
+*   
+*   
+*   
+*   
 
 ### **Last 5 User Messages and any pending user messages**
-1.  **AI Features UX Improvement:** User requested better clarity and UX for AI diagnosis and red flag features. **Status: Completed.**
-2.  **Case Sheet & Discharge Summary Enhancements:** User asked for investigation details, a normal vitals reference, moving differential diagnosis to the summary, and making the discharge summary editable. **Status: Completed.**
-3.  **Request for Full Project Summary:** User asked for a complete summary of all work done. **Status: Completed.**
-4.  **New Case Sheet Requirements:** User uploaded 4 images with an updated case sheet format and requested that missing points be added and that examination sections use a Normal/Abnormal dropdown pattern. **Status: Pending (This is the next task).**
+1.  **Request (Msg 390):** Add auto-save, Next/Back buttons, better save popups, and auto-populate the discharge summary. **Status: Partially Completed.** Auto-save and navigation were added, but discharge summary auto-population is incomplete.
+2.  **Request (Msg 411):** Next/Back buttons are still missing, save confirmation needs improvement. **Status: Completed.**
+3.  **Request (Msg 460):** failed to generate pdf error. Suggested allowing downloads only after saving and adding a Word format option. **Status: In Progress.** This is the current .
+4.  **Request (Msg 465):** User asks to update the Discharge Summary page with the same download improvements. **Status: In Progress.** This was part of the agent's last action.
+5.  **Request (Msg 467):** User confirmation on the plan. **Status: Acknowledged.**
 
 ### **Project Health Check:**
-*   **Broken:** None. The application was compiling and running successfully at the end of the last session.
+*   **Broken:** PDF/Word download functionality is unverified and was reported as failing by the user.
 *   **Mocked:** None.
 
 ### **Testing status**
 *   **Testing agent used after significant changes:** YES
 *   **Troubleshoot agent used after agent stuck in loop:** NO
 *   **Test files created:** None
-*   **Known regressions:** None
+*   **Known regressions:** The PDF generation feature has been a recurring issue.
 
 ### **Credentials to test flow:**
 The application has open registration. A new user can be created for testing (e.g., email: , password: ).
 
 ### **What agent forgot to execute**
-The agent did not save the detailed project summary it generated in  to a separate markdown file for easy future reference. The immediate next step is to start working on the user's latest request from .</analysis>
+*   **Frontend UI for Timestamps & Addendums:** The agent built the backend for custom save timestamps and the addendum feature but never created the corresponding frontend modals and UI in .
+*   **Discharge Summary Auto-Population:** The user's request to auto-populate the discharge summary with presenting complaints, examination findings, and a course in ER summary was acknowledged but not fully implemented.</analysis>
