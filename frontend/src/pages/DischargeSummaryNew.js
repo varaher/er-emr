@@ -76,6 +76,8 @@ export default function DischargeSummaryNew() {
 
   const handleDownloadPDF = () => {
     try {
+      toast.info('Generating discharge summary PDF...', { duration: 2000 });
+      
       const summaryData = {
         presenting_complaint: caseData.presenting_complaint?.text || 'N/A',
         clinical_course: caseData.history?.hpi || 'N/A',
@@ -87,11 +89,128 @@ export default function DischargeSummaryNew() {
       };
 
       const pdf = generateDischargeSummaryPDF(summaryData, caseData);
-      pdf.save(`Discharge_Summary_${caseData.patient.name}_${new Date().toISOString().split('T')[0]}.pdf`);
-      toast.success('PDF downloaded successfully');
+      const fileName = `DischargeSummary_${caseData.patient?.name || 'Patient'}_${new Date().toISOString().split('T')[0]}.pdf`;
+      pdf.save(fileName);
+      toast.success('✅ Discharge Summary PDF Downloaded!', {
+        description: `File: ${fileName}`,
+        duration: 3000
+      });
     } catch (error) {
       console.error('PDF generation error:', error);
-      toast.error('Failed to generate PDF');
+      toast.error('❌ Failed to generate PDF', {
+        description: error.message || 'Please check console for details',
+        duration: 5000
+      });
+    }
+  };
+
+  const handleDownloadWord = () => {
+    try {
+      toast.info('Generating Word document...', { duration: 2000 });
+      
+      const get = (obj, path, defaultValue = 'N/A') => {
+        try {
+          const value = path.split('.').reduce((acc, part) => acc && acc[part], obj);
+          return value !== null && value !== undefined && value !== '' ? value : defaultValue;
+        } catch {
+          return defaultValue;
+        }
+      };
+
+      const content = `
+DISCHARGE SUMMARY
+(Print on Hospital Letterhead)
+Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
+
+================================================================================
+
+PATIENT INFORMATION
+================================================================================
+UHID:                  ${get(caseData, 'patient.uhid')}
+Name:                  ${get(caseData, 'patient.name')}
+Age/Sex:               ${get(caseData, 'patient.age')} / ${get(caseData, 'patient.sex')}
+Admission Date:        ${caseData.patient?.arrival_datetime ? new Date(caseData.patient.arrival_datetime).toLocaleDateString('en-IN') : 'N/A'}
+Discharge Date:        ${new Date().toLocaleDateString('en-IN')}
+
+================================================================================
+
+PRESENTING COMPLAINT
+================================================================================
+${dischargeData.presenting_complaint || caseData.presenting_complaint?.text || 'N/A'}
+
+================================================================================
+
+CLINICAL COURSE / COURSE IN ER
+================================================================================
+${dischargeData.clinical_course || caseData.history?.hpi || 'N/A'}
+
+================================================================================
+
+INVESTIGATIONS & RESULTS
+================================================================================
+${dischargeData.investigations_summary || caseData.investigations?.panels_selected?.join(', ') || 'N/A'}
+
+================================================================================
+
+FINAL DIAGNOSIS / DIFFERENTIAL DIAGNOSES
+================================================================================
+${dischargeData.differential_diagnoses || 'N/A'}
+
+================================================================================
+
+TREATMENT GIVEN
+================================================================================
+${dischargeData.treatment_given || caseData.treatment?.interventions?.join(', ') || 'N/A'}
+
+================================================================================
+
+CONDITION AT DISCHARGE
+================================================================================
+${dischargeData.discharge_condition || 'Stable'}
+
+================================================================================
+
+DISCHARGE INSTRUCTIONS & FOLLOW-UP
+================================================================================
+Medications: ${dischargeData.medications || 'N/A'}
+
+Follow-up Advice: ${dischargeData.follow_up_advice || 'N/A'}
+
+Follow-up Date: ${dischargeData.follow_up_date || 'N/A'}
+
+================================================================================
+
+SIGNATURES
+================================================================================
+
+_______________________              _______________________
+EM Resident Signature                EM Consultant Signature
+
+Dr. ${get(caseData, 'em_resident')}              Dr. ${get(caseData, 'em_consultant')}
+
+
+Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
+      `.trim();
+
+      const blob = new Blob([content], { type: 'application/msword' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `DischargeSummary_${caseData.patient?.name || 'Patient'}_${new Date().toISOString().split('T')[0]}.doc`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      toast.success('✅ Word Document Downloaded!', {
+        duration: 3000
+      });
+    } catch (error) {
+      console.error('Word generation error:', error);
+      toast.error('❌ Failed to generate Word document', {
+        description: error.message,
+        duration: 5000
+      });
     }
   };
 
