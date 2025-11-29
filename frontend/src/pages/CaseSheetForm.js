@@ -769,6 +769,94 @@ export default function CaseSheetForm() {
         </DialogContent>
       </Dialog>
 
+      {/* Lock Warning Modal */}
+      <Dialog open={showLockWarning} onOpenChange={setShowLockWarning}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-amber-700">
+              <AlertCircle className="h-6 w-6" />
+              ⚠️ Important: Review Before Saving
+            </DialogTitle>
+            <DialogDescription className="text-base pt-2">
+              <strong>Please carefully review all information before saving.</strong>
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="bg-amber-50 border-2 border-amber-300 rounded-lg p-4">
+              <h3 className="font-semibold text-amber-900 mb-2 flex items-center gap-2">
+                <AlertCircle className="h-5 w-5" />
+                Security & Legal Compliance
+              </h3>
+              <ul className="space-y-2 text-sm text-amber-800">
+                <li className="flex items-start gap-2">
+                  <span className="text-amber-600 font-bold">•</span>
+                  <span><strong>Do you want to LOCK this case?</strong> Once locked, NO further edits will be allowed.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-amber-600 font-bold">•</span>
+                  <span>Locking ensures <strong>legal compliance</strong> and <strong>audit trail integrity</strong></span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-amber-600 font-bold">•</span>
+                  <span>This prevents unauthorized modifications to medical records</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-amber-600 font-bold">•</span>
+                  <span>Recommended: <strong>Lock after final review and before discharge</strong></span>
+                </li>
+              </ul>
+            </div>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h3 className="font-semibold text-blue-900 mb-2">✅ Checklist Before Saving:</h3>
+              <ul className="space-y-1 text-sm text-blue-800">
+                <li>☑️ Patient information is complete and accurate</li>
+                <li>☑️ All vitals and examination findings documented</li>
+                <li>☑️ Investigation orders are correct</li>
+                <li>☑️ Treatment plan is finalized</li>
+                <li>☑️ Disposition decision is appropriate</li>
+                <li>☑️ EM Resident and Consultant names are filled</li>
+              </ul>
+            </div>
+
+            <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
+              <p className="text-xs text-slate-600">
+                <strong>Note:</strong> You can save without locking if you need to make more changes later. 
+                However, for final documentation and discharge, locking is recommended for security.
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowLockWarning(false)}
+              className="w-full sm:w-auto"
+            >
+              Cancel
+            </Button>
+            <Button 
+              variant="secondary"
+              onClick={() => handleSave(false)}
+              disabled={loading}
+              className="w-full sm:w-auto"
+            >
+              <Save className="h-4 w-4 mr-2" />
+              Save Without Locking
+            </Button>
+            <Button 
+              onClick={() => handleSave(true)}
+              disabled={loading}
+              className="w-full sm:w-auto bg-amber-600 hover:bg-amber-700"
+            >
+              <Database className="h-4 w-4 mr-2" />
+              {loading ? 'Saving...' : 'Save & Lock Case 🔒'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Info Banners */}
