@@ -897,7 +897,7 @@ Please generate a professional, well-structured discharge summary in standard me
 """
     elif request.prompt_type == "red_flags":
         prompt = f"""
-You are an expert emergency medicine physician. Analyze this case for RED FLAGS and CRITICAL FINDINGS.
+You are an expert emergency medicine physician. Analyze this case for RED FLAGS and CRITICAL FINDINGS based on established medical guidelines.
 
 === PATIENT DATA ===
 Vitals at Arrival:
@@ -935,7 +935,11 @@ Provide a structured analysis with:
 🔍 THINGS TO WATCH FOR:
 [What could deteriorate? What trends to monitor?]
 
+📚 CLINICAL REFERENCES:
+For each major finding or recommendation, cite the relevant clinical guideline or reference (e.g., "ACLS Guidelines 2020", "NICE Guidelines", "AHA/ASA Stroke Guidelines", etc.)
+
 Be concise, specific, and clinically actionable. Focus on what the ER doctor should DO right now.
+Base your analysis on evidence-based medicine and current clinical practice guidelines.
 """
     elif request.prompt_type == "diagnosis_suggestions":
         prompt = f"""
