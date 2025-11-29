@@ -13,6 +13,7 @@ import { VoiceTextInput, VoiceTextarea } from '@/components/VoiceTextInput';
 import { toast } from 'sonner';
 import { ArrowLeft, Save, Sparkles, AlertCircle, Mic, Database, Clock, FileText, Download } from 'lucide-react';
 import { generateCaseSheetPDF } from '@/utils/pdfGenerator';
+import ContinuousVoiceRecorder from '@/components/ContinuousVoiceRecorder';
 
 export default function CaseSheetForm() {
   const navigate = useNavigate();
