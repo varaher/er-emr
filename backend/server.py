@@ -383,6 +383,10 @@ class CaseSheet(BaseModel):
     is_locked: bool = False  # True = cannot be edited (for legal/audit purposes)
     locked_at: Optional[datetime] = None
     locked_by_user_id: Optional[str] = None
+    addendums: List[Addendum] = []  # Additional notes added after locking
+    
+    # Custom save timestamp (for backdating within allowed window)
+    custom_save_timestamp: Optional[datetime] = None
 
 class CaseSheetCreate(BaseModel):
     patient: PatientInfo
