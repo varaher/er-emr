@@ -562,12 +562,13 @@ export default function CaseSheetForm() {
                 </>
               )}
               <Button 
-                onClick={handleSave} 
-                disabled={loading}
+                onClick={handleSaveClick} 
+                disabled={loading || isLocked}
                 data-testid="save-case-button"
+                className={isLocked ? 'opacity-50 cursor-not-allowed' : ''}
               >
                 <Save className="h-4 w-4 mr-2" />
-                {loading ? 'Saving...' : 'Save Case'}
+                {isLocked ? '🔒 Locked' : (loading ? 'Saving...' : 'Save Case')}
               </Button>
               {id && id !== 'new' && (
                 <>
