@@ -132,6 +132,16 @@ export default function DischargeSummaryNew() {
             <div className="flex items-center gap-2">
               <Button 
                 variant="outline" 
+                onClick={handleDownloadPDF}
+                className="border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+                data-testid="download-pdf-button"
+                title="Download discharge summary as PDF for printing on hospital letterhead"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Download PDF
+              </Button>
+              <Button 
+                variant="outline" 
                 onClick={handlePrint}
                 data-testid="print-button"
               >
