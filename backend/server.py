@@ -823,7 +823,13 @@ async def get_case(case_id: str, current_user: UserResponse = Depends(get_curren
     return case
 
 @api_router.put("/cases/{case_id}", response_model=CaseSheet)
-async def update_case(case_id: str, case_update: CaseSheetUpdate, lock_case: bool = False, current_user: UserResponse = Depends(get_current_user)):
+async def update_case(
+    case_id: str, 
+    case_update: CaseSheetUpdate, 
+    lock_case: bool = False, 
+    custom_timestamp: Optional[str] = None,
+    current_user: UserResponse = Depends(get_current_user)
+):
     case = await db.cases.find_one({"id": case_id})
     if not case:
         raise HTTPException(status_code=404, detail="Case not found")
@@ -832,16 +838,44 @@ async def update_case(case_id: str, case_update: CaseSheetUpdate, lock_case: boo
     if case.get('is_locked', False):
         raise HTTPException(
             status_code=403, 
-            detail="Case is locked and cannot be edited. This is for legal and audit compliance. Contact administrator if changes are absolutely necessary."
+            detail="Case is locked and cannot be edited. This is for legal and audit compliance. Use addendum feature to add additional notes."
         )
     
+    # Validate custom timestamp if provided
+    save_timestamp = datetime.now(timezone.utc)
+    if custom_timestamp:
+        # Convert IST to UTC for storage
+        from datetime import datetime as dt
+        ist = timezone(timedelta(hours=5, minutes=30))
+        try:
+            custom_dt = dt.fromisoformat(custom_timestamp)
+            if custom_dt.tzinfo is None:
+                custom_dt = custom_dt.replace(tzinfo=ist)
+            
+            # Convert to UTC
+            save_timestamp = custom_dt.astimezone(timezone.utc)
+            
+            # Validate it's not in future and within 2 hours
+            now_utc = datetime.now(timezone.utc)
+            if save_timestamp > now_utc:
+                raise HTTPException(status_code=400, detail="Timestamp cannot be in the future")
+            
+            time_diff = now_utc - save_timestamp
+            if time_diff > timedelta(hours=2):
+                raise HTTPException(status_code=400, detail="Timestamp must be within 2 hours of current time")
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=f"Invalid timestamp format: {str(e)}")
+    
     update_data = case_update.model_dump(exclude_unset=True)
-    update_data['updated_at'] = datetime.now(timezone.utc).isoformat()
+    update_data['updated_at'] = save_timestamp.isoformat()
+    
+    if custom_timestamp:
+        update_data['custom_save_timestamp'] = save_timestamp.isoformat()
     
     # If lock_case is True, lock the case permanently
     if lock_case:
         update_data['is_locked'] = True
-        update_data['locked_at'] = datetime.now(timezone.utc).isoformat()
+        update_data['locked_at'] = save_timestamp.isoformat()
         update_data['locked_by_user_id'] = current_user.id
     
     await db.cases.update_one({"id": case_id}, {"$set": update_data})
@@ -853,6 +887,8 @@ async def update_case(case_id: str, case_update: CaseSheetUpdate, lock_case: boo
         updated_case['updated_at'] = datetime.fromisoformat(updated_case['updated_at'])
     if updated_case.get('locked_at') and isinstance(updated_case['locked_at'], str):
         updated_case['locked_at'] = datetime.fromisoformat(updated_case['locked_at'])
+    if updated_case.get('custom_save_timestamp') and isinstance(updated_case['custom_save_timestamp'], str):
+        updated_case['custom_save_timestamp'] = datetime.fromisoformat(updated_case['custom_save_timestamp'])
     
     return updated_case
 
