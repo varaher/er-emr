@@ -52,29 +52,28 @@ export const generateCaseSheetPDF = (caseData) => {
     
     yPos = doc.lastAutoTable.finalY + 10;
   
-  // Vitals at Arrival
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Vitals at Arrival', 14, yPos);
-  yPos += 7;
-  
-  const vitals = caseData.vitals_at_arrival;
-  doc.autoTable({
-    startY: yPos,
-    theme: 'grid',
-    headStyles: { fillColor: [41, 128, 185], fontSize: 9 },
-    bodyStyles: { fontSize: 9 },
-    head: [['Vital', 'Value']],
-    body: [
-      ['Heart Rate', `${vitals.hr || 'N/A'} bpm`],
-      ['Blood Pressure', `${vitals.bp_systolic || 'N/A'}/${vitals.bp_diastolic || 'N/A'} mmHg`],
-      ['Respiratory Rate', `${vitals.rr || 'N/A'} /min`],
-      ['SpO2', `${vitals.spo2 || 'N/A'}%`],
-      ['Temperature', `${vitals.temperature || 'N/A'}°C`],
-      ['GCS', `E${vitals.gcs_e || '-'} V${vitals.gcs_v || '-'} M${vitals.gcs_m || '-'}`],
-      ['Pain Score', vitals.pain_score || 'N/A']
-    ]
-  });
+    // Vitals at Arrival
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Vitals at Arrival', 14, yPos);
+    yPos += 7;
+    
+    doc.autoTable({
+      startY: yPos,
+      theme: 'grid',
+      headStyles: { fillColor: [41, 128, 185], fontSize: 9 },
+      bodyStyles: { fontSize: 9 },
+      head: [['Vital', 'Value']],
+      body: [
+        ['Heart Rate', `${get(caseData, 'vitals_at_arrival.hr')} bpm`],
+        ['Blood Pressure', `${get(caseData, 'vitals_at_arrival.bp_systolic')}/${get(caseData, 'vitals_at_arrival.bp_diastolic')} mmHg`],
+        ['Respiratory Rate', `${get(caseData, 'vitals_at_arrival.rr')} /min`],
+        ['SpO2', `${get(caseData, 'vitals_at_arrival.spo2')}%`],
+        ['Temperature', `${get(caseData, 'vitals_at_arrival.temperature')}°C`],
+        ['GCS', `E${get(caseData, 'vitals_at_arrival.gcs_e', '-')} V${get(caseData, 'vitals_at_arrival.gcs_v', '-')} M${get(caseData, 'vitals_at_arrival.gcs_m', '-')}`],
+        ['Pain Score', get(caseData, 'vitals_at_arrival.pain_score')]
+      ]
+    });
   
   yPos = doc.lastAutoTable.finalY + 10;
   
