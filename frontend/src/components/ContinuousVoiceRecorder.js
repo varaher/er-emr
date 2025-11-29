@@ -14,16 +14,35 @@ export default function ContinuousVoiceRecorder({ onTranscriptComplete, caseShee
   const fullTranscriptRef = useRef('');
 
   const languages = [
+    // English
     { code: 'en-US', name: 'English (US)', flag: '🇺🇸' },
     { code: 'en-GB', name: 'English (UK)', flag: '🇬🇧' },
-    { code: 'hi-IN', name: 'Hindi', flag: '🇮🇳' },
-    { code: 'es-ES', name: 'Spanish', flag: '🇪🇸' },
-    { code: 'fr-FR', name: 'French', flag: '🇫🇷' },
-    { code: 'de-DE', name: 'German', flag: '🇩🇪' },
-    { code: 'ar-SA', name: 'Arabic', flag: '🇸🇦' },
-    { code: 'zh-CN', name: 'Chinese', flag: '🇨🇳' },
-    { code: 'ja-JP', name: 'Japanese', flag: '🇯🇵' },
-    { code: 'pt-BR', name: 'Portuguese', flag: '🇧🇷' }
+    { code: 'en-IN', name: 'English (India)', flag: '🇮🇳' },
+    
+    // Indian Languages
+    { code: 'hi-IN', name: 'Hindi (हिन्दी)', flag: '🇮🇳' },
+    { code: 'bn-IN', name: 'Bengali (বাংলা)', flag: '🇮🇳' },
+    { code: 'te-IN', name: 'Telugu (తెలుగు)', flag: '🇮🇳' },
+    { code: 'mr-IN', name: 'Marathi (मराठी)', flag: '🇮🇳' },
+    { code: 'ta-IN', name: 'Tamil (தமிழ்)', flag: '🇮🇳' },
+    { code: 'gu-IN', name: 'Gujarati (ગુજરાતી)', flag: '🇮🇳' },
+    { code: 'kn-IN', name: 'Kannada (ಕನ್ನಡ)', flag: '🇮🇳' },
+    { code: 'ml-IN', name: 'Malayalam (മലയാളം)', flag: '🇮🇳' },
+    { code: 'pa-IN', name: 'Punjabi (ਪੰਜਾਬੀ)', flag: '🇮🇳' },
+    { code: 'or-IN', name: 'Odia (ଓଡ଼ିଆ)', flag: '🇮🇳' },
+    { code: 'as-IN', name: 'Assamese (অসমীয়া)', flag: '🇮🇳' },
+    { code: 'ur-IN', name: 'Urdu (اردو)', flag: '🇮🇳' },
+    
+    // Other Languages
+    { code: 'es-ES', name: 'Spanish (Español)', flag: '🇪🇸' },
+    { code: 'fr-FR', name: 'French (Français)', flag: '🇫🇷' },
+    { code: 'de-DE', name: 'German (Deutsch)', flag: '🇩🇪' },
+    { code: 'ar-SA', name: 'Arabic (العربية)', flag: '🇸🇦' },
+    { code: 'zh-CN', name: 'Chinese (中文)', flag: '🇨🇳' },
+    { code: 'ja-JP', name: 'Japanese (日本語)', flag: '🇯🇵' },
+    { code: 'pt-BR', name: 'Portuguese (Português)', flag: '🇧🇷' },
+    { code: 'ru-RU', name: 'Russian (Русский)', flag: '🇷🇺' },
+    { code: 'ko-KR', name: 'Korean (한국어)', flag: '🇰🇷' }
   ];
 
   useEffect(() => {
