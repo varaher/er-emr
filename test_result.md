@@ -427,9 +427,10 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Frontend Authentication System"
-  stuck_tasks:
-    - "Frontend Authentication System"
+    - "PDF Download for Case Sheet"
+    - "PDF Download for Discharge Summary"
+    - "Continuous Voice Recording with AI Auto-population"
+  stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
