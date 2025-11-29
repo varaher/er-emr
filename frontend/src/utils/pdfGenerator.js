@@ -210,20 +210,24 @@ export const generateCaseSheetPDF = (caseData) => {
   yPos += 7;
   
   const examData = [];
-  if (caseData.examination.cvs_status) {
-    const cvsDetails = caseData.examination.cvs_status === 'Abnormal' 
-      ? `${caseData.examination.cvs_status} - ${caseData.examination.cvs_s1_s2 || ''} ${caseData.examination.cvs_pulse || ''}`
-      : caseData.examination.cvs_status;
+  const cvsStatus = get(caseData, 'examination.cvs_status', '');
+  if (cvsStatus && cvsStatus !== 'N/A') {
+    const cvsDetails = cvsStatus === 'Abnormal' 
+      ? `${cvsStatus} - ${get(caseData, 'examination.cvs_s1_s2', '')} ${get(caseData, 'examination.cvs_pulse', '')}`
+      : cvsStatus;
     examData.push(['CVS', cvsDetails]);
   }
-  if (caseData.examination.respiratory_status) {
-    examData.push(['Respiratory', caseData.examination.respiratory_status]);
+  const respStatus = get(caseData, 'examination.respiratory_status', '');
+  if (respStatus && respStatus !== 'N/A') {
+    examData.push(['Respiratory', respStatus]);
   }
-  if (caseData.examination.abdomen_status) {
-    examData.push(['Abdomen', caseData.examination.abdomen_status]);
+  const abdStatus = get(caseData, 'examination.abdomen_status', '');
+  if (abdStatus && abdStatus !== 'N/A') {
+    examData.push(['Abdomen', abdStatus]);
   }
-  if (caseData.examination.cns_status) {
-    examData.push(['CNS', caseData.examination.cns_status]);
+  const cnsStatus = get(caseData, 'examination.cns_status', '');
+  if (cnsStatus && cnsStatus !== 'N/A') {
+    examData.push(['CNS', cnsStatus]);
   }
   
   if (examData.length > 0) {
@@ -239,7 +243,8 @@ export const generateCaseSheetPDF = (caseData) => {
   }
   
   // Investigations
-  if (caseData.investigations.panels_selected && caseData.investigations.panels_selected.length > 0) {
+  const panelsSelected = caseData.investigations?.panels_selected || [];
+  if (Array.isArray(panelsSelected) && panelsSelected.length > 0) {
     if (yPos > 240) {
       doc.addPage();
       yPos = 20;
@@ -252,12 +257,13 @@ export const generateCaseSheetPDF = (caseData) => {
     
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    doc.text(caseData.investigations.panels_selected.join(', '), 14, yPos);
+    doc.text(panelsSelected.join(', '), 14, yPos);
     yPos += 10;
   }
   
   // Treatment
-  if (caseData.treatment.interventions && caseData.treatment.interventions.length > 0) {
+  const interventions = caseData.treatment?.interventions || [];
+  if (Array.isArray(interventions) && interventions.length > 0) {
     if (yPos > 240) {
       doc.addPage();
       yPos = 20;
@@ -270,7 +276,7 @@ export const generateCaseSheetPDF = (caseData) => {
     
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    doc.text(caseData.treatment.interventions.join(', '), 14, yPos);
+    doc.text(interventions.join(', '), 14, yPos);
     yPos += 10;
   }
   
@@ -288,9 +294,9 @@ export const generateCaseSheetPDF = (caseData) => {
     
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Type: ${caseData.disposition.type}`, 14, yPos);
+    doc.text(`Type: ${get(caseData, 'disposition.type')}`, 14, yPos);
     yPos += 5;
-    doc.text(`Condition: ${caseData.disposition.condition_at_discharge}`, 14, yPos);
+    doc.text(`Condition: ${get(caseData, 'disposition.condition_at_discharge')}`, 14, yPos);
   }
   
   // Footer
