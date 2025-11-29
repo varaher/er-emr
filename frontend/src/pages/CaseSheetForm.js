@@ -11,7 +11,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { VoiceTextInput, VoiceTextarea } from '@/components/VoiceTextInput';
 import { toast } from 'sonner';
-import { ArrowLeft, Save, Sparkles, AlertCircle, Mic, Database, Clock, FileText } from 'lucide-react';
+import { ArrowLeft, Save, Sparkles, AlertCircle, Mic, Database, Clock, FileText, Download } from 'lucide-react';
+import { generateCaseSheetPDF } from '@/utils/pdfGenerator';
 
 export default function CaseSheetForm() {
   const navigate = useNavigate();
