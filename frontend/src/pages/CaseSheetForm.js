@@ -1744,59 +1744,445 @@ export default function CaseSheetForm() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="respiratory-summary" className="flex items-center gap-2">
-                      Respiratory System
-                      <Mic className="h-3 w-3 text-slate-400" />
+                    <Label htmlFor="general-additional-notes" className="flex items-center gap-2">
+                      <Mic className="h-4 w-4 text-blue-600" />
+                      General Examination - Additional Notes
                     </Label>
                     <VoiceTextarea
-                      id="respiratory-summary"
-                      data-testid="textarea-respiratory"
-                      value={formData.examination.respiratory_summary}
-                      onChange={(e) => updateNestedField('examination', 'respiratory_summary', e.target.value)}
-                      placeholder="Document respiratory examination findings..."
+                      id="general-additional-notes"
+                      data-testid="textarea-general-additional-notes"
+                      value={formData.examination.general_additional_notes}
+                      onChange={(e) => updateNestedField('examination', 'general_additional_notes', e.target.value)}
+                      placeholder="Additional observations for general examination..."
+                      rows={2}
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="cvs-summary" className="flex items-center gap-2">
-                      Cardiovascular System
-                      <Mic className="h-3 w-3 text-slate-400" />
-                    </Label>
-                    <VoiceTextarea
-                      id="cvs-summary"
-                      data-testid="textarea-cvs"
-                      value={formData.examination.cvs_summary}
-                      onChange={(e) => updateNestedField('examination', 'cvs_summary', e.target.value)}
-                      placeholder="Document cardiovascular examination findings..."
-                    />
+                  {/* CVS Examination with Normal/Abnormal Pattern */}
+                  <div className="space-y-4 border-t pt-4">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-base font-semibold">Cardiovascular System (CVS)</Label>
+                      <select
+                        className="flex h-9 w-32 rounded-md border border-slate-300 bg-white px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+                        value={formData.examination.cvs_status}
+                        onChange={(e) => updateNestedField('examination', 'cvs_status', e.target.value)}
+                      >
+                        <option value="Normal">Normal</option>
+                        <option value="Abnormal">Abnormal</option>
+                      </select>
+                    </div>
+                    
+                    {formData.examination.cvs_status === 'Abnormal' && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-4 border-l-2 border-sky-200">
+                        <div className="space-y-2">
+                          <Label htmlFor="cvs-s1-s2" className="text-sm">S1, S2</Label>
+                          <Input
+                            id="cvs-s1-s2"
+                            value={formData.examination.cvs_s1_s2}
+                            onChange={(e) => updateNestedField('examination', 'cvs_s1_s2', e.target.value)}
+                            placeholder="Normal, Muffled, etc."
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="cvs-pulse" className="text-sm">Pulse</Label>
+                          <Input
+                            id="cvs-pulse"
+                            value={formData.examination.cvs_pulse}
+                            onChange={(e) => updateNestedField('examination', 'cvs_pulse', e.target.value)}
+                            placeholder="Regular, Irregular, etc."
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="cvs-pulse-rate" className="text-sm">Pulse Rate (bpm)</Label>
+                          <Input
+                            id="cvs-pulse-rate"
+                            type="number"
+                            value={formData.examination.cvs_pulse_rate || ''}
+                            onChange={(e) => updateNestedField('examination', 'cvs_pulse_rate', parseInt(e.target.value))}
+                            placeholder="bpm"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="cvs-apex-beat" className="text-sm">Apex Beat</Label>
+                          <Input
+                            id="cvs-apex-beat"
+                            value={formData.examination.cvs_apex_beat}
+                            onChange={(e) => updateNestedField('examination', 'cvs_apex_beat', e.target.value)}
+                            placeholder="Normal, localized in 5th ICS midclavicular line"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="cvs-precordial-heave" className="text-sm">Precordial Heave</Label>
+                          <Input
+                            id="cvs-precordial-heave"
+                            value={formData.examination.cvs_precordial_heave}
+                            onChange={(e) => updateNestedField('examination', 'cvs_precordial_heave', e.target.value)}
+                            placeholder="Absent, Present"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="cvs-added-sounds" className="text-sm">Added Sounds</Label>
+                          <Input
+                            id="cvs-added-sounds"
+                            value={formData.examination.cvs_added_sounds}
+                            onChange={(e) => updateNestedField('examination', 'cvs_added_sounds', e.target.value)}
+                            placeholder="None, S3, S4, etc."
+                          />
+                        </div>
+                        <div className="space-y-2 md:col-span-2">
+                          <Label htmlFor="cvs-murmurs" className="text-sm">Murmurs</Label>
+                          <Input
+                            id="cvs-murmurs"
+                            value={formData.examination.cvs_murmurs}
+                            onChange={(e) => updateNestedField('examination', 'cvs_murmurs', e.target.value)}
+                            placeholder="None, details if present"
+                          />
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="cvs-additional-notes" className="flex items-center gap-2">
+                        <Mic className="h-4 w-4 text-blue-600" />
+                        CVS - Additional Notes
+                      </Label>
+                      <VoiceTextarea
+                        id="cvs-additional-notes"
+                        value={formData.examination.cvs_additional_notes}
+                        onChange={(e) => updateNestedField('examination', 'cvs_additional_notes', e.target.value)}
+                        placeholder="Additional CVS observations..."
+                        rows={2}
+                      />
+                    </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="abdomen-summary" className="flex items-center gap-2">
-                      Abdomen
-                      <Mic className="h-3 w-3 text-slate-400" />
-                    </Label>
-                    <VoiceTextarea
-                      id="abdomen-summary"
-                      data-testid="textarea-abdomen"
-                      value={formData.examination.abdomen_summary}
-                      onChange={(e) => updateNestedField('examination', 'abdomen_summary', e.target.value)}
-                      placeholder="Document abdominal examination findings..."
-                    />
+                  {/* Respiratory/Chest Examination with Normal/Abnormal Pattern */}
+                  <div className="space-y-4 border-t pt-4">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-base font-semibold">Chest / Respiratory System</Label>
+                      <select
+                        className="flex h-9 w-32 rounded-md border border-slate-300 bg-white px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+                        value={formData.examination.respiratory_status}
+                        onChange={(e) => updateNestedField('examination', 'respiratory_status', e.target.value)}
+                      >
+                        <option value="Normal">Normal</option>
+                        <option value="Abnormal">Abnormal</option>
+                      </select>
+                    </div>
+                    
+                    {formData.examination.respiratory_status === 'Abnormal' && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-4 border-l-2 border-green-200">
+                        <div className="space-y-2">
+                          <Label htmlFor="resp-expansion" className="text-sm">Expansion</Label>
+                          <Input
+                            id="resp-expansion"
+                            value={formData.examination.respiratory_expansion}
+                            onChange={(e) => updateNestedField('examination', 'respiratory_expansion', e.target.value)}
+                            placeholder="Equal bilaterally, Asymmetric"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="resp-percussion" className="text-sm">Percussion</Label>
+                          <Input
+                            id="resp-percussion"
+                            value={formData.examination.respiratory_percussion}
+                            onChange={(e) => updateNestedField('examination', 'respiratory_percussion', e.target.value)}
+                            placeholder="Resonant bilaterally, Dull, Hyperresonant"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="resp-breath-sounds" className="text-sm">Breath Sounds</Label>
+                          <Input
+                            id="resp-breath-sounds"
+                            value={formData.examination.respiratory_breath_sounds}
+                            onChange={(e) => updateNestedField('examination', 'respiratory_breath_sounds', e.target.value)}
+                            placeholder="Vesicular, equal bilaterally"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="resp-vocal-resonance" className="text-sm">Vocal Resonance</Label>
+                          <Input
+                            id="resp-vocal-resonance"
+                            value={formData.examination.respiratory_vocal_resonance}
+                            onChange={(e) => updateNestedField('examination', 'respiratory_vocal_resonance', e.target.value)}
+                            placeholder="Normal, Increased, Decreased"
+                          />
+                        </div>
+                        <div className="space-y-2 md:col-span-2">
+                          <Label htmlFor="resp-added-sounds" className="text-sm">Added Sounds</Label>
+                          <Input
+                            id="resp-added-sounds"
+                            value={formData.examination.respiratory_added_sounds}
+                            onChange={(e) => updateNestedField('examination', 'respiratory_added_sounds', e.target.value)}
+                            placeholder="None, Wheezing, Crackles, etc."
+                          />
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="respiratory-additional-notes" className="flex items-center gap-2">
+                        <Mic className="h-4 w-4 text-blue-600" />
+                        Respiratory - Additional Notes
+                      </Label>
+                      <VoiceTextarea
+                        id="respiratory-additional-notes"
+                        value={formData.examination.respiratory_additional_notes}
+                        onChange={(e) => updateNestedField('examination', 'respiratory_additional_notes', e.target.value)}
+                        placeholder="Additional respiratory observations..."
+                        rows={2}
+                      />
+                    </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="cns-summary" className="flex items-center gap-2">
-                      Central Nervous System
-                      <Mic className="h-3 w-3 text-slate-400" />
-                    </Label>
-                    <VoiceTextarea
-                      id="cns-summary"
-                      data-testid="textarea-cns"
-                      value={formData.examination.cns_summary}
-                      onChange={(e) => updateNestedField('examination', 'cns_summary', e.target.value)}
-                      placeholder="Document neurological examination findings..."
-                    />
+                  {/* Abdomen Examination with Normal/Abnormal Pattern */}
+                  <div className="space-y-4 border-t pt-4">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-base font-semibold">Abdomen</Label>
+                      <select
+                        className="flex h-9 w-32 rounded-md border border-slate-300 bg-white px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+                        value={formData.examination.abdomen_status}
+                        onChange={(e) => updateNestedField('examination', 'abdomen_status', e.target.value)}
+                      >
+                        <option value="Normal">Normal</option>
+                        <option value="Abnormal">Abnormal</option>
+                      </select>
+                    </div>
+                    
+                    {formData.examination.abdomen_status === 'Abnormal' && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-4 border-l-2 border-amber-200">
+                        <div className="space-y-2">
+                          <Label htmlFor="abd-umbilical" className="text-sm">Umbilical</Label>
+                          <Input
+                            id="abd-umbilical"
+                            value={formData.examination.abdomen_umbilical}
+                            onChange={(e) => updateNestedField('examination', 'abdomen_umbilical', e.target.value)}
+                            placeholder="Central, no abnormalities"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="abd-organomegaly" className="text-sm">Organomegaly</Label>
+                          <Input
+                            id="abd-organomegaly"
+                            value={formData.examination.abdomen_organomegaly}
+                            onChange={(e) => updateNestedField('examination', 'abdomen_organomegaly', e.target.value)}
+                            placeholder="None, Hepatomegaly, Splenomegaly"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="abd-percussion" className="text-sm">Percussion</Label>
+                          <Input
+                            id="abd-percussion"
+                            value={formData.examination.abdomen_percussion}
+                            onChange={(e) => updateNestedField('examination', 'abdomen_percussion', e.target.value)}
+                            placeholder="Normal tympany, no dullness"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="abd-bowel-sounds" className="text-sm">Bowel Sounds</Label>
+                          <Input
+                            id="abd-bowel-sounds"
+                            value={formData.examination.abdomen_bowel_sounds}
+                            onChange={(e) => updateNestedField('examination', 'abdomen_bowel_sounds', e.target.value)}
+                            placeholder="Normal, active in all quadrants"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="abd-external-genitalia" className="text-sm">External Genitalia</Label>
+                          <Input
+                            id="abd-external-genitalia"
+                            value={formData.examination.abdomen_external_genitalia}
+                            onChange={(e) => updateNestedField('examination', 'abdomen_external_genitalia', e.target.value)}
+                            placeholder="Normal, no abnormalities"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="abd-hernial" className="text-sm">Hernial Orifices</Label>
+                          <Input
+                            id="abd-hernial"
+                            value={formData.examination.abdomen_hernial_orifices}
+                            onChange={(e) => updateNestedField('examination', 'abdomen_hernial_orifices', e.target.value)}
+                            placeholder="No bulging"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="abd-per-rectal" className="text-sm">Per Rectal</Label>
+                          <Input
+                            id="abd-per-rectal"
+                            value={formData.examination.abdomen_per_rectal}
+                            onChange={(e) => updateNestedField('examination', 'abdomen_per_rectal', e.target.value)}
+                            placeholder="No tenderness, normal tone"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="abd-per-vaginal" className="text-sm">Per Vaginal</Label>
+                          <Input
+                            id="abd-per-vaginal"
+                            value={formData.examination.abdomen_per_vaginal}
+                            onChange={(e) => updateNestedField('examination', 'abdomen_per_vaginal', e.target.value)}
+                            placeholder="Normal findings"
+                          />
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="abdomen-additional-notes" className="flex items-center gap-2">
+                        <Mic className="h-4 w-4 text-blue-600" />
+                        Abdomen - Additional Notes
+                      </Label>
+                      <VoiceTextarea
+                        id="abdomen-additional-notes"
+                        value={formData.examination.abdomen_additional_notes}
+                        onChange={(e) => updateNestedField('examination', 'abdomen_additional_notes', e.target.value)}
+                        placeholder="Additional abdominal observations..."
+                        rows={2}
+                      />
+                    </div>
+                  </div>
+
+                  {/* CNS Examination with Normal/Abnormal Pattern */}
+                  <div className="space-y-4 border-t pt-4">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-base font-semibold">Central Nervous System (CNS)</Label>
+                      <select
+                        className="flex h-9 w-32 rounded-md border border-slate-300 bg-white px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+                        value={formData.examination.cns_status}
+                        onChange={(e) => updateNestedField('examination', 'cns_status', e.target.value)}
+                      >
+                        <option value="Normal">Normal</option>
+                        <option value="Abnormal">Abnormal</option>
+                      </select>
+                    </div>
+                    
+                    {formData.examination.cns_status === 'Abnormal' && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-4 border-l-2 border-purple-200">
+                        <div className="space-y-2">
+                          <Label htmlFor="cns-higher-mental" className="text-sm">Higher Mental Functions</Label>
+                          <Input
+                            id="cns-higher-mental"
+                            value={formData.examination.cns_higher_mental}
+                            onChange={(e) => updateNestedField('examination', 'cns_higher_mental', e.target.value)}
+                            placeholder="Normal, alert and oriented"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="cns-cranial-nerves" className="text-sm">Cranial Nerves</Label>
+                          <Input
+                            id="cns-cranial-nerves"
+                            value={formData.examination.cns_cranial_nerves}
+                            onChange={(e) => updateNestedField('examination', 'cns_cranial_nerves', e.target.value)}
+                            placeholder="Intact (I-XII)"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="cns-sensory" className="text-sm">Sensory System</Label>
+                          <Input
+                            id="cns-sensory"
+                            value={formData.examination.cns_sensory_system}
+                            onChange={(e) => updateNestedField('examination', 'cns_sensory_system', e.target.value)}
+                            placeholder="Normal, intact to light touch, pain, temperature"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="cns-motor" className="text-sm">Motor System</Label>
+                          <Input
+                            id="cns-motor"
+                            value={formData.examination.cns_motor_system}
+                            onChange={(e) => updateNestedField('examination', 'cns_motor_system', e.target.value)}
+                            placeholder="Normal muscle tone, strength 5/5 in all limbs"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="cns-reflexes" className="text-sm">Reflexes</Label>
+                          <Input
+                            id="cns-reflexes"
+                            value={formData.examination.cns_reflexes}
+                            onChange={(e) => updateNestedField('examination', 'cns_reflexes', e.target.value)}
+                            placeholder="Normal deep tendon reflexes (2+)"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="cns-romberg" className="text-sm">Romberg Sign</Label>
+                          <Input
+                            id="cns-romberg"
+                            value={formData.examination.cns_romberg_sign}
+                            onChange={(e) => updateNestedField('examination', 'cns_romberg_sign', e.target.value)}
+                            placeholder="Negative, Positive"
+                          />
+                        </div>
+                        <div className="space-y-2 md:col-span-2">
+                          <Label htmlFor="cns-cerebellar" className="text-sm">Cerebellar Signs</Label>
+                          <Input
+                            id="cns-cerebellar"
+                            value={formData.examination.cns_cerebellar_signs}
+                            onChange={(e) => updateNestedField('examination', 'cns_cerebellar_signs', e.target.value)}
+                            placeholder="Absent, Present (specify)"
+                          />
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="cns-additional-notes" className="flex items-center gap-2">
+                        <Mic className="h-4 w-4 text-blue-600" />
+                        CNS - Additional Notes
+                      </Label>
+                      <VoiceTextarea
+                        id="cns-additional-notes"
+                        value={formData.examination.cns_additional_notes}
+                        onChange={(e) => updateNestedField('examination', 'cns_additional_notes', e.target.value)}
+                        placeholder="Additional CNS observations..."
+                        rows={2}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Extremities and Back Examination with Normal/Abnormal Pattern */}
+                  <div className="space-y-4 border-t pt-4">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-base font-semibold">Extremities and Back</Label>
+                      <select
+                        className="flex h-9 w-32 rounded-md border border-slate-300 bg-white px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+                        value={formData.examination.extremities_status}
+                        onChange={(e) => updateNestedField('examination', 'extremities_status', e.target.value)}
+                      >
+                        <option value="Normal">Normal</option>
+                        <option value="Abnormal">Abnormal</option>
+                      </select>
+                    </div>
+                    
+                    {formData.examination.extremities_status === 'Abnormal' && (
+                      <div className="pl-4 border-l-2 border-teal-200">
+                        <div className="space-y-2">
+                          <Label htmlFor="extremities-findings" className="text-sm flex items-center gap-2">
+                            <Mic className="h-4 w-4 text-blue-600" />
+                            Findings
+                          </Label>
+                          <VoiceTextarea
+                            id="extremities-findings"
+                            value={formData.examination.extremities_findings}
+                            onChange={(e) => updateNestedField('examination', 'extremities_findings', e.target.value)}
+                            placeholder="Document any abnormalities in extremities or back examination..."
+                            rows={3}
+                          />
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="extremities-additional-notes" className="flex items-center gap-2">
+                        <Mic className="h-4 w-4 text-blue-600" />
+                        Extremities - Additional Notes
+                      </Label>
+                      <VoiceTextarea
+                        id="extremities-additional-notes"
+                        value={formData.examination.extremities_additional_notes}
+                        onChange={(e) => updateNestedField('examination', 'extremities_additional_notes', e.target.value)}
+                        placeholder="Additional extremities observations..."
+                        rows={2}
+                      />
+                    </div>
                   </div>
                 </div>
               </CardContent>
