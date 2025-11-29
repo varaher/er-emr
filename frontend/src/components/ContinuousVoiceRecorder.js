@@ -258,11 +258,27 @@ export default function ContinuousVoiceRecorder({ onTranscriptComplete, caseShee
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Microphone Permission Alert */}
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+          <div className="flex items-start gap-2">
+            <div className="text-amber-600 text-lg">🎤</div>
+            <div className="flex-1">
+              <p className="text-xs font-semibold text-amber-800 mb-1">Microphone Permission Required</p>
+              <p className="text-xs text-amber-700">
+                When you start recording, your browser will ask for microphone access. Please click <strong>"Allow"</strong> to enable voice input.
+              </p>
+              <p className="text-xs text-amber-600 mt-2">
+                <strong>If blocked:</strong> Click the 🔒 lock icon in your address bar → Site settings → Microphone → Allow
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Language Selection */}
         <div className="space-y-2">
           <Label htmlFor="language-select" className="flex items-center gap-2">
             <Globe className="h-4 w-4" />
-            Select Language
+            Select Language (Now with 12+ Indian Languages!)
           </Label>
           <select
             id="language-select"
@@ -271,14 +287,30 @@ export default function ContinuousVoiceRecorder({ onTranscriptComplete, caseShee
             disabled={isRecording}
             className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
           >
-            {languages.map((lang) => (
-              <option key={lang.code} value={lang.code}>
-                {lang.flag} {lang.name}
-              </option>
-            ))}
+            <optgroup label="English">
+              {languages.filter(l => l.code.startsWith('en-')).map((lang) => (
+                <option key={lang.code} value={lang.code}>
+                  {lang.flag} {lang.name}
+                </option>
+              ))}
+            </optgroup>
+            <optgroup label="Indian Languages">
+              {languages.filter(l => l.code.includes('-IN') && !l.code.startsWith('en-')).map((lang) => (
+                <option key={lang.code} value={lang.code}>
+                  {lang.flag} {lang.name}
+                </option>
+              ))}
+            </optgroup>
+            <optgroup label="Other Languages">
+              {languages.filter(l => !l.code.includes('-IN') && !l.code.startsWith('en-')).map((lang) => (
+                <option key={lang.code} value={lang.code}>
+                  {lang.flag} {lang.name}
+                </option>
+              ))}
+            </optgroup>
           </select>
           <p className="text-xs text-slate-600">
-            AI will translate and extract information regardless of language spoken
+            ✨ AI will translate and extract information from any language automatically
           </p>
         </div>
 
