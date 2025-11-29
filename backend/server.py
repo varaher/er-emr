@@ -249,6 +249,9 @@ class PrimaryAssessment(BaseModel):
 
 class History(BaseModel):
     hpi: str = ""
+    hpi_additional_notes: str = ""
+    
+    signs_and_symptoms: str = ""
     secondary_survey_neuro: List[str] = []
     secondary_survey_resp: List[str] = []
     secondary_survey_cardiac: List[str] = []
@@ -256,14 +259,22 @@ class History(BaseModel):
     secondary_survey_gu: List[str] = []
     secondary_survey_msk: List[str] = []
     secondary_survey_notes: str = ""
+    secondary_survey_additional_notes: str = ""
     
     past_medical: List[str] = []
+    past_medical_additional_notes: str = ""
     past_surgical: str = ""
+    past_surgical_additional_notes: str = ""
     drug_history: str = ""
     family_history: str = ""
+    family_gyn_additional_notes: str = ""
     gyn_history: str = ""
     lmp: str = ""
     allergies: List[str] = []
+    allergies_additional_notes: str = ""
+    
+    psychological_assessment: Dict[str, str] = {}
+    psychological_additional_notes: str = ""
 
 class Examination(BaseModel):
     general_pallor: bool = False
