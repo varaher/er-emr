@@ -8,7 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { VoiceTextarea } from '@/components/VoiceTextInput';
 import { toast } from 'sonner';
-import { ArrowLeft, Save, Printer, FileText, Mic } from 'lucide-react';
+import { ArrowLeft, Save, Printer, FileText, Mic, Download } from 'lucide-react';
+import { generateDischargeSummaryPDF } from '@/utils/pdfGenerator';
 
 export default function DischargeSummaryNew() {
   const navigate = useNavigate();
