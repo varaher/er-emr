@@ -126,41 +126,45 @@ export const generateCaseSheetPDF = (caseData) => {
   
   yPos = doc.lastAutoTable.finalY + 10;
   
-  // VBG if present
-  if (primaryAssessment.vbg_ph || primaryAssessment.ecg_findings) {
-    if (yPos > 240) {
-      doc.addPage();
-      yPos = 20;
-    }
+    // VBG if present
+    const hasECG = get(caseData, 'primary_assessment.ecg_findings', '') !== 'N/A' && get(caseData, 'primary_assessment.ecg_findings', '') !== '';
+    const hasVBG = get(caseData, 'primary_assessment.vbg_ph', '') !== 'N/A' && get(caseData, 'primary_assessment.vbg_ph', '') !== '';
+    const hasEcho = get(caseData, 'primary_assessment.bedside_echo_findings', '') !== 'N/A' && get(caseData, 'primary_assessment.bedside_echo_findings', '') !== '';
     
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Adjuvants to Primary Assessment', 14, yPos);
-    yPos += 7;
-    
-    const adjuvantData = [];
-    if (primaryAssessment.ecg_findings) {
-      adjuvantData.push(['ECG', primaryAssessment.ecg_findings]);
+    if (hasECG || hasVBG || hasEcho) {
+      if (yPos > 240) {
+        doc.addPage();
+        yPos = 20;
+      }
+      
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Adjuvants to Primary Assessment', 14, yPos);
+      yPos += 7;
+      
+      const adjuvantData = [];
+      if (hasECG) {
+        adjuvantData.push(['ECG', get(caseData, 'primary_assessment.ecg_findings')]);
+      }
+      if (hasVBG) {
+        adjuvantData.push(['VBG', `PH: ${get(caseData, 'primary_assessment.vbg_ph')}, PCO2: ${get(caseData, 'primary_assessment.vbg_pco2')}, HCO3: ${get(caseData, 'primary_assessment.vbg_hco3')}`]);
+      }
+      if (hasEcho) {
+        adjuvantData.push(['Bedside Echo', get(caseData, 'primary_assessment.bedside_echo_findings')]);
+      }
+      
+      if (adjuvantData.length > 0) {
+        doc.autoTable({
+          startY: yPos,
+          theme: 'grid',
+          headStyles: { fillColor: [41, 128, 185], fontSize: 9 },
+          bodyStyles: { fontSize: 9 },
+          head: [['Test', 'Findings']],
+          body: adjuvantData
+        });
+        yPos = doc.lastAutoTable.finalY + 10;
+      }
     }
-    if (primaryAssessment.vbg_ph) {
-      adjuvantData.push(['VBG', `PH: ${primaryAssessment.vbg_ph}, PCO2: ${primaryAssessment.vbg_pco2}, HCO3: ${primaryAssessment.vbg_hco3}`]);
-    }
-    if (primaryAssessment.bedside_echo_findings) {
-      adjuvantData.push(['Bedside Echo', primaryAssessment.bedside_echo_findings]);
-    }
-    
-    if (adjuvantData.length > 0) {
-      doc.autoTable({
-        startY: yPos,
-        theme: 'grid',
-        headStyles: { fillColor: [41, 128, 185], fontSize: 9 },
-        bodyStyles: { fontSize: 9 },
-        head: [['Test', 'Findings']],
-        body: adjuvantData
-      });
-      yPos = doc.lastAutoTable.finalY + 10;
-    }
-  }
   
   // History
   if (yPos > 240) {
