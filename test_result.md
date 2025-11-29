@@ -379,11 +379,9 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Triage Normal Option"
-    - "Psychological Assessment Radio Buttons"
-    - "AI with Clinical Sources"
-    - "Voice Input Functionality"
-  stuck_tasks: []
+    - "Frontend Authentication System"
+  stuck_tasks:
+    - "Frontend Authentication System"
   test_all: false
   test_priority: "high_first"
 
