@@ -281,15 +281,53 @@ class Examination(BaseModel):
     general_icterus: bool = False
     general_clubbing: bool = False
     general_lymphadenopathy: bool = False
-    general_thyroid: str = ""
+    general_thyroid: str = "Normal"
     general_varicose_veins: bool = False
     general_notes: str = ""
+    general_additional_notes: str = ""
     
-    respiratory_summary: str = ""
-    cvs_summary: str = ""
-    abdomen_summary: str = ""
-    cns_summary: str = ""
-    extremities_summary: str = ""
+    cvs_status: str = "Normal"
+    cvs_s1_s2: str = ""
+    cvs_pulse: str = ""
+    cvs_pulse_rate: Optional[int] = None
+    cvs_apex_beat: str = ""
+    cvs_precordial_heave: str = ""
+    cvs_added_sounds: str = ""
+    cvs_murmurs: str = ""
+    cvs_additional_notes: str = ""
+    
+    respiratory_status: str = "Normal"
+    respiratory_expansion: str = ""
+    respiratory_percussion: str = ""
+    respiratory_breath_sounds: str = ""
+    respiratory_vocal_resonance: str = ""
+    respiratory_added_sounds: str = ""
+    respiratory_additional_notes: str = ""
+    
+    abdomen_status: str = "Normal"
+    abdomen_umbilical: str = ""
+    abdomen_organomegaly: str = ""
+    abdomen_percussion: str = ""
+    abdomen_bowel_sounds: str = ""
+    abdomen_external_genitalia: str = ""
+    abdomen_hernial_orifices: str = ""
+    abdomen_per_rectal: str = ""
+    abdomen_per_vaginal: str = ""
+    abdomen_additional_notes: str = ""
+    
+    cns_status: str = "Normal"
+    cns_higher_mental: str = ""
+    cns_cranial_nerves: str = ""
+    cns_sensory_system: str = ""
+    cns_motor_system: str = ""
+    cns_reflexes: str = ""
+    cns_romberg_sign: str = ""
+    cns_cerebellar_signs: str = ""
+    cns_additional_notes: str = ""
+    
+    extremities_status: str = "Normal"
+    extremities_findings: str = ""
+    extremities_additional_notes: str = ""
 
 class Investigations(BaseModel):
     panels_selected: List[str] = []
