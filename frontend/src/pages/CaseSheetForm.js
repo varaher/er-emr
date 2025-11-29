@@ -43,6 +43,24 @@ export default function CaseSheetForm() {
   const [autoSaving, setAutoSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState(null);
   
+  // Tab navigation
+  const tabs = ['patient', 'vitals', 'primary', 'history', 'examination', 'investigations', 'treatment'];
+  const currentTabIndex = tabs.indexOf(activeTab);
+  
+  const goToNextTab = () => {
+    if (currentTabIndex < tabs.length - 1) {
+      setActiveTab(tabs[currentTabIndex + 1]);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+  
+  const goToPreviousTab = () => {
+    if (currentTabIndex > 0) {
+      setActiveTab(tabs[currentTabIndex - 1]);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+  
   // Get triage data from navigation state
   const triageData = location.state || {};
 
