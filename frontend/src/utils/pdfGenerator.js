@@ -523,8 +523,8 @@ export const generateDischargeSummaryPDF = (summaryData, caseData) => {
   doc.text('EM Resident Signature', 14, yPos);
   doc.text('EM Consultant Signature', 140, yPos);
   yPos += 5;
-  doc.text(`Dr. ${caseData.em_resident || 'N/A'}`, 14, yPos);
-  doc.text(`Dr. ${caseData.em_consultant || 'N/A'}`, 140, yPos);
+  doc.text(`Dr. ${get(caseData, 'em_resident')}`, 14, yPos);
+  doc.text(`Dr. ${get(caseData, 'em_consultant')}`, 140, yPos);
   
     // Footer
     const pageCount = doc.internal.getNumberOfPages();
@@ -538,6 +538,10 @@ export const generateDischargeSummaryPDF = (summaryData, caseData) => {
     }
     
     return doc;
+  } catch (error) {
+    console.error('Discharge Summary PDF Error:', error);
+    throw new Error(`Discharge summary PDF generation failed: ${error.message}`);
+  }
   } catch (error) {
     console.error('PDF Generation Error:', error);
     throw new Error(`PDF generation failed: ${error.message}`);
