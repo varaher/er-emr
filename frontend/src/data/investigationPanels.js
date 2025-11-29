@@ -49,16 +49,20 @@ export const investigationPanels = {
     ],
     color: "red"
   },
-  "Acute Stroke Panel": {
+  "Acute Stroke Code 7 Panel": {
     tests: [
       "Complete Blood Count (CBC)",
-      "Blood Grouping & Typing (with Antibody Screen)",
-      "Renal Function Test (RFT)",
+      "Blood Grouping with Antibody Screening",
       "Liver Function Test (LFT)",
       "Serum Electrolytes (Na+, K+, Cl-)",
       "PT/INR",
-      "CT Brain (Non-contrast)",
-      "MRI Brain / MR Angiogram (if indicated)"
+      "Blood Urea Nitrogen (Urea)",
+      "CT Angiogram",
+      "MRI Single Sequence",
+      "X-Ray Chest AP",
+      "HIV Antigen and Antibody",
+      "HBsAg",
+      "Anti HCV"
     ],
     color: "orange"
   },
