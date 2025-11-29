@@ -542,8 +542,4 @@ export const generateDischargeSummaryPDF = (summaryData, caseData) => {
     console.error('Discharge Summary PDF Error:', error);
     throw new Error(`Discharge summary PDF generation failed: ${error.message}`);
   }
-  } catch (error) {
-    console.error('PDF Generation Error:', error);
-    throw new Error(`PDF generation failed: ${error.message}`);
-  }
 };
