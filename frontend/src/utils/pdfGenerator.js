@@ -2,44 +2,55 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
 export const generateCaseSheetPDF = (caseData) => {
-  const doc = new jsPDF();
-  
-  // Header
-  doc.setFontSize(18);
-  doc.setFont('helvetica', 'bold');
-  doc.text('EMERGENCY DEPARTMENT CASE SHEET', 105, 15, { align: 'center' });
-  
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
-  doc.text('(Print on Hospital Letterhead)', 105, 22, { align: 'center' });
-  
-  let yPos = 35;
-  
-  // Patient Information
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Patient Information', 14, yPos);
-  yPos += 7;
-  
-  doc.autoTable({
-    startY: yPos,
-    theme: 'grid',
-    headStyles: { fillColor: [41, 128, 185], fontSize: 9 },
-    bodyStyles: { fontSize: 9 },
-    head: [['Field', 'Value']],
-    body: [
-      ['UHID', caseData.patient.uhid || 'N/A'],
-      ['Name', caseData.patient.name],
-      ['Age/Sex', `${caseData.patient.age} / ${caseData.patient.sex}`],
-      ['Phone', caseData.patient.phone || 'N/A'],
-      ['Address', caseData.patient.address || 'N/A'],
-      ['Arrival Date & Time', new Date(caseData.patient.arrival_datetime).toLocaleString()],
-      ['Mode of Arrival', caseData.patient.mode_of_arrival],
-      ['MLC', caseData.patient.mlc ? 'Yes' : 'No']
-    ]
-  });
-  
-  yPos = doc.lastAutoTable.finalY + 10;
+  try {
+    const doc = new jsPDF();
+    
+    // Safe getter for nested properties
+    const get = (obj, path, defaultValue = 'N/A') => {
+      try {
+        const value = path.split('.').reduce((acc, part) => acc && acc[part], obj);
+        return value !== null && value !== undefined && value !== '' ? value : defaultValue;
+      } catch {
+        return defaultValue;
+      }
+    };
+    
+    // Header
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.text('EMERGENCY DEPARTMENT CASE SHEET', 105, 15, { align: 'center' });
+    
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text('(Print on Hospital Letterhead)', 105, 22, { align: 'center' });
+    
+    let yPos = 35;
+    
+    // Patient Information
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Patient Information', 14, yPos);
+    yPos += 7;
+    
+    doc.autoTable({
+      startY: yPos,
+      theme: 'grid',
+      headStyles: { fillColor: [41, 128, 185], fontSize: 9 },
+      bodyStyles: { fontSize: 9 },
+      head: [['Field', 'Value']],
+      body: [
+        ['UHID', get(caseData, 'patient.uhid')],
+        ['Name', get(caseData, 'patient.name')],
+        ['Age/Sex', `${get(caseData, 'patient.age')} / ${get(caseData, 'patient.sex')}`],
+        ['Phone', get(caseData, 'patient.phone')],
+        ['Address', get(caseData, 'patient.address')],
+        ['Arrival Date & Time', caseData.patient?.arrival_datetime ? new Date(caseData.patient.arrival_datetime).toLocaleString() : 'N/A'],
+        ['Mode of Arrival', get(caseData, 'patient.mode_of_arrival')],
+        ['MLC', caseData.patient?.mlc ? 'Yes' : 'No']
+      ]
+    });
+    
+    yPos = doc.lastAutoTable.finalY + 10;
   
   // Vitals at Arrival
   doc.setFontSize(12);
