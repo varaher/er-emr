@@ -961,7 +961,14 @@ export default function CaseSheetForm() {
 
           <DialogFooter className="flex-col sm:flex-row gap-2">
             <Button 
-              variant="outline" 
+              variant="ghost" 
+              onClick={() => { setShowLockWarning(false); setActiveTab('treatment'); }}
+              className="w-full sm:w-auto"
+            >
+              ↩ Go Back to Review
+            </Button>
+            <Button 
+              variant="outline"
               onClick={() => setShowLockWarning(false)}
               className="w-full sm:w-auto"
             >
@@ -969,7 +976,11 @@ export default function CaseSheetForm() {
             </Button>
             <Button 
               variant="secondary"
-              onClick={() => handleSave(false)}
+              onClick={() => {
+                if (confirm('Are you sure you want to save this case? You can edit it later.')) {
+                  handleSave(false);
+                }
+              }}
               disabled={loading}
               className="w-full sm:w-auto"
             >
@@ -977,7 +988,11 @@ export default function CaseSheetForm() {
               Save Without Locking
             </Button>
             <Button 
-              onClick={() => handleSave(true)}
+              onClick={() => {
+                if (confirm('Are you sure you want to save and LOCK this case? No further edits will be allowed.')) {
+                  handleSave(true);
+                }
+              }}
               disabled={loading}
               className="w-full sm:w-auto bg-amber-600 hover:bg-amber-700"
             >
