@@ -83,20 +83,20 @@ export const generateCaseSheetPDF = (caseData) => {
     yPos = 20;
   }
   
-  // Presenting Complaint
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Presenting Complaint', 14, yPos);
-  yPos += 7;
-  
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
-  const complaintText = doc.splitTextToSize(
-    `${caseData.presenting_complaint.text}\nDuration: ${caseData.presenting_complaint.duration}\nOnset: ${caseData.presenting_complaint.onset_type}`,
-    180
-  );
-  doc.text(complaintText, 14, yPos);
-  yPos += complaintText.length * 5 + 10;
+    // Presenting Complaint
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Presenting Complaint', 14, yPos);
+    yPos += 7;
+    
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    const complaintText = doc.splitTextToSize(
+      `${get(caseData, 'presenting_complaint.text')}\nDuration: ${get(caseData, 'presenting_complaint.duration')}\nOnset: ${get(caseData, 'presenting_complaint.onset_type')}`,
+      180
+    );
+    doc.text(complaintText, 14, yPos);
+    yPos += complaintText.length * 5 + 10;
   
   if (yPos > 250) {
     doc.addPage();
