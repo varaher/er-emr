@@ -309,14 +309,18 @@ export default function CaseSheetForm() {
     }
   };
 
-  const handleSave = async (lockAfterSave = false) => {
+  const handleSave = async (lockAfterSave = false, customTimestamp = null) => {
     try {
       setLoading(true);
       if (id && id !== 'new') {
-        await api.put(`/cases/${id}?lock_case=${lockAfterSave}`, formData);
+        const url = customTimestamp 
+          ? `/cases/${id}?lock_case=${lockAfterSave}&custom_timestamp=${encodeURIComponent(customTimestamp)}`
+          : `/cases/${id}?lock_case=${lockAfterSave}`;
+        
+        await api.put(url, formData);
         if (lockAfterSave) {
           setIsLocked(true);
-          toast.success('Case saved and LOCKED successfully. No further edits allowed.');
+          toast.success('Case saved and LOCKED successfully. No further edits allowed. Use Addendum to add notes.');
         } else {
           toast.success('Case updated successfully');
         }
@@ -326,9 +330,10 @@ export default function CaseSheetForm() {
         navigate(`/case/${response.data.id}`);
       }
       setShowLockWarning(false);
+      setShowTimestampModal(false);
     } catch (error) {
       if (error.response?.status === 403) {
-        toast.error('⚠️ Case is locked and cannot be edited!');
+        toast.error('⚠️ Case is locked and cannot be edited! Use Addendum feature.');
       } else {
         toast.error(error.response?.data?.detail || 'Failed to save case');
       }
@@ -336,6 +341,52 @@ export default function CaseSheetForm() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleTimestampSelection = () => {
+    const now = new Date();
+    
+    // Get IST time
+    const istOffset = 5.5 * 60; // IST is UTC+5:30
+    const istTime = new Date(now.getTime() + (istOffset * 60 * 1000));
+    
+    // Set default date and time to current IST
+    const dateStr = istTime.toISOString().split('T')[0];
+    const timeStr = istTime.toTimeString().slice(0, 5);
+    
+    setSelectedDate(dateStr);
+    setSelectedTime(timeStr);
+    setShowTimestampModal(true);
+  };
+
+  const confirmTimestamp = (lockDecision) => {
+    if (!selectedDate || !selectedTime) {
+      toast.error('Please select both date and time');
+      return;
+    }
+
+    // Combine date and time into ISO format
+    const timestamp = `${selectedDate}T${selectedTime}:00+05:30`; // IST timezone
+    
+    // Validate timestamp
+    const selectedDateTime = new Date(timestamp);
+    const now = new Date();
+    
+    // Check if in future
+    if (selectedDateTime > now) {
+      toast.error('Selected time cannot be in the future');
+      return;
+    }
+    
+    // Check if within 2 hours
+    const twoHoursAgo = new Date(now.getTime() - (2 * 60 * 60 * 1000));
+    if (selectedDateTime < twoHoursAgo) {
+      toast.error('Selected time must be within 2 hours of current time');
+      return;
+    }
+    
+    // Save with custom timestamp
+    handleSave(lockDecision, timestamp);
   };
 
   const handleSaveClick = () => {
