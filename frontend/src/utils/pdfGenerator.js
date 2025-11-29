@@ -482,15 +482,20 @@ export const generateDischargeSummaryPDF = (summaryData, caseData) => {
   doc.text(`Dr. ${caseData.em_resident || 'N/A'}`, 14, yPos);
   doc.text(`Dr. ${caseData.em_consultant || 'N/A'}`, 140, yPos);
   
-  // Footer
-  const pageCount = doc.internal.getNumberOfPages();
-  for (let i = 1; i <= pageCount; i++) {
-    doc.setPage(i);
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`Page ${i} of ${pageCount}`, 105, 290, { align: 'center' });
-    doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 290);
+    // Footer
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Page ${i} of ${pageCount}`, 105, 290, { align: 'center' });
+      doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 290);
+      doc.text(`EM Resident: ${get(caseData, 'em_resident')}`, 180, 290, { align: 'right' });
+    }
+    
+    return doc;
+  } catch (error) {
+    console.error('PDF Generation Error:', error);
+    throw new Error(`PDF generation failed: ${error.message}`);
   }
-  
-  return doc;
 };
