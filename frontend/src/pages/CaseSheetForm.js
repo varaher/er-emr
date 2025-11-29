@@ -1129,6 +1129,20 @@ export default function CaseSheetForm() {
                           </select>
                         </div>
                       </div>
+                      <div className="mt-4 space-y-2">
+                        <Label htmlFor="breathing-additional-notes" className="flex items-center gap-2">
+                          <Mic className="h-4 w-4 text-blue-600" />
+                          Additional Notes
+                        </Label>
+                        <VoiceTextarea
+                          id="breathing-additional-notes"
+                          data-testid="textarea-breathing-additional-notes"
+                          value={formData.primary_assessment.breathing_additional_notes}
+                          onChange={(e) => updateNestedField('primary_assessment', 'breathing_additional_notes', e.target.value)}
+                          placeholder="Additional observations for Breathing..."
+                          rows={2}
+                        />
+                      </div>
                     </div>
 
                     {/* C - Circulation */}
