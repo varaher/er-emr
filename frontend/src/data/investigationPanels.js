@@ -77,25 +77,59 @@ export const investigationPanels = {
   "Adult Seizure Panel": {
     tests: [
       "Complete Blood Count (CBC)",
-      "Renal Function Test (RFT)",
+      "C-Reactive Protein (CRP)",
       "Liver Function Test (LFT)",
+      "Renal Function Test (RFT)",
       "Serum Electrolytes (Na+, K+, Cl-)",
-      "Blood Glucose",
+      "Blood Urea Nitrogen (Urea)",
       "Serum Calcium",
       "Serum Magnesium",
-      "CT Brain (if first seizure or focal signs)"
+      "Serum Phosphorus"
     ],
     color: "purple"
   },
   "Pedia Febrile Seizure Panel": {
     tests: [
       "Complete Blood Count (CBC)",
-      "Blood Glucose",
+      "C-Reactive Protein (CRP)",
+      "Renal Function Test (RFT)",
+      "Liver Function Test (LFT)",
       "Serum Electrolytes (Na+, K+, Cl-)",
+      "Blood Urea Nitrogen (Urea)",
       "Serum Calcium",
-      "Blood Culture (if indicated)"
+      "Serum Phosphorus",
+      "Serum Magnesium",
+      "ESR",
+      "Culture and Sensitivity Blood"
     ],
     color: "green"
+  },
+  "PA Panel Pediatrics Surgery": {
+    tests: [
+      "Complete Blood Count (CBC)",
+      "C-Reactive Protein (CRP)",
+      "Renal Function Test (RFT)",
+      "HIV Antigen and Antibody",
+      "HBsAg",
+      "Anti HCV",
+      "LFT Mini Panel"
+    ],
+    color: "teal"
+  },
+  "PA Panel Emergency": {
+    tests: [
+      "Liver Function Test (LFT)",
+      "Complete Blood Count (CBC)",
+      "C-Reactive Protein (CRP)",
+      "Renal Function Test (RFT)",
+      "Serum Electrolytes (Na+, K+, Cl-)",
+      "PT/INR",
+      "Blood Grouping with Antibody Screening",
+      "Anti HCV",
+      "HBsAg",
+      "X-Ray Chest AP"
+    ],
+    color: "indigo"
   }
 };
 
