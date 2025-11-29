@@ -292,11 +292,12 @@ export default function CaseSheetForm() {
       setLoading(true);
       const response = await api.get(`/cases/${id}`);
       setFormData(response.data);
+      setAddendums(response.data.addendums || []);
       
       // Check if case is locked
       if (response.data.is_locked) {
         setIsLocked(true);
-        toast.warning('⚠️ This case is LOCKED and cannot be edited (for legal/audit compliance)', {
+        toast.warning('⚠️ This case is LOCKED and cannot be edited (for legal/audit compliance). Use Addendum to add notes.', {
           duration: 6000
         });
       }
