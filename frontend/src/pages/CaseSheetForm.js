@@ -285,6 +285,14 @@ export default function CaseSheetForm() {
       setLoading(true);
       const response = await api.get(`/cases/${id}`);
       setFormData(response.data);
+      
+      // Check if case is locked
+      if (response.data.is_locked) {
+        setIsLocked(true);
+        toast.warning('⚠️ This case is LOCKED and cannot be edited (for legal/audit compliance)', {
+          duration: 6000
+        });
+      }
     } catch (error) {
       toast.error('Failed to fetch case');
       console.error(error);
