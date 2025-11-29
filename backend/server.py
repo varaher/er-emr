@@ -347,6 +347,13 @@ class Disposition(BaseModel):
     discharge_vitals: Optional[Vitals] = None
     condition_at_discharge: str = ""  # stable, unstable
 
+class Addendum(BaseModel):
+    id: str
+    timestamp: datetime
+    added_by_user_id: str
+    added_by_name: str
+    note: str
+
 class CaseSheet(BaseModel):
     model_config = ConfigDict(extra="ignore")
     
