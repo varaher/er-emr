@@ -511,18 +511,223 @@ export default function CaseSheetForm() {
 
   const handleDownloadPDF = () => {
     if (!id || id === 'new') {
-      toast.error('Please save the case first before downloading PDF');
+      toast.error('⚠️ Please save the case first before downloading PDF', {
+        description: 'Click "Complete & Save Case Sheet" button to save',
+        duration: 4000
+      });
       return;
     }
 
     try {
+      toast.info('Generating PDF...', { duration: 2000 });
       const pdf = generateCaseSheetPDF(formData);
-      pdf.save(`Case_Sheet_${formData.patient.name}_${new Date().toISOString().split('T')[0]}.pdf`);
-      toast.success('PDF downloaded successfully');
+      const fileName = `CaseSheet_${formData.patient?.name || 'Patient'}_${new Date().toISOString().split('T')[0]}.pdf`;
+      pdf.save(fileName);
+      toast.success('✅ PDF Downloaded Successfully!', {
+        description: `File: ${fileName}`,
+        duration: 3000
+      });
     } catch (error) {
       console.error('PDF generation error:', error);
-      toast.error('Failed to generate PDF');
+      toast.error('❌ Failed to generate PDF', {
+        description: error.message || 'Please check console for details',
+        duration: 5000
+      });
     }
+  };
+
+  const handleDownloadWord = async () => {
+    if (!id || id === 'new') {
+      toast.error('⚠️ Please save the case first before downloading Word document', {
+        description: 'Click "Complete & Save Case Sheet" button to save',
+        duration: 4000
+      });
+      return;
+    }
+
+    try {
+      toast.info('Generating Word document...', { duration: 2000 });
+      
+      // Simple text export as Word format
+      const content = generateWordContent(formData);
+      const blob = new Blob([content], { type: 'application/msword' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `CaseSheet_${formData.patient?.name || 'Patient'}_${new Date().toISOString().split('T')[0]}.doc`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      toast.success('✅ Word Document Downloaded!', {
+        duration: 3000
+      });
+    } catch (error) {
+      console.error('Word generation error:', error);
+      toast.error('❌ Failed to generate Word document', {
+        description: error.message,
+        duration: 5000
+      });
+    }
+  };
+
+  const generateWordContent = (data) => {
+    const get = (obj, path, defaultValue = 'N/A') => {
+      try {
+        const value = path.split('.').reduce((acc, part) => acc && acc[part], obj);
+        return value !== null && value !== undefined && value !== '' ? value : defaultValue;
+      } catch {
+        return defaultValue;
+      }
+    };
+
+    return `
+EMERGENCY DEPARTMENT CASE SHEET
+(Print on Hospital Letterhead)
+Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
+
+================================================================================
+
+PATIENT INFORMATION
+================================================================================
+UHID:                  ${get(data, 'patient.uhid')}
+Name:                  ${get(data, 'patient.name')}
+Age/Sex:               ${get(data, 'patient.age')} / ${get(data, 'patient.sex')}
+Phone:                 ${get(data, 'patient.phone')}
+Address:               ${get(data, 'patient.address')}
+Arrival Date & Time:   ${data.patient?.arrival_datetime ? new Date(data.patient.arrival_datetime).toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'}) : 'N/A'}
+Mode of Arrival:       ${get(data, 'patient.mode_of_arrival')}
+MLC:                   ${data.patient?.mlc ? 'Yes' : 'No'}
+
+================================================================================
+
+VITALS AT ARRIVAL
+================================================================================
+Heart Rate:            ${get(data, 'vitals_at_arrival.hr')} bpm
+Blood Pressure:        ${get(data, 'vitals_at_arrival.bp_systolic')}/${get(data, 'vitals_at_arrival.bp_diastolic')} mmHg
+Respiratory Rate:      ${get(data, 'vitals_at_arrival.rr')} /min
+SpO2:                  ${get(data, 'vitals_at_arrival.spo2')}%
+Temperature:           ${get(data, 'vitals_at_arrival.temperature')}°C
+GCS:                   E${get(data, 'vitals_at_arrival.gcs_e', '-')} V${get(data, 'vitals_at_arrival.gcs_v', '-')} M${get(data, 'vitals_at_arrival.gcs_m', '-')}
+Pain Score:            ${get(data, 'vitals_at_arrival.pain_score')}
+
+================================================================================
+
+PRESENTING COMPLAINT
+================================================================================
+${get(data, 'presenting_complaint.text')}
+Duration: ${get(data, 'presenting_complaint.duration')}
+Onset: ${get(data, 'presenting_complaint.onset_type')}
+
+================================================================================
+
+PRIMARY ASSESSMENT (ABCDE)
+================================================================================
+AIRWAY
+  Status: ${get(data, 'primary_assessment.airway_status')}
+  Notes: ${get(data, 'primary_assessment.airway_notes')}
+
+BREATHING
+  RR: ${get(data, 'primary_assessment.breathing_rr')} /min
+  SpO2: ${get(data, 'primary_assessment.breathing_spo2')}%
+  Work of Breathing: ${get(data, 'primary_assessment.breathing_work')}
+  Notes: ${get(data, 'primary_assessment.breathing_notes')}
+
+CIRCULATION
+  HR: ${get(data, 'primary_assessment.circulation_hr')} bpm
+  BP: ${get(data, 'primary_assessment.circulation_bp_systolic')}/${get(data, 'primary_assessment.circulation_bp_diastolic')} mmHg
+  CRT: ${get(data, 'primary_assessment.circulation_crt')} sec
+  Notes: ${get(data, 'primary_assessment.circulation_notes')}
+
+DISABILITY
+  AVPU: ${get(data, 'primary_assessment.disability_avpu')}
+  GCS: E${get(data, 'primary_assessment.disability_gcs_e', '-')} V${get(data, 'primary_assessment.disability_gcs_v', '-')} M${get(data, 'primary_assessment.disability_gcs_m', '-')}
+  GRBS: ${get(data, 'primary_assessment.disability_grbs')} mg/dL
+  Notes: ${get(data, 'primary_assessment.disability_notes')}
+
+EXPOSURE
+  Temperature: ${get(data, 'primary_assessment.exposure_temperature')}°C
+  Notes: ${get(data, 'primary_assessment.exposure_local_exam_notes')}
+
+${data.primary_assessment?.ecg_findings && data.primary_assessment.ecg_findings !== 'N/A' ? `
+ADJUVANTS TO PRIMARY ASSESSMENT
+  ECG Findings: ${data.primary_assessment.ecg_findings}
+  ${data.primary_assessment?.vbg_ph ? `VBG: PH ${data.primary_assessment.vbg_ph}, PCO2 ${data.primary_assessment.vbg_pco2}, HCO3 ${data.primary_assessment.vbg_hco3}` : ''}
+  ${data.primary_assessment?.bedside_echo_findings ? `Bedside Echo: ${data.primary_assessment.bedside_echo_findings}` : ''}
+` : ''}
+
+================================================================================
+
+HISTORY
+================================================================================
+History of Present Illness:
+${get(data, 'history.hpi')}
+
+Past Medical History: ${data.history?.past_medical?.length > 0 ? data.history.past_medical.join(', ') : 'None'}
+
+Past Surgical History: ${get(data, 'history.past_surgical')}
+
+Allergies: ${data.history?.allergies?.length > 0 ? data.history.allergies.join(', ') : 'None'}
+
+================================================================================
+
+PHYSICAL EXAMINATION
+================================================================================
+General: ${get(data, 'examination.general_notes')}
+
+Cardiovascular System (CVS): ${get(data, 'examination.cvs_status')}
+${data.examination?.cvs_status === 'Abnormal' ? `  Details: ${get(data, 'examination.cvs_s1_s2')} ${get(data, 'examination.cvs_pulse')}` : ''}
+
+Respiratory System: ${get(data, 'examination.respiratory_status')}
+
+Abdomen: ${get(data, 'examination.abdomen_status')}
+
+Central Nervous System: ${get(data, 'examination.cns_status')}
+
+Extremities: ${get(data, 'examination.extremities_status')}
+
+================================================================================
+
+INVESTIGATIONS ORDERED
+================================================================================
+${data.investigations?.panels_selected?.length > 0 ? data.investigations.panels_selected.join('\n') : 'None ordered yet'}
+
+${get(data, 'investigations.notes') !== 'N/A' ? `Additional Tests: ${data.investigations.notes}` : ''}
+
+================================================================================
+
+TREATMENT GIVEN
+================================================================================
+Interventions: ${data.treatment?.interventions?.length > 0 ? data.treatment.interventions.join(', ') : 'None'}
+
+Medications: ${get(data, 'treatment.medication_notes')}
+
+Notes: ${get(data, 'treatment.notes')}
+
+================================================================================
+
+DISPOSITION
+================================================================================
+${data.disposition ? `
+Type: ${get(data, 'disposition.type')}
+Condition at Discharge: ${get(data, 'disposition.condition_at_discharge')}
+Notes: ${get(data, 'disposition.notes')}
+` : 'Not documented yet'}
+
+================================================================================
+
+SIGNATURES
+================================================================================
+
+_______________________              _______________________
+EM Resident Signature                EM Consultant Signature
+
+Dr. ${get(data, 'em_resident')}                     Dr. ${get(data, 'em_consultant')}
+
+
+Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
+    `.trim();
   };
 
   const handleTranscriptComplete = (parsedData) => {
