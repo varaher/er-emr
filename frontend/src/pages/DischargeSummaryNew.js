@@ -74,6 +74,27 @@ export default function DischargeSummaryNew() {
     window.print();
   };
 
+  const handleDownloadPDF = () => {
+    try {
+      const summaryData = {
+        presenting_complaint: caseData.presenting_complaint?.text || 'N/A',
+        clinical_course: caseData.history?.hpi || 'N/A',
+        investigations_summary: caseData.investigations?.panels_selected?.join(', ') || 'N/A',
+        final_diagnosis: dischargeData.differential_diagnoses || 'N/A',
+        treatment_given: dischargeData.treatment_given || 'N/A',
+        condition_at_discharge: dischargeData.discharge_condition || 'Stable',
+        discharge_instructions: `Medications: ${dischargeData.medications || 'N/A'}\n\nFollow-up Advice: ${dischargeData.follow_up_advice || 'N/A'}\nFollow-up Date: ${dischargeData.follow_up_date || 'N/A'}`
+      };
+
+      const pdf = generateDischargeSummaryPDF(summaryData, caseData);
+      pdf.save(`Discharge_Summary_${caseData.patient.name}_${new Date().toISOString().split('T')[0]}.pdf`);
+      toast.success('PDF downloaded successfully');
+    } catch (error) {
+      console.error('PDF generation error:', error);
+      toast.error('Failed to generate PDF');
+    }
+  };
+
   if (!caseData) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
