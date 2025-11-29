@@ -2923,6 +2923,17 @@ export default function CaseSheetForm() {
                 </Card>
               )}
             </div>
+            
+            {/* Final Navigation Buttons */}
+            <div className="flex justify-between gap-2 mt-6">
+              <Button variant="outline" onClick={goToPreviousTab}>
+                ← Back: Investigations
+              </Button>
+              <Button onClick={handleSaveClick} className="bg-green-600 hover:bg-green-700" size="lg">
+                <Save className="h-5 w-5 mr-2" />
+                Complete & Save Case Sheet
+              </Button>
+            </div>
           </TabsContent>
         </Tabs>
         </div>
