@@ -194,6 +194,7 @@ class PrimaryAssessment(BaseModel):
     airway_obstruction: List[str] = []
     airway_interventions: List[str] = []
     airway_notes: str = ""
+    airway_additional_notes: str = ""
     
     breathing_rr: Optional[float] = None
     breathing_spo2: Optional[float] = None
@@ -203,6 +204,7 @@ class PrimaryAssessment(BaseModel):
     breathing_air_entry: List[str] = []
     breathing_adjuncts: List[str] = []
     breathing_notes: str = ""
+    breathing_additional_notes: str = ""
     
     circulation_hr: Optional[float] = None
     circulation_bp_systolic: Optional[float] = None
@@ -214,6 +216,7 @@ class PrimaryAssessment(BaseModel):
     circulation_long_bone_deformity: bool = False
     circulation_adjuncts: List[str] = []
     circulation_notes: str = ""
+    circulation_additional_notes: str = ""
     
     disability_avpu: str = ""
     disability_gcs_e: Optional[int] = None
@@ -224,10 +227,25 @@ class PrimaryAssessment(BaseModel):
     disability_grbs: Optional[float] = None
     disability_seizure: bool = False
     disability_notes: str = ""
+    disability_additional_notes: str = ""
     
     exposure_temperature: Optional[float] = None
     exposure_logroll_findings: List[str] = []
     exposure_local_exam_notes: str = ""
+    exposure_additional_notes: str = ""
+    
+    ecg_findings: str = ""
+    vbg_ph: Optional[float] = None
+    vbg_pco2: Optional[float] = None
+    vbg_hco3: Optional[float] = None
+    vbg_hb: Optional[float] = None
+    vbg_glu: Optional[float] = None
+    vbg_lac: Optional[float] = None
+    vbg_na: Optional[float] = None
+    vbg_k: Optional[float] = None
+    vbg_cr: Optional[float] = None
+    bedside_echo_findings: str = ""
+    adjuvants_additional_notes: str = ""
 
 class History(BaseModel):
     hpi: str = ""
