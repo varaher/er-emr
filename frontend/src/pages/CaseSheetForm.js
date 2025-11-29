@@ -786,6 +786,14 @@ export default function CaseSheetForm() {
           )}
         </div>
 
+        {/* Continuous Voice Recorder for Auto-population */}
+        <div className="mb-6">
+          <ContinuousVoiceRecorder 
+            onTranscriptComplete={handleTranscriptComplete}
+            caseSheetId={id !== 'new' ? id : null}
+          />
+        </div>
+
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid grid-cols-7 mb-6">
             <TabsTrigger value="patient" data-testid="tab-patient">Patient Info</TabsTrigger>
