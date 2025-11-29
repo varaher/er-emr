@@ -42,10 +42,10 @@ export const investigationPanels = {
       "Liver Function Test (LFT)",
       "Serum Electrolytes (Na+, K+, Cl-)",
       "Blood Urea Nitrogen (Urea)",
-      "Troponin I/T",
-      "CK-MB",
-      "PT/INR",
-      "Lipid Profile"
+      "Blood Grouping with Antibody Screening",
+      "HBsAg",
+      "Anti HCV",
+      "HIV Antigen and Antibody"
     ],
     color: "red"
   },
