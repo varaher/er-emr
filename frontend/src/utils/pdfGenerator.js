@@ -166,34 +166,37 @@ export const generateCaseSheetPDF = (caseData) => {
       }
     }
   
-  // History
-  if (yPos > 240) {
-    doc.addPage();
-    yPos = 20;
-  }
-  
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'bold');
-  doc.text('History', 14, yPos);
-  yPos += 7;
-  
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
-  if (caseData.history.hpi) {
-    const hpiText = doc.splitTextToSize(`HPI: ${caseData.history.hpi}`, 180);
-    doc.text(hpiText, 14, yPos);
-    yPos += hpiText.length * 5 + 5;
-  }
-  
-  if (caseData.history.past_medical && caseData.history.past_medical.length > 0) {
-    doc.text(`Past Medical History: ${caseData.history.past_medical.join(', ')}`, 14, yPos);
+    // History
+    if (yPos > 240) {
+      doc.addPage();
+      yPos = 20;
+    }
+    
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('History', 14, yPos);
     yPos += 7;
-  }
-  
-  if (caseData.history.allergies && caseData.history.allergies.length > 0) {
-    doc.text(`Allergies: ${caseData.history.allergies.join(', ')}`, 14, yPos);
-    yPos += 10;
-  }
+    
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    const hpi = get(caseData, 'history.hpi', '');
+    if (hpi && hpi !== 'N/A') {
+      const hpiText = doc.splitTextToSize(`HPI: ${hpi}`, 180);
+      doc.text(hpiText, 14, yPos);
+      yPos += hpiText.length * 5 + 5;
+    }
+    
+    const pastMedical = caseData.history?.past_medical || [];
+    if (Array.isArray(pastMedical) && pastMedical.length > 0) {
+      doc.text(`Past Medical History: ${pastMedical.join(', ')}`, 14, yPos);
+      yPos += 7;
+    }
+    
+    const allergies = caseData.history?.allergies || [];
+    if (Array.isArray(allergies) && allergies.length > 0) {
+      doc.text(`Allergies: ${allergies.join(', ')}`, 14, yPos);
+      yPos += 10;
+    }
   
   // Examination
   if (yPos > 240) {
