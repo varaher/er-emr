@@ -283,9 +283,9 @@ export default function ContinuousVoiceRecorder({ onTranscriptComplete, caseShee
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-blue-800">
           <p className="font-semibold mb-1">💡 How it works:</p>
           <ul className="list-disc ml-4 space-y-1">
-            <li>Click "Start Continuous Recording" and speak naturally</li>
+            <li>Click &ldquo;Start Continuous Recording&rdquo; and speak naturally</li>
             <li>Take patient history in any supported language</li>
-            <li>Click "Stop Recording" when done</li>
+            <li>Click &ldquo;Stop Recording&rdquo; when done</li>
             <li>AI will parse the transcript and auto-fill: HPI, symptoms, past medical history, examination findings, etc.</li>
             <li>Review and edit auto-populated fields as needed</li>
           </ul>
