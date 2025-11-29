@@ -501,15 +501,27 @@ export default function CaseSheetForm() {
                 {loading ? 'Saving...' : 'Save Case'}
               </Button>
               {id && id !== 'new' && (
-                <Button 
-                  onClick={() => setShowSaveModal(true)} 
-                  variant="default"
-                  className="bg-green-600 hover:bg-green-700"
-                  data-testid="save-to-emr-button"
-                >
-                  <Database className="h-4 w-4 mr-2" />
-                  Save to EMR
-                </Button>
+                <>
+                  <Button 
+                    onClick={handleDownloadPDF} 
+                    variant="outline"
+                    className="border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+                    data-testid="download-pdf-button"
+                    title="Download case sheet as PDF for printing on hospital letterhead"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Download PDF
+                  </Button>
+                  <Button 
+                    onClick={() => setShowSaveModal(true)} 
+                    variant="default"
+                    className="bg-green-600 hover:bg-green-700"
+                    data-testid="save-to-emr-button"
+                  >
+                    <Database className="h-4 w-4 mr-2" />
+                    Save to EMR
+                  </Button>
+                </>
               )}
             </div>
           </div>
