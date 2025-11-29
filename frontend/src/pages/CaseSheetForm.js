@@ -915,7 +915,7 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
                 <Save className="h-4 w-4 mr-2" />
                 {isLocked ? '🔒 Locked' : (loading ? 'Saving...' : 'Save Case')}
               </Button>
-              {id && id !== 'new' && (
+              {id && id !== 'new' ? (
                 <>
                   <Button 
                     onClick={handleDownloadPDF} 
@@ -925,7 +925,17 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
                     title="Download case sheet as PDF for printing on hospital letterhead"
                   >
                     <Download className="h-4 w-4 mr-2" />
-                    Download PDF
+                    PDF
+                  </Button>
+                  <Button 
+                    onClick={handleDownloadWord} 
+                    variant="outline"
+                    className="border-green-200 hover:bg-green-50 hover:text-green-700"
+                    data-testid="download-word-button"
+                    title="Download case sheet as Word document"
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    Word
                   </Button>
                   <Button 
                     onClick={() => setShowSaveModal(true)} 
@@ -937,6 +947,10 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
                     Save to EMR
                   </Button>
                 </>
+              ) : (
+                <div className="text-sm text-slate-500 italic">
+                  💡 Save case first to enable PDF/Word downloads
+                </div>
               )}
             </div>
           </div>
