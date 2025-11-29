@@ -812,13 +812,26 @@ async def get_case(case_id: str, current_user: UserResponse = Depends(get_curren
     return case
 
 @api_router.put("/cases/{case_id}", response_model=CaseSheet)
-async def update_case(case_id: str, case_update: CaseSheetUpdate, current_user: UserResponse = Depends(get_current_user)):
+async def update_case(case_id: str, case_update: CaseSheetUpdate, lock_case: bool = False, current_user: UserResponse = Depends(get_current_user)):
     case = await db.cases.find_one({"id": case_id})
     if not case:
         raise HTTPException(status_code=404, detail="Case not found")
     
+    # Check if case is locked
+    if case.get('is_locked', False):
+        raise HTTPException(
+            status_code=403, 
+            detail="Case is locked and cannot be edited. This is for legal and audit compliance. Contact administrator if changes are absolutely necessary."
+        )
+    
     update_data = case_update.model_dump(exclude_unset=True)
     update_data['updated_at'] = datetime.now(timezone.utc).isoformat()
+    
+    # If lock_case is True, lock the case permanently
+    if lock_case:
+        update_data['is_locked'] = True
+        update_data['locked_at'] = datetime.now(timezone.utc).isoformat()
+        update_data['locked_by_user_id'] = current_user.id
     
     await db.cases.update_one({"id": case_id}, {"$set": update_data})
     
@@ -827,6 +840,8 @@ async def update_case(case_id: str, case_update: CaseSheetUpdate, current_user: 
         updated_case['created_at'] = datetime.fromisoformat(updated_case['created_at'])
     if isinstance(updated_case['updated_at'], str):
         updated_case['updated_at'] = datetime.fromisoformat(updated_case['updated_at'])
+    if updated_case.get('locked_at') and isinstance(updated_case['locked_at'], str):
+        updated_case['locked_at'] = datetime.fromisoformat(updated_case['locked_at'])
     
     return updated_case
 
