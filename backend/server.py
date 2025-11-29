@@ -1262,6 +1262,52 @@ IMPORTANT:
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Transcript parsing failed: {str(e)}")
 
+# Addendum endpoints
+class AddendumRequest(BaseModel):
+    case_id: str
+    note: str
+
+@api_router.post("/cases/{case_id}/addendum")
+async def add_addendum(case_id: str, request: AddendumRequest, current_user: UserResponse = Depends(get_current_user)):
+    """Add an addendum note to a locked case"""
+    case = await db.cases.find_one({"id": case_id})
+    if not case:
+        raise HTTPException(status_code=404, detail="Case not found")
+    
+    # Only allow addendums on locked cases
+    if not case.get('is_locked', False):
+        raise HTTPException(status_code=400, detail="Addendums can only be added to locked cases. Please lock the case first.")
+    
+    # Create addendum with IST timestamp
+    ist = timezone(timedelta(hours=5, minutes=30))
+    addendum = {
+        "id": str(uuid4()),
+        "timestamp": datetime.now(ist).isoformat(),
+        "added_by_user_id": current_user.id,
+        "added_by_name": current_user.name,
+        "note": request.note
+    }
+    
+    # Add to addendums array
+    await db.cases.update_one(
+        {"id": case_id},
+        {"$push": {"addendums": addendum}}
+    )
+    
+    return {
+        "message": "Addendum added successfully",
+        "addendum": addendum
+    }
+
+@api_router.get("/cases/{case_id}/addendums")
+async def get_addendums(case_id: str, current_user: UserResponse = Depends(get_current_user)):
+    """Get all addendums for a case"""
+    case = await db.cases.find_one({"id": case_id}, {"addendums": 1, "_id": 0})
+    if not case:
+        raise HTTPException(status_code=404, detail="Case not found")
+    
+    return {"addendums": case.get("addendums", [])}
+
 # Save to EMR endpoints
 @api_router.post("/save-to-emr")
 async def save_to_emr(case_sheet_id: str, save_type: str = "final", save_date: Optional[str] = None, notes: str = "", current_user: UserResponse = Depends(get_current_user)):
