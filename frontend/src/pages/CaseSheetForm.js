@@ -1263,6 +1263,20 @@ export default function CaseSheetForm() {
                           />
                         </div>
                       </div>
+                      <div className="mt-4 space-y-2">
+                        <Label htmlFor="disability-additional-notes" className="flex items-center gap-2">
+                          <Mic className="h-4 w-4 text-blue-600" />
+                          Additional Notes
+                        </Label>
+                        <VoiceTextarea
+                          id="disability-additional-notes"
+                          data-testid="textarea-disability-additional-notes"
+                          value={formData.primary_assessment.disability_additional_notes}
+                          onChange={(e) => updateNestedField('primary_assessment', 'disability_additional_notes', e.target.value)}
+                          placeholder="Additional observations for Disability..."
+                          rows={2}
+                        />
+                      </div>
                     </div>
 
                     {/* E - Exposure */}
