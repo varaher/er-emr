@@ -134,10 +134,32 @@ export default function ContinuousVoiceRecorder({ onTranscriptComplete, caseShee
     };
   }, [selectedLanguage]);
 
-  const startRecording = () => {
+  const startRecording = async () => {
     if (!recognitionRef.current) {
       toast.error('Speech recognition not initialized');
       return;
+    }
+
+    // Check for microphone permissions first
+    try {
+      if (navigator.permissions) {
+        const permissionStatus = await navigator.permissions.query({ name: 'microphone' });
+        
+        if (permissionStatus.state === 'denied') {
+          toast.error('Microphone access is blocked. Please enable it in browser settings.', {
+            duration: 8000
+          });
+          setTimeout(() => {
+            toast.info('Chrome/Edge: Click 🔒 in address bar → Site settings → Microphone → Allow\nFirefox: Click 🔒 → More information → Permissions → Microphone → Allow', {
+              duration: 12000
+            });
+          }, 1000);
+          return;
+        }
+      }
+    } catch (e) {
+      console.log('Permission API not available:', e);
+      // Continue anyway, browser will prompt
     }
 
     fullTranscriptRef.current = '';
@@ -145,9 +167,19 @@ export default function ContinuousVoiceRecorder({ onTranscriptComplete, caseShee
     
     try {
       recognitionRef.current.start();
+      toast.success('Starting recording... Please allow microphone access if prompted.', {
+        duration: 3000
+      });
     } catch (error) {
       console.error('Failed to start recording:', error);
-      toast.error('Failed to start recording');
+      
+      if (error.message && error.message.includes('not-allowed')) {
+        toast.error('Microphone access denied. Please allow microphone permissions.', {
+          duration: 6000
+        });
+      } else {
+        toast.error('Failed to start recording. Please try again.');
+      }
     }
   };
 
