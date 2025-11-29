@@ -391,13 +391,40 @@ export default function CaseSheetForm() {
 
   const handleSaveClick = () => {
     if (id && id !== 'new' && !isLocked) {
-      // Show warning modal for existing cases
-      setShowLockWarning(true);
+      // Show timestamp selection first
+      handleTimestampSelection();
     } else if (isLocked) {
-      toast.error('⚠️ Case is locked and cannot be edited!');
+      toast.error('⚠️ Case is locked and cannot be edited! Use Addendum feature.');
     } else {
       // For new cases, just save without locking
       handleSave(false);
+    }
+  };
+
+  const handleAddAddendum = async () => {
+    if (!addendumNote.trim()) {
+      toast.error('Please enter addendum note');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await api.post(`/cases/${id}/addendum`, {
+        case_id: id,
+        note: addendumNote
+      });
+      
+      // Refresh addendums
+      const response = await api.get(`/cases/${id}/addendums`);
+      setAddendums(response.data.addendums);
+      
+      setAddendumNote('');
+      setShowAddendumModal(false);
+      toast.success('Addendum added successfully');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to add addendum');
+    } finally {
+      setLoading(false);
     }
   };
 
