@@ -2737,6 +2737,7 @@ export default function CaseSheetForm() {
             </div>
           </TabsContent>
         </Tabs>
+        </div>
       </main>
     </div>
   );
