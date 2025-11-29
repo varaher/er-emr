@@ -1094,6 +1094,109 @@ async def get_discharge_summary(case_sheet_id: str, current_user: UserResponse =
     
     return summary
 
+# Transcript Parsing for Auto-population
+class TranscriptParseRequest(BaseModel):
+    case_sheet_id: str
+    transcript: str
+    source_language: str
+
+@api_router.post("/ai/parse-transcript")
+async def parse_transcript(request: TranscriptParseRequest, current_user: UserResponse = Depends(get_current_user)):
+    """Parse continuous voice transcript and extract structured case sheet data"""
+    
+    prompt = f"""
+You are an expert emergency medicine physician assistant. A doctor has recorded a patient encounter in {request.source_language}.
+
+TRANSCRIPT:
+{request.transcript}
+
+Your task is to extract structured information from this transcript and map it to the appropriate case sheet fields.
+
+Return ONLY a valid JSON object with the following structure (include only fields that have relevant information from the transcript):
+
+{{
+  "history": {{
+    "hpi": "extracted history of present illness",
+    "signs_and_symptoms": "observed signs and symptoms",
+    "past_medical": ["condition1", "condition2"],
+    "allergies": ["allergy1", "allergy2"],
+    "past_surgical": "surgical history text",
+    "drug_history": "current medications"
+  }},
+  "examination": {{
+    "general_notes": "general examination findings",
+    "cvs_status": "Normal" or "Abnormal",
+    "cvs_s1_s2": "if abnormal",
+    "respiratory_status": "Normal" or "Abnormal",
+    "abdomen_status": "Normal" or "Abnormal",
+    "cns_status": "Normal" or "Abnormal"
+  }},
+  "presenting_complaint": {{
+    "text": "chief complaint",
+    "duration": "duration text",
+    "onset_type": "sudden/gradual"
+  }},
+  "primary_assessment": {{
+    "airway_notes": "airway assessment notes",
+    "breathing_notes": "breathing assessment notes",
+    "circulation_notes": "circulation notes"
+  }},
+  "treatment": {{
+    "intervention_notes": "treatments mentioned"
+  }}
+}}
+
+IMPORTANT:
+- Extract only information explicitly mentioned in the transcript
+- If a field is not mentioned, omit it from the JSON
+- Be accurate and precise
+- Convert non-English text to English in the output
+- Use medical terminology appropriately
+"""
+
+    try:
+        chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=f"transcript_parse_{request.case_sheet_id}",
+            system_message="You are a medical transcription AI. Extract structured data from doctor's notes and return ONLY valid JSON."
+        ).with_model("openai", "gpt-5.1")
+        
+        user_message = UserMessage(text=prompt)
+        response = await chat.send_message(user_message)
+        
+        # Parse the JSON response
+        import json
+        import re
+        
+        # Extract JSON from response (handle markdown code blocks)
+        json_match = re.search(r'```json\s*(.*?)\s*```', response, re.DOTALL)
+        if json_match:
+            json_str = json_match.group(1)
+        else:
+            # Try to find JSON object directly
+            json_match = re.search(r'\{.*\}', response, re.DOTALL)
+            if json_match:
+                json_str = json_match.group(0)
+            else:
+                json_str = response
+        
+        parsed_data = json.loads(json_str)
+        
+        return {
+            "success": True,
+            "parsed_data": parsed_data,
+            "message": "Transcript parsed successfully. Review and save the auto-populated fields."
+        }
+    
+    except json.JSONDecodeError as e:
+        return {
+            "success": False,
+            "error": f"Failed to parse AI response as JSON: {str(e)}",
+            "raw_response": response
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Transcript parsing failed: {str(e)}")
+
 # Save to EMR endpoints
 @api_router.post("/save-to-emr")
 async def save_to_emr(case_sheet_id: str, save_type: str = "final", save_date: Optional[str] = None, notes: str = "", current_user: UserResponse = Depends(get_current_user)):
