@@ -668,6 +668,12 @@ export default function CaseSheetForm() {
                   </Button>
                 </>
               )}
+              {!isLocked && lastSaved && (
+                <span className="text-xs text-slate-500">
+                  {autoSaving ? '💾 Auto-saving...' : `✓ Last saved: ${lastSaved.toLocaleTimeString('en-IN')}`}
+                </span>
+              )}
+              
               <Button 
                 onClick={handleSaveClick} 
                 disabled={loading || isLocked}
