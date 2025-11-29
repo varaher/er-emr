@@ -354,10 +354,14 @@ metadata:
   test_sequence: 1
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "Triage Normal Option"
+    - "Psychological Assessment Radio Buttons"
+    - "AI with Clinical Sources"
+    - "Voice Input Functionality"
   stuck_tasks: []
   test_all: false
-  test_priority: "completed"
+  test_priority: "high_first"
 
 agent_communication:
   - agent: "testing"
