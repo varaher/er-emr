@@ -338,6 +338,16 @@ export const generateCaseSheetPDF = (caseData) => {
 export const generateDischargeSummaryPDF = (summaryData, caseData) => {
   try {
     const doc = new jsPDF();
+    
+    // Safe getter for nested properties
+    const get = (obj, path, defaultValue = 'N/A') => {
+      try {
+        const value = path.split('.').reduce((acc, part) => acc && acc[part], obj);
+        return value !== null && value !== undefined && value !== '' ? value : defaultValue;
+      } catch {
+        return defaultValue;
+      }
+    };
   
   // Header
   doc.setFontSize(18);
