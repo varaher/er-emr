@@ -365,6 +365,24 @@ export default function Triage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
+                  {/* Normal Option */}
+                  <div className="border-b pb-4">
+                    <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg border border-green-200">
+                      <Checkbox
+                        id="normal_no_symptoms"
+                        checked={formData.symptoms.normal_no_symptoms}
+                        onCheckedChange={() => toggleSymptom('normal_no_symptoms')}
+                        className="h-5 w-5"
+                      />
+                      <Label htmlFor="normal_no_symptoms" className="text-base font-semibold text-green-800 cursor-pointer">
+                        ✓ Normal / No Critical Symptoms
+                      </Label>
+                    </div>
+                    <p className="text-xs text-slate-500 mt-2 ml-8">
+                      Select this if patient has stable vitals with no critical symptoms
+                    </p>
+                  </div>
+
                   {/* Airway */}
                   <div>
                     <h3 className="text-sm font-semibold text-slate-900 mb-3">Airway</h3>
