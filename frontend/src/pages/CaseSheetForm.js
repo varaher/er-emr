@@ -31,6 +31,8 @@ export default function CaseSheetForm() {
   const [aiResponse, setAiResponse] = useState('');
   const [aiTitle, setAiTitle] = useState('');
   const [aiSources, setAiSources] = useState([]);
+  const [showLockWarning, setShowLockWarning] = useState(false);
+  const [isLocked, setIsLocked] = useState(false);
   
   // Get triage data from navigation state
   const triageData = location.state || {};
