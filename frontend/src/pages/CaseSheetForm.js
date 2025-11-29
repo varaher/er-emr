@@ -329,6 +329,7 @@ export default function CaseSheetForm() {
       
       setAiTitle(titles[type] || 'AI Suggestion');
       setAiResponse(response.data.response);
+      setAiSources(response.data.sources || []);
       setShowAIModal(true);
       
       toast.success('AI analysis complete');
