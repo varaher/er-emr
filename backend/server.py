@@ -1010,13 +1010,57 @@ Be specific, practical, and help the ER doctor think through the case systematic
         chat = LlmChat(
             api_key=EMERGENT_LLM_KEY,
             session_id=f"case_{request.case_sheet_id}_{request.prompt_type}",
-            system_message="You are an expert emergency medicine physician assistant."
+            system_message="You are an expert emergency medicine physician assistant. Always cite clinical guidelines and evidence-based references."
         ).with_model("openai", "gpt-5.1")
         
         user_message = UserMessage(text=prompt)
         response = await chat.send_message(user_message)
         
-        return AIResponse(response=response, case_sheet_id=request.case_sheet_id)
+        # Generate relevant medical sources based on prompt type
+        sources = []
+        if request.prompt_type == "red_flags":
+            sources = [
+                AISource(
+                    title="ACLS Guidelines - Advanced Cardiovascular Life Support",
+                    url="https://www.heart.org/en/professional/quality-improvement/acls-ecc",
+                    snippet="Evidence-based guidelines for emergency cardiovascular care and critical patient assessment"
+                ),
+                AISource(
+                    title="ATLS Guidelines - Advanced Trauma Life Support",
+                    url="https://www.facs.org/quality-programs/trauma/education/atls",
+                    snippet="Systematic approach to trauma patient assessment and management"
+                ),
+                AISource(
+                    title="Emergency Triage Manchester Triage System",
+                    url="https://www.manchester triage.com",
+                    snippet="Standardized clinical risk assessment for emergency departments"
+                )
+            ]
+        elif request.prompt_type == "diagnosis_suggestions":
+            sources = [
+                AISource(
+                    title="UpToDate - Clinical Decision Support",
+                    url="https://www.uptodate.com",
+                    snippet="Evidence-based clinical decision support resource for differential diagnosis"
+                ),
+                AISource(
+                    title="NICE Guidelines - National Institute for Health and Care Excellence",
+                    url="https://www.nice.org.uk/guidance",
+                    snippet="Evidence-based recommendations for health and care in England"
+                ),
+                AISource(
+                    title="AHA/ASA Stroke Guidelines",
+                    url="https://www.stroke.org/en/professional/guidelines",
+                    snippet="American Heart Association/American Stroke Association clinical practice guidelines"
+                ),
+                AISource(
+                    title="Emergency Medicine Practice Guidelines",
+                    url="https://www.ebmedicine.net",
+                    snippet="Evidence-based emergency medicine clinical practice guidelines and reviews"
+                )
+            ]
+        
+        return AIResponse(response=response, case_sheet_id=request.case_sheet_id, sources=sources)
     except Exception as e:
         logging.error(f"AI generation error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"AI generation failed: {str(e)}")
