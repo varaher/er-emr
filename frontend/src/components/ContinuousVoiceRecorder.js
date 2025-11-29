@@ -85,8 +85,27 @@ export default function ContinuousVoiceRecorder({ onTranscriptComplete, caseShee
 
     recognition.onerror = (event) => {
       console.error('Speech recognition error:', event.error);
-      if (event.error !== 'no-speech' && event.error !== 'aborted') {
-        toast.error(`Speech recognition error: ${event.error}`);
+      
+      if (event.error === 'not-allowed') {
+        toast.error('Microphone access denied. Please allow microphone permissions in your browser settings.', {
+          duration: 8000
+        });
+        setIsRecording(false);
+        
+        // Show detailed instructions after a moment
+        setTimeout(() => {
+          toast.info('Click the 🔒 lock icon in the address bar → Site settings → Allow Microphone', {
+            duration: 10000
+          });
+        }, 1000);
+      } else if (event.error === 'no-speech') {
+        toast.warning('No speech detected. Please speak clearly into the microphone.', {
+          duration: 4000
+        });
+      } else if (event.error !== 'aborted') {
+        toast.error(`Speech recognition error: ${event.error}. Try refreshing the page.`, {
+          duration: 5000
+        });
         setIsRecording(false);
       }
     };
