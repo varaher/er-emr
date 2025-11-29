@@ -301,22 +301,44 @@ export default function CaseSheetForm() {
     }
   };
 
-  const handleSave = async () => {
+  const handleSave = async (lockAfterSave = false) => {
     try {
       setLoading(true);
       if (id && id !== 'new') {
-        await api.put(`/cases/${id}`, formData);
-        toast.success('Case updated successfully');
+        await api.put(`/cases/${id}?lock_case=${lockAfterSave}`, formData);
+        if (lockAfterSave) {
+          setIsLocked(true);
+          toast.success('Case saved and LOCKED successfully. No further edits allowed.');
+        } else {
+          toast.success('Case updated successfully');
+        }
       } else {
         const response = await api.post('/cases', formData);
         toast.success('Case created successfully');
         navigate(`/case/${response.data.id}`);
       }
+      setShowLockWarning(false);
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to save case');
+      if (error.response?.status === 403) {
+        toast.error('⚠️ Case is locked and cannot be edited!');
+      } else {
+        toast.error(error.response?.data?.detail || 'Failed to save case');
+      }
       console.error(error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSaveClick = () => {
+    if (id && id !== 'new' && !isLocked) {
+      // Show warning modal for existing cases
+      setShowLockWarning(true);
+    } else if (isLocked) {
+      toast.error('⚠️ Case is locked and cannot be edited!');
+    } else {
+      // For new cases, just save without locking
+      handleSave(false);
     }
   };
 
