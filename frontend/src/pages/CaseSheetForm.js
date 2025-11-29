@@ -1231,6 +1231,54 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
         </DialogContent>
       </Dialog>
 
+      {/* Addendum Modal - For Adding Notes to Locked Cases */}
+      <Dialog open={showAddendumModal} onOpenChange={setShowAddendumModal}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-blue-600" />
+              Add Addendum to Locked Case
+            </DialogTitle>
+            <DialogDescription>
+              Add additional notes or updates to this locked case. This will be recorded with your name and timestamp.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <p className="text-sm text-blue-800">
+                📝 <strong>Addendums</strong> allow you to add supplementary information to locked cases 
+                without modifying the original documentation. All addendums are timestamped and attributed to the author.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="addendum-note">Addendum Note *</Label>
+              <textarea
+                id="addendum-note"
+                className="flex min-h-[120px] w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={addendumNote}
+                onChange={(e) => setAddendumNote(e.target.value)}
+                placeholder="Enter additional notes, updates, or clarifications..."
+              />
+              <p className="text-xs text-slate-500">
+                This will be permanently added to the case record with your name and IST timestamp.
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setShowAddendumModal(false); setAddendumNote(''); }}>
+              Cancel
+            </Button>
+            <Button onClick={handleAddAddendum} disabled={loading || !addendumNote.trim()}>
+              <FileText className="h-4 w-4 mr-2" />
+              {loading ? 'Adding...' : 'Add Addendum'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Info Banners */}
