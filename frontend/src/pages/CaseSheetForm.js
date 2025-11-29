@@ -33,6 +33,13 @@ export default function CaseSheetForm() {
   const [aiSources, setAiSources] = useState([]);
   const [showLockWarning, setShowLockWarning] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
+  const [showTimestampModal, setShowTimestampModal] = useState(false);
+  const [selectedDate, setSelectedDate] = useState('');
+  const [selectedTime, setSelectedTime] = useState('');
+  const [pendingLockDecision, setPendingLockDecision] = useState(null);
+  const [showAddendumModal, setShowAddendumModal] = useState(false);
+  const [addendumNote, setAddendumNote] = useState('');
+  const [addendums, setAddendums] = useState([]);
   
   // Get triage data from navigation state
   const triageData = location.state || {};
