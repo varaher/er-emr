@@ -1261,7 +1261,7 @@ async def save_to_emr(case_sheet_id: str, save_type: str = "final", save_date: O
     )
     
     return {
-        "message": f"Case saved to EMR successfully",
+        "message": "Case saved to EMR successfully",
         "save_id": save_record.id,
         "saved_at": doc['saved_at'],
         "save_type": save_type
