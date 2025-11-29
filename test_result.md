@@ -300,6 +300,54 @@ frontend:
         agent: "testing"
         comment: "✅ TESTED: Save functionality working correctly with proper API integration. Case data persists across sessions and Normal/Abnormal states are maintained. Save button accessible and functional."
 
+  - task: "Triage Normal Option"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/Triage.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added 'Normal / No Critical Symptoms' option at the top of triage symptoms section in green-highlighted box. Need to test functionality and save behavior."
+
+  - task: "Psychological Assessment Radio Buttons"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/CaseSheetForm.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Changed psychological assessment from text inputs to Yes/No radio buttons for 6 questions. Need to test radio button functionality and data persistence."
+
+  - task: "AI with Clinical Sources"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/CaseSheetForm.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Enhanced AI Red Flags and Diagnosis features to display clinical reference sources (Perplexity style). Need to test AI modal sources section with proper formatting and links."
+
+  - task: "Voice Input Functionality"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/VoiceInput.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Voice input should be functioning correctly with proper browser permissions. Need to test microphone buttons, permission prompts, and listening indicators."
+
 metadata:
   created_by: "testing_agent"
   version: "1.0"
