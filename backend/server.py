@@ -373,6 +373,9 @@ class CaseSheet(BaseModel):
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     created_by_user_id: str
     status: str = "draft"  # draft, completed, discharged
+    is_locked: bool = False  # True = cannot be edited (for legal/audit purposes)
+    locked_at: Optional[datetime] = None
+    locked_by_user_id: Optional[str] = None
 
 class CaseSheetCreate(BaseModel):
     patient: PatientInfo
