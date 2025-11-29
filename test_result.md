@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Test the updated ER-EMR Case Sheet application with comprehensive coverage of all new features including voice-enabled Additional Notes fields, new Adjuvants to Primary Assessment section, complete Psychological Assessment section, and Normal/Abnormal dropdown pattern for examination systems."
+user_problem_statement: "Test the 4 updates made to the ER-EMR application: 1) Triage Normal Option - 'Normal / No Critical Symptoms' option at the top of triage symptoms section, 2) Psychological Assessment Yes/No Radio Buttons - Changed from text input to radio buttons for 6 questions, 3) AI with Sources - Enhanced AI Red Flags and Diagnosis features to display clinical reference sources, 4) Microphone/Voice Input - Should be functioning correctly with proper browser permissions"
 
 frontend:
   - task: "Login and Registration System"
