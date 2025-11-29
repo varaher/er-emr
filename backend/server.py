@@ -943,7 +943,7 @@ Base your analysis on evidence-based medicine and current clinical practice guid
 """
     elif request.prompt_type == "diagnosis_suggestions":
         prompt = f"""
-You are an expert emergency medicine physician. Provide DIFFERENTIAL DIAGNOSIS suggestions for this case.
+You are an expert emergency medicine physician. Provide evidence-based DIFFERENTIAL DIAGNOSIS suggestions for this case.
 
 === PATIENT PRESENTATION ===
 Chief Complaint: {case['presenting_complaint']['text']}
@@ -976,17 +976,19 @@ Abdomen: {case['examination'].get('abdomen_summary', 'Not documented')}
    📌 Why: [Key supporting features]
    🔬 To confirm: [Specific tests/findings needed]
    ⚡ If this: [Key management step]
+   📚 Reference: [Clinical guideline or study]
 
 2. [Diagnosis Name]
    📌 Why: [Key supporting features]
    🔬 To confirm: [Specific tests/findings needed]
    ⚡ If this: [Key management step]
+   📚 Reference: [Clinical guideline or study]
 
-3. [Continue for 4-6 differential diagnoses]
+3. [Continue for 4-6 differential diagnoses, each with reference]
 
 ⚠️ DON'T MISS (Rule these out):
-• [Dangerous diagnosis 1]: [Why to consider / How to rule out]
-• [Dangerous diagnosis 2]: [Why to consider / How to rule out]
+• [Dangerous diagnosis 1]: [Why to consider / How to rule out] [Reference guideline]
+• [Dangerous diagnosis 2]: [Why to consider / How to rule out] [Reference guideline]
 
 📊 NEXT DIAGNOSTIC STEPS (Priority order):
 1. [Test/Exam]
@@ -996,7 +998,10 @@ Abdomen: {case['examination'].get('abdomen_summary', 'Not documented')}
 💡 CLINICAL PEARLS:
 [Any helpful clinical tips or patterns that apply to this case]
 
-Be specific, practical, and help the ER doctor think through the case systematically.
+📚 KEY REFERENCES:
+List the main clinical guidelines, studies, or protocols used in this analysis (e.g., "AHA/ACC Chest Pain Guidelines 2021", "NICE Guidelines", "UpToDate", etc.)
+
+Be specific, practical, and help the ER doctor think through the case systematically. Base all recommendations on current evidence-based medicine and cite relevant guidelines.
 """
     else:
         raise HTTPException(status_code=400, detail="Invalid prompt type")
