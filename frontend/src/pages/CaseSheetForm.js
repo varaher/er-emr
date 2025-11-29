@@ -359,6 +359,42 @@ export default function CaseSheetForm() {
     }
   };
 
+  const handleTranscriptComplete = (parsedData) => {
+    // Merge parsed data with existing form data
+    setFormData(prevData => {
+      const updated = { ...prevData };
+      
+      // Update history fields
+      if (parsedData.history) {
+        updated.history = { ...updated.history, ...parsedData.history };
+      }
+      
+      // Update examination fields
+      if (parsedData.examination) {
+        updated.examination = { ...updated.examination, ...parsedData.examination };
+      }
+      
+      // Update presenting complaint
+      if (parsedData.presenting_complaint) {
+        updated.presenting_complaint = { ...updated.presenting_complaint, ...parsedData.presenting_complaint };
+      }
+      
+      // Update primary assessment
+      if (parsedData.primary_assessment) {
+        updated.primary_assessment = { ...updated.primary_assessment, ...parsedData.primary_assessment };
+      }
+      
+      // Update treatment
+      if (parsedData.treatment) {
+        updated.treatment = { ...updated.treatment, ...parsedData.treatment };
+      }
+      
+      return updated;
+    });
+    
+    toast.success('Case sheet updated with transcript data! Please review and save.');
+  };
+
   const handleSaveToEMR = async () => {
     if (!id || id === 'new') {
       toast.error('Please save the case first');
