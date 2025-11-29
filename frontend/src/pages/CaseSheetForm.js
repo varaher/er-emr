@@ -1226,16 +1226,189 @@ export default function CaseSheetForm() {
                     {/* E - Exposure */}
                     <div>
                       <h3 className="text-lg font-semibold text-slate-900 mb-4">E - Exposure</h3>
-                      <div className="space-y-2">
-                        <Label htmlFor="exposure-temperature">Temperature (°C)</Label>
-                        <Input
-                          id="exposure-temperature"
-                          data-testid="input-exposure-temperature"
-                          type="number"
-                          step="0.1"
-                          value={formData.primary_assessment.exposure_temperature || ''}
-                          onChange={(e) => updateNestedField('primary_assessment', 'exposure_temperature', parseFloat(e.target.value))}
-                        />
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="exposure-temperature">Temperature (°C)</Label>
+                          <Input
+                            id="exposure-temperature"
+                            data-testid="input-exposure-temperature"
+                            type="number"
+                            step="0.1"
+                            value={formData.primary_assessment.exposure_temperature || ''}
+                            onChange={(e) => updateNestedField('primary_assessment', 'exposure_temperature', parseFloat(e.target.value))}
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="exposure-additional-notes" className="flex items-center gap-2">
+                            <Mic className="h-4 w-4 text-blue-600" />
+                            Additional Notes
+                          </Label>
+                          <VoiceTextarea
+                            id="exposure-additional-notes"
+                            data-testid="textarea-exposure-additional-notes"
+                            value={formData.primary_assessment.exposure_additional_notes}
+                            onChange={(e) => updateNestedField('primary_assessment', 'exposure_additional_notes', e.target.value)}
+                            placeholder="Additional observations for Exposure..."
+                            rows={2}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Adjuvants to Primary Assessment */}
+                    <div>
+                      <h3 className="text-lg font-semibold text-slate-900 mb-4 border-t pt-4">Adjuvants to Primary Assessment</h3>
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="ecg-findings" className="flex items-center gap-2">
+                            <Mic className="h-4 w-4 text-blue-600" />
+                            ECG Findings
+                          </Label>
+                          <VoiceTextarea
+                            id="ecg-findings"
+                            data-testid="textarea-ecg-findings"
+                            value={formData.primary_assessment.ecg_findings}
+                            onChange={(e) => updateNestedField('primary_assessment', 'ecg_findings', e.target.value)}
+                            placeholder="Document ECG findings..."
+                            rows={2}
+                          />
+                        </div>
+
+                        <div>
+                          <Label className="block mb-3">VBG Parameters</Label>
+                          <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
+                            <div className="space-y-1">
+                              <Label htmlFor="vbg-ph" className="text-xs">PH</Label>
+                              <Input
+                                id="vbg-ph"
+                                type="number"
+                                step="0.01"
+                                value={formData.primary_assessment.vbg_ph || ''}
+                                onChange={(e) => updateNestedField('primary_assessment', 'vbg_ph', parseFloat(e.target.value))}
+                                placeholder="7.35-7.45"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label htmlFor="vbg-pco2" className="text-xs">PCO2</Label>
+                              <Input
+                                id="vbg-pco2"
+                                type="number"
+                                step="0.1"
+                                value={formData.primary_assessment.vbg_pco2 || ''}
+                                onChange={(e) => updateNestedField('primary_assessment', 'vbg_pco2', parseFloat(e.target.value))}
+                                placeholder="mmHg"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label htmlFor="vbg-hco3" className="text-xs">HCO3</Label>
+                              <Input
+                                id="vbg-hco3"
+                                type="number"
+                                step="0.1"
+                                value={formData.primary_assessment.vbg_hco3 || ''}
+                                onChange={(e) => updateNestedField('primary_assessment', 'vbg_hco3', parseFloat(e.target.value))}
+                                placeholder="mEq/L"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label htmlFor="vbg-hb" className="text-xs">HB</Label>
+                              <Input
+                                id="vbg-hb"
+                                type="number"
+                                step="0.1"
+                                value={formData.primary_assessment.vbg_hb || ''}
+                                onChange={(e) => updateNestedField('primary_assessment', 'vbg_hb', parseFloat(e.target.value))}
+                                placeholder="g/dL"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label htmlFor="vbg-glu" className="text-xs">GLU</Label>
+                              <Input
+                                id="vbg-glu"
+                                type="number"
+                                step="1"
+                                value={formData.primary_assessment.vbg_glu || ''}
+                                onChange={(e) => updateNestedField('primary_assessment', 'vbg_glu', parseFloat(e.target.value))}
+                                placeholder="mg/dL"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label htmlFor="vbg-lac" className="text-xs">LAC</Label>
+                              <Input
+                                id="vbg-lac"
+                                type="number"
+                                step="0.1"
+                                value={formData.primary_assessment.vbg_lac || ''}
+                                onChange={(e) => updateNestedField('primary_assessment', 'vbg_lac', parseFloat(e.target.value))}
+                                placeholder="mmol/L"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label htmlFor="vbg-na" className="text-xs">NA</Label>
+                              <Input
+                                id="vbg-na"
+                                type="number"
+                                step="0.1"
+                                value={formData.primary_assessment.vbg_na || ''}
+                                onChange={(e) => updateNestedField('primary_assessment', 'vbg_na', parseFloat(e.target.value))}
+                                placeholder="mEq/L"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label htmlFor="vbg-k" className="text-xs">K</Label>
+                              <Input
+                                id="vbg-k"
+                                type="number"
+                                step="0.1"
+                                value={formData.primary_assessment.vbg_k || ''}
+                                onChange={(e) => updateNestedField('primary_assessment', 'vbg_k', parseFloat(e.target.value))}
+                                placeholder="mEq/L"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label htmlFor="vbg-cr" className="text-xs">CR</Label>
+                              <Input
+                                id="vbg-cr"
+                                type="number"
+                                step="0.1"
+                                value={formData.primary_assessment.vbg_cr || ''}
+                                onChange={(e) => updateNestedField('primary_assessment', 'vbg_cr', parseFloat(e.target.value))}
+                                placeholder="mg/dL"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="bedside-echo-findings" className="flex items-center gap-2">
+                            <Mic className="h-4 w-4 text-blue-600" />
+                            Bedside Screening Echo
+                          </Label>
+                          <VoiceTextarea
+                            id="bedside-echo-findings"
+                            data-testid="textarea-bedside-echo-findings"
+                            value={formData.primary_assessment.bedside_echo_findings}
+                            onChange={(e) => updateNestedField('primary_assessment', 'bedside_echo_findings', e.target.value)}
+                            placeholder="e.g., Good LVM, IVC Collapsing, No Blines, No RWMA, No RA, RV..."
+                            rows={2}
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="adjuvants-additional-notes" className="flex items-center gap-2">
+                            <Mic className="h-4 w-4 text-blue-600" />
+                            Additional Notes
+                          </Label>
+                          <VoiceTextarea
+                            id="adjuvants-additional-notes"
+                            data-testid="textarea-adjuvants-additional-notes"
+                            value={formData.primary_assessment.adjuvants_additional_notes}
+                            onChange={(e) => updateNestedField('primary_assessment', 'adjuvants_additional_notes', e.target.value)}
+                            placeholder="Additional observations for adjuvant assessments..."
+                            rows={2}
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
