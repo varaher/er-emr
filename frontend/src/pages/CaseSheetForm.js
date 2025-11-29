@@ -359,9 +359,15 @@ export default function CaseSheetForm() {
         await api.put(url, formData);
         if (lockAfterSave) {
           setIsLocked(true);
-          toast.success('Case saved and LOCKED successfully. No further edits allowed. Use Addendum to add notes.');
+          toast.success('🔒 Case Saved and LOCKED Successfully!', {
+            description: 'No further edits allowed. Use Addendum feature to add notes.',
+            duration: 5000
+          });
         } else {
-          toast.success('Case updated successfully');
+          toast.success('✅ Case Saved Successfully!', {
+            description: `Saved at ${new Date().toLocaleTimeString('en-IN', {timeZone: 'Asia/Kolkata'})} IST`,
+            duration: 3000
+          });
         }
       } else {
         const response = await api.post('/cases', formData);
