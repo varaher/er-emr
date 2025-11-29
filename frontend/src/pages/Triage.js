@@ -32,6 +32,9 @@ export default function Triage() {
       capillary_refill: null
     },
     symptoms: {
+      // Normal
+      normal_no_symptoms: false,
+      
       // Airway
       obstructed_airway: false,
       facial_burns: false,
