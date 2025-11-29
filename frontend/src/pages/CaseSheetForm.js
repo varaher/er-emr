@@ -126,6 +126,8 @@ export default function CaseSheetForm() {
     },
     history: {
       hpi: '',
+      hpi_additional_notes: '',
+      signs_and_symptoms: '',
       secondary_survey_neuro: [],
       secondary_survey_resp: [],
       secondary_survey_cardiac: [],
@@ -133,13 +135,20 @@ export default function CaseSheetForm() {
       secondary_survey_gu: [],
       secondary_survey_msk: [],
       secondary_survey_notes: '',
+      secondary_survey_additional_notes: '',
       past_medical: [],
+      past_medical_additional_notes: '',
       past_surgical: '',
+      past_surgical_additional_notes: '',
       drug_history: '',
       family_history: '',
+      family_gyn_additional_notes: '',
       gyn_history: '',
       lmp: '',
-      allergies: []
+      allergies: [],
+      allergies_additional_notes: '',
+      psychological_assessment: {},
+      psychological_additional_notes: ''
     },
     examination: {
       general_pallor: false,
