@@ -1501,6 +1501,51 @@ export default function CaseSheetForm() {
                   </div>
 
                   <div className="space-y-2">
+                    <Label htmlFor="hpi-additional-notes" className="flex items-center gap-2">
+                      <Mic className="h-4 w-4 text-blue-600" />
+                      HPI Additional Notes
+                    </Label>
+                    <VoiceTextarea
+                      id="hpi-additional-notes"
+                      data-testid="textarea-hpi-additional-notes"
+                      value={formData.history.hpi_additional_notes}
+                      onChange={(e) => updateNestedField('history', 'hpi_additional_notes', e.target.value)}
+                      placeholder="Additional observations for HPI..."
+                      rows={2}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="signs-symptoms" className="flex items-center gap-2">
+                      <Mic className="h-4 w-4 text-blue-600" />
+                      Signs and Symptoms
+                    </Label>
+                    <VoiceTextarea
+                      id="signs-symptoms"
+                      data-testid="textarea-signs-symptoms"
+                      value={formData.history.signs_and_symptoms}
+                      onChange={(e) => updateNestedField('history', 'signs_and_symptoms', e.target.value)}
+                      placeholder="Document signs and symptoms observed..."
+                      rows={4}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="secondary-survey-additional-notes" className="flex items-center gap-2">
+                      <Mic className="h-4 w-4 text-blue-600" />
+                      Secondary Survey Additional Notes
+                    </Label>
+                    <VoiceTextarea
+                      id="secondary-survey-additional-notes"
+                      data-testid="textarea-secondary-survey-additional-notes"
+                      value={formData.history.secondary_survey_additional_notes}
+                      onChange={(e) => updateNestedField('history', 'secondary_survey_additional_notes', e.target.value)}
+                      placeholder="Additional observations from secondary survey..."
+                      rows={2}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
                     <Label>Past Medical History</Label>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                       {['Hypertension', 'Diabetes', 'CAD', 'CKD', 'CLD', 'COPD/Asthma', 'Epilepsy', 'Stroke', 'Malignancy'].map(item => (
