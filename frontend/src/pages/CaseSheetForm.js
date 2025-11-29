@@ -861,6 +861,27 @@ export default function CaseSheetForm() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Info Banners */}
         <div className="mb-6 space-y-3">
+          {/* Locked Case Warning */}
+          {isLocked && (
+            <div className="p-4 bg-red-50 border-2 border-red-300 rounded-lg">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="h-6 w-6 text-red-600 mt-0.5 flex-shrink-0" />
+                <div className="flex-1">
+                  <h3 className="text-base font-bold text-red-900 mb-1">🔒 CASE LOCKED - READ ONLY</h3>
+                  <p className="text-sm text-red-800">
+                    This case has been locked for <strong>legal and audit compliance</strong>. No edits are allowed. 
+                    All form fields are disabled. If changes are absolutely necessary, contact your administrator.
+                  </p>
+                  {formData.locked_at && (
+                    <p className="text-xs text-red-700 mt-2">
+                      Locked on: {new Date(formData.locked_at).toLocaleString()}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Voice Input Banner */}
           <div className="p-4 bg-sky-50 border border-sky-200 rounded-lg">
             <div className="flex items-start gap-3">
