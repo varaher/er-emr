@@ -1562,6 +1562,66 @@ export default function CaseSheetForm() {
                   </div>
 
                   <div className="space-y-2">
+                    <Label htmlFor="past-medical-additional-notes" className="flex items-center gap-2">
+                      <Mic className="h-4 w-4 text-blue-600" />
+                      Past Medical History - Additional Notes
+                    </Label>
+                    <VoiceTextarea
+                      id="past-medical-additional-notes"
+                      data-testid="textarea-past-medical-additional-notes"
+                      value={formData.history.past_medical_additional_notes}
+                      onChange={(e) => updateNestedField('history', 'past_medical_additional_notes', e.target.value)}
+                      placeholder="Additional details about past medical history..."
+                      rows={2}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="past-surgical" className="flex items-center gap-2">
+                      <Mic className="h-4 w-4 text-blue-600" />
+                      Surgical History
+                    </Label>
+                    <VoiceTextarea
+                      id="past-surgical"
+                      data-testid="textarea-past-surgical"
+                      value={formData.history.past_surgical}
+                      onChange={(e) => updateNestedField('history', 'past_surgical', e.target.value)}
+                      placeholder="Document past surgical history..."
+                      rows={2}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="past-surgical-additional-notes" className="flex items-center gap-2">
+                      <Mic className="h-4 w-4 text-blue-600" />
+                      Surgical History - Additional Notes
+                    </Label>
+                    <VoiceTextarea
+                      id="past-surgical-additional-notes"
+                      data-testid="textarea-past-surgical-additional-notes"
+                      value={formData.history.past_surgical_additional_notes}
+                      onChange={(e) => updateNestedField('history', 'past_surgical_additional_notes', e.target.value)}
+                      placeholder="Additional details about surgical history..."
+                      rows={2}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="family-gyn-additional-notes" className="flex items-center gap-2">
+                      <Mic className="h-4 w-4 text-blue-600" />
+                      Family / Gynae History
+                    </Label>
+                    <VoiceTextarea
+                      id="family-gyn-additional-notes"
+                      data-testid="textarea-family-gyn-additional-notes"
+                      value={formData.history.family_gyn_additional_notes}
+                      onChange={(e) => updateNestedField('history', 'family_gyn_additional_notes', e.target.value)}
+                      placeholder="Document family history and gynecological history (LMP, etc.)..."
+                      rows={2}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
                     <Label htmlFor="allergies-field">Allergies</Label>
                     <Input
                       id="allergies-field"
@@ -1569,6 +1629,66 @@ export default function CaseSheetForm() {
                       value={formData.history.allergies.join(', ')}
                       onChange={(e) => updateNestedField('history', 'allergies', e.target.value.split(',').map(s => s.trim()))}
                       placeholder="Enter allergies separated by commas"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="allergies-additional-notes" className="flex items-center gap-2">
+                      <Mic className="h-4 w-4 text-blue-600" />
+                      Allergies - Additional Notes
+                    </Label>
+                    <VoiceTextarea
+                      id="allergies-additional-notes"
+                      data-testid="textarea-allergies-additional-notes"
+                      value={formData.history.allergies_additional_notes}
+                      onChange={(e) => updateNestedField('history', 'allergies_additional_notes', e.target.value)}
+                      placeholder="Additional details about allergies..."
+                      rows={2}
+                    />
+                  </div>
+
+                  <div className="space-y-4 border-t pt-4">
+                    <Label className="text-lg font-semibold">Psychological Assessment</Label>
+                    <div className="space-y-3">
+                      {[
+                        { key: 'q1', text: 'Have you been feeling persistently low, excessively worried, angry, or finding it hard to focus lately?' },
+                        { key: 'q2', text: 'Have you noticed hearing or seeing things that others don\'t, or feeling detached from reality at times?' },
+                        { key: 'q3', text: 'Do you regularly use alcohol, tobacco, or any other substances (including recreational or non-prescribed drugs)?' },
+                        { key: 'q4', text: 'Is this individual currently feeling confused or agitated?' },
+                        { key: 'q5', text: 'Have you ever had thoughts of ending your life, or have you ever attempted to harm yourself?' },
+                        { key: 'q6', text: 'Have you ever received treatment or support for mental health, psychological issues, or substance use problems?' },
+                        { key: 'q7', text: 'Additional Observations' }
+                      ].map((question, index) => (
+                        <div key={question.key} className="space-y-2">
+                          <Label htmlFor={`psych-${question.key}`} className="text-sm">
+                            {index + 1}. {question.text}
+                          </Label>
+                          <Input
+                            id={`psych-${question.key}`}
+                            value={formData.history.psychological_assessment[question.key] || ''}
+                            onChange={(e) => {
+                              const updated = { ...formData.history.psychological_assessment, [question.key]: e.target.value };
+                              updateNestedField('history', 'psychological_assessment', updated);
+                            }}
+                            placeholder={index === 6 ? "Enter any additional observations..." : "Yes / No / Details..."}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="psychological-additional-notes" className="flex items-center gap-2">
+                      <Mic className="h-4 w-4 text-blue-600" />
+                      Psychological Assessment - Additional Notes
+                    </Label>
+                    <VoiceTextarea
+                      id="psychological-additional-notes"
+                      data-testid="textarea-psychological-additional-notes"
+                      value={formData.history.psychological_additional_notes}
+                      onChange={(e) => updateNestedField('history', 'psychological_additional_notes', e.target.value)}
+                      placeholder="Additional psychological assessment observations..."
+                      rows={2}
                     />
                   </div>
                 </div>
