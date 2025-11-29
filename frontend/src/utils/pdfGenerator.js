@@ -299,6 +299,24 @@ export const generateCaseSheetPDF = (caseData) => {
     doc.text(`Condition: ${get(caseData, 'disposition.condition_at_discharge')}`, 14, yPos);
   }
   
+  // Signature section
+  if (yPos > 240) {
+    doc.addPage();
+    yPos = 20;
+  }
+  
+  yPos += 20;
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.text('_______________________', 14, yPos);
+  doc.text('_______________________', 140, yPos);
+  yPos += 5;
+  doc.text('EM Resident Signature', 14, yPos);
+  doc.text('EM Consultant Signature', 140, yPos);
+  yPos += 5;
+  doc.text(`Dr. ${get(caseData, 'em_resident')}`, 14, yPos);
+  doc.text(`Dr. ${get(caseData, 'em_consultant')}`, 140, yPos);
+  
   // Footer
   const pageCount = doc.internal.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
