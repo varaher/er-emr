@@ -260,6 +260,25 @@ export default function CaseSheetForm() {
     }
   }, [id]);
 
+  // Auto-save effect - saves every 30 seconds if there are changes
+  useEffect(() => {
+    if (!id || id === 'new' || isLocked) return;
+
+    const autoSaveInterval = setInterval(async () => {
+      try {
+        setAutoSaving(true);
+        await api.put(`/cases/${id}?lock_case=false`, formData);
+        setLastSaved(new Date());
+      } catch (error) {
+        console.error('Auto-save failed:', error);
+      } finally {
+        setAutoSaving(false);
+      }
+    }, 30000); // Auto-save every 30 seconds
+
+    return () => clearInterval(autoSaveInterval);
+  }, [id, formData, isLocked]);
+
   const fetchTriageAndPopulateVitals = async (triageId) => {
     try {
       const response = await api.get(`/triage/${triageId}`);
