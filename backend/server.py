@@ -429,9 +429,15 @@ class AIGenerateRequest(BaseModel):
     case_sheet_id: str
     prompt_type: str  # discharge_summary, red_flags, diagnosis_suggestions
 
+class AISource(BaseModel):
+    title: str
+    url: str
+    snippet: str
+
 class AIResponse(BaseModel):
     response: str
     case_sheet_id: str
+    sources: List[AISource] = []
 
 # Helper functions
 def hash_password(password: str) -> str:
