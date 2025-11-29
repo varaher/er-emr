@@ -329,6 +329,10 @@ export const generateCaseSheetPDF = (caseData) => {
   }
   
   return doc;
+  } catch (error) {
+    console.error('PDF Generation Error:', error);
+    throw new Error(`PDF generation failed: ${error.message}`);
+  }
 };
 
 export const generateDischargeSummaryPDF = (summaryData, caseData) => {
