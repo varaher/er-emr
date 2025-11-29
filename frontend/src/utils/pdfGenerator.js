@@ -103,27 +103,26 @@ export const generateCaseSheetPDF = (caseData) => {
     yPos = 20;
   }
   
-  // Primary Assessment (ABCDE)
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Primary Assessment (ABCDE)', 14, yPos);
-  yPos += 7;
-  
-  const primaryAssessment = caseData.primary_assessment;
-  doc.autoTable({
-    startY: yPos,
-    theme: 'grid',
-    headStyles: { fillColor: [41, 128, 185], fontSize: 9 },
-    bodyStyles: { fontSize: 9 },
-    head: [['Component', 'Assessment']],
-    body: [
-      ['Airway', `Status: ${primaryAssessment.airway_status}`],
-      ['Breathing', `RR: ${primaryAssessment.breathing_rr || 'N/A'}, SpO2: ${primaryAssessment.breathing_spo2 || 'N/A'}%, Work: ${primaryAssessment.breathing_work}`],
-      ['Circulation', `HR: ${primaryAssessment.circulation_hr || 'N/A'}, BP: ${primaryAssessment.circulation_bp_systolic || 'N/A'}/${primaryAssessment.circulation_bp_diastolic || 'N/A'}`],
-      ['Disability', `AVPU: ${primaryAssessment.disability_avpu}, GCS: E${primaryAssessment.disability_gcs_e || '-'}V${primaryAssessment.disability_gcs_v || '-'}M${primaryAssessment.disability_gcs_m || '-'}`],
-      ['Exposure', `Temperature: ${primaryAssessment.exposure_temperature || 'N/A'}°C`]
-    ]
-  });
+    // Primary Assessment (ABCDE)
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Primary Assessment (ABCDE)', 14, yPos);
+    yPos += 7;
+    
+    doc.autoTable({
+      startY: yPos,
+      theme: 'grid',
+      headStyles: { fillColor: [41, 128, 185], fontSize: 9 },
+      bodyStyles: { fontSize: 9 },
+      head: [['Component', 'Assessment']],
+      body: [
+        ['Airway', `Status: ${get(caseData, 'primary_assessment.airway_status')}`],
+        ['Breathing', `RR: ${get(caseData, 'primary_assessment.breathing_rr')}, SpO2: ${get(caseData, 'primary_assessment.breathing_spo2')}%, Work: ${get(caseData, 'primary_assessment.breathing_work')}`],
+        ['Circulation', `HR: ${get(caseData, 'primary_assessment.circulation_hr')}, BP: ${get(caseData, 'primary_assessment.circulation_bp_systolic')}/${get(caseData, 'primary_assessment.circulation_bp_diastolic')}`],
+        ['Disability', `AVPU: ${get(caseData, 'primary_assessment.disability_avpu')}, GCS: E${get(caseData, 'primary_assessment.disability_gcs_e', '-')}V${get(caseData, 'primary_assessment.disability_gcs_v', '-')}M${get(caseData, 'primary_assessment.disability_gcs_m', '-')}`],
+        ['Exposure', `Temperature: ${get(caseData, 'primary_assessment.exposure_temperature')}°C`]
+      ]
+    });
   
   yPos = doc.lastAutoTable.finalY + 10;
   
