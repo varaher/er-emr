@@ -1360,6 +1360,16 @@ export default function CaseSheetForm() {
                 </div>
               </CardContent>
             </Card>
+            
+            {/* Navigation Buttons */}
+            <div className="flex justify-between gap-2 mt-6">
+              <Button variant="outline" onClick={goToPreviousTab}>
+                ← Back: Patient Info
+              </Button>
+              <Button onClick={goToNextTab} className="bg-sky-600 hover:bg-sky-700">
+                Next: ABCDE Assessment →
+              </Button>
+            </div>
           </TabsContent>
 
           {/* Presenting Complaint Tab - Part of Primary */}
