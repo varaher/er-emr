@@ -1203,6 +1203,13 @@ export default function CaseSheetForm() {
                 </div>
               </CardContent>
             </Card>
+            
+            {/* Navigation Buttons */}
+            <div className="flex justify-end gap-2 mt-6">
+              <Button onClick={goToNextTab} className="bg-sky-600 hover:bg-sky-700">
+                Next: Vitals →
+              </Button>
+            </div>
           </TabsContent>
 
           {/* Vitals Tab */}
