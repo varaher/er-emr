@@ -1649,29 +1649,53 @@ export default function CaseSheetForm() {
 
                   <div className="space-y-4 border-t pt-4">
                     <Label className="text-lg font-semibold">Psychological Assessment</Label>
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                       {[
                         { key: 'q1', text: 'Have you been feeling persistently low, excessively worried, angry, or finding it hard to focus lately?' },
                         { key: 'q2', text: 'Have you noticed hearing or seeing things that others don\'t, or feeling detached from reality at times?' },
                         { key: 'q3', text: 'Do you regularly use alcohol, tobacco, or any other substances (including recreational or non-prescribed drugs)?' },
                         { key: 'q4', text: 'Is this individual currently feeling confused or agitated?' },
                         { key: 'q5', text: 'Have you ever had thoughts of ending your life, or have you ever attempted to harm yourself?' },
-                        { key: 'q6', text: 'Have you ever received treatment or support for mental health, psychological issues, or substance use problems?' },
-                        { key: 'q7', text: 'Additional Observations' }
+                        { key: 'q6', text: 'Have you ever received treatment or support for mental health, psychological issues, or substance use problems?' }
                       ].map((question, index) => (
-                        <div key={question.key} className="space-y-2">
-                          <Label htmlFor={`psych-${question.key}`} className="text-sm">
+                        <div key={question.key} className="space-y-2 p-3 bg-slate-50 rounded-lg">
+                          <Label className="text-sm font-medium text-slate-900">
                             {index + 1}. {question.text}
                           </Label>
-                          <Input
-                            id={`psych-${question.key}`}
-                            value={formData.history.psychological_assessment[question.key] || ''}
-                            onChange={(e) => {
-                              const updated = { ...formData.history.psychological_assessment, [question.key]: e.target.value };
-                              updateNestedField('history', 'psychological_assessment', updated);
-                            }}
-                            placeholder={index === 6 ? "Enter any additional observations..." : "Yes / No / Details..."}
-                          />
+                          <div className="flex gap-4 ml-4">
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="radio"
+                                id={`psych-${question.key}-yes`}
+                                name={`psych-${question.key}`}
+                                checked={formData.history.psychological_assessment[question.key] === 'Yes'}
+                                onChange={() => {
+                                  const updated = { ...formData.history.psychological_assessment, [question.key]: 'Yes' };
+                                  updateNestedField('history', 'psychological_assessment', updated);
+                                }}
+                                className="h-4 w-4 text-sky-600"
+                              />
+                              <Label htmlFor={`psych-${question.key}-yes`} className="text-sm cursor-pointer">
+                                ✓ Yes
+                              </Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="radio"
+                                id={`psych-${question.key}-no`}
+                                name={`psych-${question.key}`}
+                                checked={formData.history.psychological_assessment[question.key] === 'No'}
+                                onChange={() => {
+                                  const updated = { ...formData.history.psychological_assessment, [question.key]: 'No' };
+                                  updateNestedField('history', 'psychological_assessment', updated);
+                                }}
+                                className="h-4 w-4 text-sky-600"
+                              />
+                              <Label htmlFor={`psych-${question.key}-no`} className="text-sm cursor-pointer">
+                                ✗ No
+                              </Label>
+                            </div>
+                          </div>
                         </div>
                       ))}
                     </div>
