@@ -40,6 +40,8 @@ export default function CaseSheetForm() {
   const [showAddendumModal, setShowAddendumModal] = useState(false);
   const [addendumNote, setAddendumNote] = useState('');
   const [addendums, setAddendums] = useState([]);
+  const [autoSaving, setAutoSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState(null);
   
   // Get triage data from navigation state
   const triageData = location.state || {};
