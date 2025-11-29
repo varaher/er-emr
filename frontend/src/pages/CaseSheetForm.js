@@ -936,6 +936,7 @@ export default function CaseSheetForm() {
           />
         </div>
 
+        <div className={isLocked ? 'pointer-events-none opacity-60' : ''}>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid grid-cols-7 mb-6">
             <TabsTrigger value="patient" data-testid="tab-patient">Patient Info</TabsTrigger>
