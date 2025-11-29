@@ -1286,20 +1286,56 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
           {/* Locked Case Warning */}
           {isLocked && (
             <div className="p-4 bg-red-50 border-2 border-red-300 rounded-lg">
-              <div className="flex items-start gap-3">
-                <AlertCircle className="h-6 w-6 text-red-600 mt-0.5 flex-shrink-0" />
-                <div className="flex-1">
-                  <h3 className="text-base font-bold text-red-900 mb-1">🔒 CASE LOCKED - READ ONLY</h3>
-                  <p className="text-sm text-red-800">
-                    This case has been locked for <strong>legal and audit compliance</strong>. No edits are allowed. 
-                    All form fields are disabled. If changes are absolutely necessary, contact your administrator.
-                  </p>
-                  {formData.locked_at && (
-                    <p className="text-xs text-red-700 mt-2">
-                      Locked on: {new Date(formData.locked_at).toLocaleString()}
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3 flex-1">
+                  <AlertCircle className="h-6 w-6 text-red-600 mt-0.5 flex-shrink-0" />
+                  <div className="flex-1">
+                    <h3 className="text-base font-bold text-red-900 mb-1">🔒 CASE LOCKED - READ ONLY</h3>
+                    <p className="text-sm text-red-800">
+                      This case has been locked for <strong>legal and audit compliance</strong>. No edits are allowed. 
+                      All form fields are disabled. To add supplementary information, use the Addendum feature.
                     </p>
-                  )}
+                    {formData.locked_at && (
+                      <p className="text-xs text-red-700 mt-2">
+                        Locked on: {new Date(formData.locked_at).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST
+                      </p>
+                    )}
+                  </div>
                 </div>
+                <Button 
+                  onClick={() => setShowAddendumModal(true)}
+                  size="sm"
+                  className="bg-blue-600 hover:bg-blue-700 flex-shrink-0"
+                  data-testid="add-addendum-button"
+                >
+                  <FileText className="h-4 w-4 mr-2" />
+                  Add Addendum
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Display Existing Addendums */}
+          {addendums && addendums.length > 0 && (
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <h3 className="text-sm font-bold text-blue-900 mb-3 flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Addendums ({addendums.length})
+              </h3>
+              <div className="space-y-3">
+                {addendums.map((addendum, index) => (
+                  <div key={addendum.id || index} className="bg-white p-3 rounded-md border border-blue-200">
+                    <div className="flex justify-between items-start mb-2">
+                      <span className="text-xs font-semibold text-blue-900">
+                        👤 {addendum.added_by_name || 'Unknown User'}
+                      </span>
+                      <span className="text-xs text-blue-700">
+                        📅 {new Date(addendum.timestamp).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST
+                      </span>
+                    </div>
+                    <p className="text-sm text-slate-700 whitespace-pre-wrap">{addendum.note}</p>
+                  </div>
+                ))}
               </div>
             </div>
           )}
