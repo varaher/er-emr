@@ -265,7 +265,7 @@ export default function ContinuousVoiceRecorder({ onTranscriptComplete, caseShee
             <div className="flex-1">
               <p className="text-xs font-semibold text-amber-800 mb-1">Microphone Permission Required</p>
               <p className="text-xs text-amber-700">
-                When you start recording, your browser will ask for microphone access. Please click <strong>"Allow"</strong> to enable voice input.
+                When you start recording, your browser will ask for microphone access. Please click <strong>&ldquo;Allow&rdquo;</strong> to enable voice input.
               </p>
               <p className="text-xs text-amber-600 mt-2">
                 <strong>If blocked:</strong> Click the 🔒 lock icon in your address bar → Site settings → Microphone → Allow
