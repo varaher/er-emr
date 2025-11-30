@@ -291,22 +291,23 @@ export default function DischargeSummaryNew() {
             <CardContent className="pt-4">
               <Label htmlFor="medications" className="flex items-center gap-2 text-sm font-semibold mb-2">
                 <Mic className="h-4 w-4 text-blue-600 print:hidden" />
-                Discharge Medications:
+                Discharge Medications: <span className="text-red-500">*</span>
               </Label>
               <VoiceTextarea
                 id="medications"
                 value={dischargeData.discharge_medications}
                 onChange={(e) => setDischargeData({...dischargeData, discharge_medications: e.target.value})}
-                placeholder="List all discharge medications with dosages and duration..."
+                placeholder="List all discharge medications with dosages and duration (required)..."
                 rows={4}
                 className="print:border-0"
+                required
               />
             </CardContent>
           </Card>
 
           {/* EDITABLE - Disposition */}
           <div className="mb-4">
-            <p className="font-semibold text-sm mb-2">Disposition:</p>
+            <p className="font-semibold text-sm mb-2">Disposition: <span className="text-red-500">*</span></p>
             <div className="flex flex-col gap-2 text-sm print:flex-row print:gap-4">
               {['Normal Discharge', 'Discharge at Request', 'Discharge Against Medical Advice', 'Referred'].map(type => (
                 <div key={type} className="flex items-center space-x-2">
@@ -327,7 +328,7 @@ export default function DischargeSummaryNew() {
 
           {/* EDITABLE - Condition at Discharge */}
           <div className="mb-3 text-sm">
-            <span className="font-semibold">Condition at time of discharge: </span>
+            <span className="font-semibold">Condition at time of discharge: <span className="text-red-500">*</span> </span>
             <span className="print:hidden">
               <label className="mr-4">
                 <input
@@ -353,7 +354,7 @@ export default function DischargeSummaryNew() {
 
           {/* EDITABLE - Vitals at Discharge */}
           <div className="mb-4">
-            <p className="font-semibold text-sm mb-2">Vitals at the time of Discharge:</p>
+            <p className="font-semibold text-sm mb-2">Vitals at the time of Discharge: <span className="text-red-500">*</span></p>
             <div className="grid grid-cols-4 gap-2 text-sm print:grid-cols-8">
               {['hr', 'bp', 'rr', 'spo2', 'gcs', 'pain_score', 'grbs', 'temp'].map(vital => (
                 <div key={vital} className="print:inline">
@@ -382,15 +383,16 @@ export default function DischargeSummaryNew() {
             <CardContent className="pt-4">
               <Label htmlFor="follow-up" className="flex items-center gap-2 text-sm font-semibold mb-2">
                 <Mic className="h-4 w-4 text-blue-600 print:hidden" />
-                Follow-Up Advice:
+                Follow-Up Advice: <span className="text-red-500">*</span>
               </Label>
               <VoiceTextarea
                 id="follow-up"
                 value={dischargeData.follow_up_advice}
                 onChange={(e) => setDischargeData({...dischargeData, follow_up_advice: e.target.value})}
-                placeholder="Follow-up instructions, red flags to watch for, when to return to ER..."
+                placeholder="Follow-up instructions, red flags to watch for, when to return to ER (required)..."
                 rows={3}
                 className="print:border-0"
+                required
               />
             </CardContent>
           </Card>
@@ -398,7 +400,7 @@ export default function DischargeSummaryNew() {
           {/* Signatures */}
           <div className="grid grid-cols-2 gap-8 mb-6">
             <div className="text-sm">
-              <p className="font-semibold">ED Resident:</p>
+              <p className="font-semibold">ED Resident: <span className="text-red-500">*</span></p>
               <p className="mt-1 print:hidden">
                 <Input
                   value={dischargeData.ed_resident}
@@ -413,7 +415,7 @@ export default function DischargeSummaryNew() {
               </div>
             </div>
             <div className="text-sm">
-              <p className="font-semibold">ED Consultant:</p>
+              <p className="font-semibold">ED Consultant: <span className="text-red-500">*</span></p>
               <p className="mt-1 print:hidden">
                 <Input
                   value={dischargeData.ed_consultant}
