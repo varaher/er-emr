@@ -232,18 +232,113 @@ export default function Triage() {
                 <CardDescription>Enter patient vital signs</CardDescription>
               </CardHeader>
               <CardContent>
-                {/* Normal Vitals Reference */}
-                <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                  <h4 className="text-xs font-semibold text-green-900 mb-2">Normal Vitals Reference (Adult)</h4>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs text-green-700">
-                    <div><span className="font-medium">HR:</span> 60-100 bpm</div>
-                    <div><span className="font-medium">BP:</span> 90-120/60-80 mmHg</div>
-                    <div><span className="font-medium">RR:</span> 12-20 /min</div>
-                    <div><span className="font-medium">SpO2:</span> 95-100%</div>
-                    <div><span className="font-medium">Temp:</span> 36.1-37.2°C</div>
-                    <div><span className="font-medium">GCS:</span> 15/15</div>
+                {/* Normal Vitals Reference - Adult */}
+                {formData.age_group === 'adult' && (
+                  <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <h4 className="text-xs font-semibold text-green-900 mb-2">📊 Normal Vitals Reference (Adult)</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs text-green-700">
+                      <div><span className="font-medium">HR:</span> 60-100 bpm</div>
+                      <div><span className="font-medium">BP:</span> 90-120/60-80 mmHg</div>
+                      <div><span className="font-medium">RR:</span> 12-20 /min</div>
+                      <div><span className="font-medium">SpO2:</span> 95-100%</div>
+                      <div><span className="font-medium">Temp:</span> 36.1-37.2°C</div>
+                      <div><span className="font-medium">GCS:</span> 15/15</div>
+                    </div>
                   </div>
-                </div>
+                )}
+
+                {/* Normal Vitals Reference - Pediatric */}
+                {formData.age_group === 'pediatric' && (
+                  <div className="mb-4 p-4 bg-blue-50 border-2 border-blue-300 rounded-lg">
+                    <h4 className="text-sm font-bold text-blue-900 mb-3 flex items-center gap-2">
+                      👶 Pediatric Normal Vitals Reference (Age-Specific)
+                    </h4>
+                    
+                    {/* Age-Based Vital Ranges Table */}
+                    <div className="overflow-x-auto mb-3">
+                      <table className="w-full text-xs border-collapse">
+                        <thead>
+                          <tr className="bg-blue-100">
+                            <th className="border border-blue-300 px-2 py-1 text-left font-semibold">Age Group</th>
+                            <th className="border border-blue-300 px-2 py-1 text-center font-semibold">HR (bpm)</th>
+                            <th className="border border-blue-300 px-2 py-1 text-center font-semibold">RR (/min)</th>
+                            <th className="border border-blue-300 px-2 py-1 text-center font-semibold">Systolic BP</th>
+                          </tr>
+                        </thead>
+                        <tbody className="text-blue-800">
+                          <tr>
+                            <td className="border border-blue-200 px-2 py-1 font-medium">Newborn (0-1 mo)</td>
+                            <td className="border border-blue-200 px-2 py-1 text-center">120-160</td>
+                            <td className="border border-blue-200 px-2 py-1 text-center">30-60</td>
+                            <td className="border border-blue-200 px-2 py-1 text-center">60-90</td>
+                          </tr>
+                          <tr className="bg-blue-50">
+                            <td className="border border-blue-200 px-2 py-1 font-medium">Infant (1-12 mo)</td>
+                            <td className="border border-blue-200 px-2 py-1 text-center">100-160</td>
+                            <td className="border border-blue-200 px-2 py-1 text-center">25-40</td>
+                            <td className="border border-blue-200 px-2 py-1 text-center">70-100</td>
+                          </tr>
+                          <tr>
+                            <td className="border border-blue-200 px-2 py-1 font-medium">Toddler (1-3 yrs)</td>
+                            <td className="border border-blue-200 px-2 py-1 text-center">90-150</td>
+                            <td className="border border-blue-200 px-2 py-1 text-center">20-30</td>
+                            <td className="border border-blue-200 px-2 py-1 text-center">80-110</td>
+                          </tr>
+                          <tr className="bg-blue-50">
+                            <td className="border border-blue-200 px-2 py-1 font-medium">Preschool (3-6 yrs)</td>
+                            <td className="border border-blue-200 px-2 py-1 text-center">80-140</td>
+                            <td className="border border-blue-200 px-2 py-1 text-center">20-25</td>
+                            <td className="border border-blue-200 px-2 py-1 text-center">85-110</td>
+                          </tr>
+                          <tr>
+                            <td className="border border-blue-200 px-2 py-1 font-medium">School Age (6-12 yrs)</td>
+                            <td className="border border-blue-200 px-2 py-1 text-center">70-120</td>
+                            <td className="border border-blue-200 px-2 py-1 text-center">18-25</td>
+                            <td className="border border-blue-200 px-2 py-1 text-center">90-120</td>
+                          </tr>
+                          <tr className="bg-blue-50">
+                            <td className="border border-blue-200 px-2 py-1 font-medium">Adolescent (12-18 yrs)</td>
+                            <td className="border border-blue-200 px-2 py-1 text-center">60-100</td>
+                            <td className="border border-blue-200 px-2 py-1 text-center">12-20</td>
+                            <td className="border border-blue-200 px-2 py-1 text-center">90-120</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Quick Reference Formulas */}
+                    <div className="mt-3 p-3 bg-amber-50 border border-amber-300 rounded">
+                      <h5 className="text-xs font-bold text-amber-900 mb-2">📐 Quick Calculation Formulas</h5>
+                      <div className="space-y-1 text-xs text-amber-800">
+                        <div><span className="font-semibold">Weight (kg):</span> (Age in years × 2) + 8</div>
+                        <div><span className="font-semibold">Systolic BP (mmHg):</span> 90 + (2 × age in years)</div>
+                        <div><span className="font-semibold">Lower Limit Systolic BP:</span> 70 + (2 × age in years)</div>
+                        <div><span className="font-semibold">ETT Size (uncuffed):</span> (Age in years ÷ 4) + 4</div>
+                        <div><span className="font-semibold">ETT Depth (cm):</span> (Age in years ÷ 2) + 12</div>
+                      </div>
+                    </div>
+
+                    {/* Common Values */}
+                    <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                      <div className="p-2 bg-white border border-blue-200 rounded">
+                        <span className="font-semibold text-blue-900">SpO2:</span>
+                        <span className="text-blue-700"> 95-100%</span>
+                      </div>
+                      <div className="p-2 bg-white border border-blue-200 rounded">
+                        <span className="font-semibold text-blue-900">Temperature:</span>
+                        <span className="text-blue-700"> 36.5-37.5°C</span>
+                      </div>
+                      <div className="p-2 bg-white border border-blue-200 rounded">
+                        <span className="font-semibold text-blue-900">CRT:</span>
+                        <span className="text-blue-700"> &lt; 2 seconds</span>
+                      </div>
+                      <div className="p-2 bg-white border border-blue-200 rounded">
+                        <span className="font-semibold text-blue-900">Urine Output:</span>
+                        <span className="text-blue-700"> 1-2 ml/kg/hr</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="space-y-2">
