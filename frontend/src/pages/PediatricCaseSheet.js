@@ -305,35 +305,37 @@ export default function PediatricCaseSheet() {
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="uhid">UHID / MR Number</Label>
+                    <Label htmlFor="uhid">UHID / MR Number <span className="text-xs text-slate-500">(optional)</span></Label>
                     <Input
                       id="uhid"
                       value={formData.patient.uhid}
                       onChange={(e) => updateNestedField('patient', 'uhid', e.target.value)}
-                      placeholder="Hospital ID"
+                      placeholder="Hospital ID (optional)"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="name">Patient Name *</Label>
+                    <Label htmlFor="name">Patient Name <span className="text-red-500">*</span></Label>
                     <Input
                       id="name"
                       value={formData.patient.name}
                       onChange={(e) => updateNestedField('patient', 'name', e.target.value)}
-                      placeholder="Full name"
+                      placeholder="Full name (required)"
+                      required
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="age">Age *</Label>
+                    <Label htmlFor="age">Age <span className="text-red-500">*</span></Label>
                     <div className="flex gap-2">
                       <Input
                         id="age"
                         type="number"
                         value={formData.patient.age}
                         onChange={(e) => updateNestedField('patient', 'age', e.target.value)}
-                        placeholder="Age"
+                        placeholder="Age (required)"
                         className="flex-1"
+                        required
                       />
                       <select
                         className="flex h-10 w-32 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
@@ -348,12 +350,13 @@ export default function PediatricCaseSheet() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="sex">Sex</Label>
+                    <Label htmlFor="sex">Sex <span className="text-red-500">*</span></Label>
                     <select
                       id="sex"
                       className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
                       value={formData.patient.sex}
                       onChange={(e) => updateNestedField('patient', 'sex', e.target.value)}
+                      required
                     >
                       <option value="Male">Male</option>
                       <option value="Female">Female</option>
@@ -361,45 +364,45 @@ export default function PediatricCaseSheet() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="weight">Weight (kg)</Label>
+                    <Label htmlFor="weight">Weight (kg) <span className="text-xs text-slate-500">(optional)</span></Label>
                     <Input
                       id="weight"
                       type="number"
                       step="0.1"
                       value={formData.patient.weight}
                       onChange={(e) => updateNestedField('patient', 'weight', e.target.value)}
-                      placeholder="Weight in kg"
+                      placeholder="Weight in kg (optional)"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="height">Height (cm)</Label>
+                    <Label htmlFor="height">Height (cm) <span className="text-xs text-slate-500">(optional)</span></Label>
                     <Input
                       id="height"
                       type="number"
                       value={formData.patient.height}
                       onChange={(e) => updateNestedField('patient', 'height', e.target.value)}
-                      placeholder="Height in cm"
+                      placeholder="Height in cm (optional)"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="phone">Contact Number</Label>
+                    <Label htmlFor="phone">Contact Number <span className="text-xs text-slate-500">(optional)</span></Label>
                     <Input
                       id="phone"
                       value={formData.patient.phone}
                       onChange={(e) => updateNestedField('patient', 'phone', e.target.value)}
-                      placeholder="Parent/Guardian contact"
+                      placeholder="Parent/Guardian contact (optional)"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="address">Address</Label>
+                    <Label htmlFor="address">Address <span className="text-xs text-slate-500">(optional)</span></Label>
                     <Input
                       id="address"
                       value={formData.patient.address}
                       onChange={(e) => updateNestedField('patient', 'address', e.target.value)}
-                      placeholder="Residential address"
+                      placeholder="Residential address (optional)"
                     />
                   </div>
 
@@ -456,14 +459,15 @@ export default function PediatricCaseSheet() {
                   <div className="space-y-2">
                     <Label htmlFor="complaint" className="flex items-center gap-2">
                       <Mic className="h-4 w-4 text-blue-600" />
-                      Chief Complaint
+                      Chief Complaint <span className="text-red-500">*</span>
                     </Label>
                     <VoiceTextarea
                       id="complaint"
                       value={formData.presenting_complaint.text}
                       onChange={(e) => updateNestedField('presenting_complaint', 'text', e.target.value)}
-                      placeholder="Main reason for visit..."
+                      placeholder="Main reason for visit (required)..."
                       rows={4}
+                      required
                     />
                   </div>
 
