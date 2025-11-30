@@ -3067,8 +3067,8 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
             
             {/* Navigation Buttons */}
             <div className="flex justify-between gap-2 mt-6">
-              <Button variant="outline" onClick={goToPreviousTab}>
-                ← Back: Examination
+              <Button variant="outline" onClick="{goToPreviousTab}">
+                ← Back: Physical Examination
               </Button>
               <Button onClick={goToNextTab} className="bg-sky-600 hover:bg-sky-700">
                 Next: Treatment →
