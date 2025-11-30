@@ -144,12 +144,24 @@ export default function PediatricCaseSheet() {
     },
     // Physical Examination
     examination: {
-      heent: '',
-      respiratory: '',
-      cardiovascular: '',
-      abdomen: '',
-      back: '',
-      extremities: ''
+      heent_status: 'Normal',
+      heent_abnormality: '',
+      heent_notes: '',
+      respiratory_status: 'Normal',
+      respiratory_abnormality: '',
+      respiratory_notes: '',
+      cardiovascular_status: 'Normal',
+      cardiovascular_abnormality: '',
+      cardiovascular_notes: '',
+      abdomen_status: 'Normal',
+      abdomen_abnormality: '',
+      abdomen_notes: '',
+      back_status: 'Normal',
+      back_abnormality: '',
+      back_notes: '',
+      extremities_status: 'Normal',
+      extremities_abnormality: '',
+      extremities_notes: ''
     },
     // Investigations
     investigations: {
