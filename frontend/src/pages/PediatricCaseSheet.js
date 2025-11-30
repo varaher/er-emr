@@ -1645,24 +1645,10 @@ export default function PediatricCaseSheet() {
               <Card>
                 <CardHeader>
                   <CardTitle>Treatment in ER</CardTitle>
-                  <CardDescription>Document interventions and medications</CardDescription>
+                  <CardDescription>Document clinical course and interventions</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="intervention-notes" className="flex items-center gap-2">
-                        <Mic className="h-4 w-4 text-blue-600" />
-                        Treatment Given
-                      </Label>
-                      <VoiceTextarea
-                        id="intervention-notes"
-                        value={formData.treatment.intervention_notes}
-                        onChange={(e) => updateNestedField('treatment', 'intervention_notes', e.target.value)}
-                        placeholder="Medications, fluids, oxygen, procedures..."
-                        rows={6}
-                      />
-                    </div>
-
                     <div className="space-y-2">
                       <Label htmlFor="course" className="flex items-center gap-2">
                         <Mic className="h-4 w-4 text-blue-600" />
@@ -1672,8 +1658,22 @@ export default function PediatricCaseSheet() {
                         id="course"
                         value={formData.treatment.course_in_hospital}
                         onChange={(e) => updateNestedField('treatment', 'course_in_hospital', e.target.value)}
-                        placeholder="Patient's clinical course during hospital stay..."
-                        rows={4}
+                        placeholder="Patient's clinical course during hospital stay, response to treatment, timeline of events..."
+                        rows={6}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="intervention-notes" className="flex items-center gap-2">
+                        <Mic className="h-4 w-4 text-blue-600" />
+                        Treatment Given
+                      </Label>
+                      <VoiceTextarea
+                        id="intervention-notes"
+                        value={formData.treatment.intervention_notes}
+                        onChange={(e) => updateNestedField('treatment', 'intervention_notes', e.target.value)}
+                        placeholder="Medications (with doses), IV fluids, oxygen therapy, procedures performed..."
+                        rows={6}
                       />
                     </div>
 
