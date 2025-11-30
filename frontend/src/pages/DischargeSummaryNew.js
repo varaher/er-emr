@@ -125,6 +125,60 @@ export default function DischargeSummaryNew() {
     window.print();
   };
 
+  // Helper functions to build examination summaries
+  const buildGeneralExamination = (data, isPediatric) => {
+    if (isPediatric) {
+      return `PAT: Appearance - ${data.pat?.appearance_tone || 'Normal'}, Work of Breathing - ${data.pat?.work_of_breathing || 'Normal'}, Circulation to Skin - ${data.pat?.circulation_to_skin || 'Normal'}`;
+    }
+    const findings = [];
+    if (data.examination?.general_pallor) findings.push('Pallor');
+    if (data.examination?.general_icterus) findings.push('Icterus');
+    if (data.examination?.general_cyanosis) findings.push('Cyanosis');
+    if (data.examination?.general_clubbing) findings.push('Clubbing');
+    if (data.examination?.general_lymphadenopathy) findings.push('Lymphadenopathy');
+    if (data.examination?.general_edema) findings.push('Edema');
+    return findings.length > 0 ? findings.join(', ') : 'No abnormality detected';
+  };
+
+  const buildPrimaryAssessment = (data, isPediatric) => {
+    const primary = data.primary_assessment || data.abcde || {};
+    let summary = `Airway: ${primary.airway_status || 'Patent'}`;
+    if (primary.airway_intervention) summary += ` (${primary.airway_intervention})`;
+    summary += `\nBreathing: WOB - ${primary.breathing_wob?.join(', ') || primary.work_of_breathing || 'Normal'}`;
+    if (primary.breathing_intervention) summary += ` (${primary.breathing_intervention})`;
+    summary += `\nCirculation: CRT - ${primary.circulation_crt || 'Normal'}`;
+    summary += `\nDisability: ${primary.disability_avpu_gcs || 'Alert'}`;
+    summary += `\nExposure: Temp - ${primary.exposure_temperature || data.vitals_at_arrival?.temperature || 'Normal'}`;
+    return summary;
+  };
+
+  const buildSecondaryAssessment = (data, isPediatric) => {
+    const exam = data.examination || {};
+    let summary = '';
+    if (isPediatric) {
+      summary += `HEENT: ${exam.heent_status || 'Normal'}`;
+      if (exam.heent_status === 'Abnormal') summary += ` - ${exam.heent_abnormality || ''}`;
+      summary += `\nChest: ${exam.respiratory_status || 'Normal'}`;
+      if (exam.respiratory_status === 'Abnormal') summary += ` - ${exam.respiratory_abnormality || ''}`;
+      summary += `\nCVS: ${exam.cardiovascular_status || 'Normal'}`;
+      if (exam.cardiovascular_status === 'Abnormal') summary += ` - ${exam.cardiovascular_abnormality || ''}`;
+      summary += `\nAbdomen: ${exam.abdomen_status || 'Normal'}`;
+      summary += `\nExtremities: ${exam.extremities_status || 'Normal'}`;
+    } else {
+      summary += `Chest: ${exam.respiratory_status || 'Normal'}`;
+      summary += `\nCVS: ${exam.cvs_status || 'Normal'}`;
+      summary += `\nP/A: ${exam.abdomen_status || 'Normal'}`;
+      summary += `\nCNS: ${exam.cns_status || 'Normal'}`;
+      summary += `\nExtremities: ${exam.extremities_status || 'Normal'}`;
+    }
+    return summary;
+  };
+
+  const buildInvestigationsSummary = (data) => {
+    const panels = data.investigations?.panels_selected || [];
+    return panels.length > 0 ? `Ordered: ${panels.join(', ')}` : 'Pending';
+  };
+
   const handleDownloadPDF = () => {
     try {
       toast.info('Generating discharge summary PDF...', { duration: 2000 });
