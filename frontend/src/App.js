@@ -4,6 +4,7 @@ import Login from "@/pages/Login";
 import Dashboard from "@/pages/Dashboard";
 import Triage from "@/pages/Triage";
 import CaseSheetForm from "@/pages/CaseSheetForm";
+import PediatricCaseSheet from "@/pages/PediatricCaseSheet";
 import DischargeSummaryNew from "@/pages/DischargeSummaryNew";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import "@/App.css";
@@ -65,6 +66,22 @@ function App() {
               element={
                 <ProtectedRoute>
                   <CaseSheetForm />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/case-pediatric/new"
+              element={
+                <ProtectedRoute>
+                  <PediatricCaseSheet />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/case-pediatric/:id"
+              element={
+                <ProtectedRoute>
+                  <PediatricCaseSheet />
                 </ProtectedRoute>
               }
             />
