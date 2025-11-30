@@ -110,11 +110,14 @@ export default function Triage() {
       return;
     }
     // Navigate to case creation with triage data
-    navigate('/case/new', { 
+    // Use pediatric route if age_group is pediatric
+    const route = formData.age_group === 'pediatric' ? '/case-pediatric/new' : '/case/new';
+    navigate(route, { 
       state: { 
         triageId: triageResult.id,
         triagePriority: triageResult.priority_level,
-        triageColor: triageResult.priority_color
+        triageColor: triageResult.priority_color,
+        age_group: formData.age_group
       }
     });
   };
