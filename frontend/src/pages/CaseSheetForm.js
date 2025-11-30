@@ -2492,12 +2492,12 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
                 ← Back: ABCDE
               </Button>
               <Button onClick={goToNextTab} className="bg-sky-600 hover:bg-sky-700">
-                Next: Examination →
+                Next: Physical Examination →
               </Button>
             </div>
           </TabsContent>
 
-          {/* Examination Tab */}
+          {/* Physical Examination Tab */}
           <TabsContent value="examination">
             <Card>
               <CardHeader>
