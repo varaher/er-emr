@@ -3021,29 +3021,51 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
                         'Pedia Mini Panel': ['CBC', 'Blood Glucose', 'Electrolytes'],
                         'Adult Seizure Panel': ['CBC', 'RFT', 'LFT', 'Electrolytes', 'Glucose', 'Calcium', 'Magnesium', 'CT Brain'],
                         'Pedia Febrile Seizure Panel': ['CBC', 'Glucose', 'Electrolytes', 'Calcium', 'Blood Culture']
-                      }).map(([panel, tests]) => (
-                        <div key={panel} className={`border rounded-lg p-3 ${formData.investigations.panels_selected.includes(panel) ? 'border-sky-500 bg-sky-50' : 'border-slate-200'}`}>
-                          <div className="flex items-start space-x-2">
-                            <Checkbox
-                              id={`panel-${panel}`}
-                              checked={formData.investigations.panels_selected.includes(panel)}
-                              onCheckedChange={() => toggleArrayField('investigations', 'panels_selected', panel)}
-                              className="mt-1"
-                            />
-                            <div className="flex-1">
-                              <Label htmlFor={`panel-${panel}`} className="text-sm font-semibold cursor-pointer">{panel}</Label>
-                              <div className="mt-1 text-xs text-slate-600">
-                                {tests.map((test, idx) => (
-                                  <span key={idx}>
-                                    {test}
-                                    {idx < tests.length - 1 ? ', ' : ''}
-                                  </span>
-                                ))}
+                      }).map(([panel, tests]) => {
+                        const isSelected = formData.investigations.panels_selected.includes(panel);
+                        return (
+                          <div key={panel} className={`border rounded-lg p-3 ${isSelected ? 'border-sky-500 bg-sky-50' : 'border-slate-200'}`}>
+                            <div className="flex items-start space-x-2">
+                              <Checkbox
+                                id={`panel-${panel}`}
+                                checked={isSelected}
+                                onCheckedChange={() => toggleArrayField('investigations', 'panels_selected', panel)}
+                                className="mt-1"
+                              />
+                              <div className="flex-1">
+                                <Label htmlFor={`panel-${panel}`} className="text-sm font-semibold cursor-pointer">{panel}</Label>
+                                <div className="mt-1 text-xs text-slate-600">
+                                  {tests.map((test, idx) => (
+                                    <span key={idx}>
+                                      {test}
+                                      {idx < tests.length - 1 ? ', ' : ''}
+                                    </span>
+                                  ))}
+                                </div>
+                                
+                                {/* Expanded Detail Fields When Checked */}
+                                {isSelected && (
+                                  <div className="mt-3 pt-3 border-t border-sky-200 space-y-2">
+                                    <p className="text-xs font-semibold text-sky-800 mb-2">📋 Test Results:</p>
+                                    {tests.map((test) => (
+                                      <div key={test} className="space-y-1">
+                                        <Label htmlFor={`test-${panel}-${test}`} className="text-xs text-slate-700">{test}</Label>
+                                        <Input
+                                          id={`test-${panel}-${test}`}
+                                          value={formData.investigations[`${panel}_${test}`] || ''}
+                                          onChange={(e) => updateNestedField('investigations', `${panel}_${test}`, e.target.value)}
+                                          placeholder={`Enter ${test} result`}
+                                          className="h-8 text-xs"
+                                        />
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
                               </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
 
