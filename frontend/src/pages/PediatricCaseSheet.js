@@ -1161,92 +1161,399 @@ export default function PediatricCaseSheet() {
             <Card>
               <CardHeader>
                 <CardTitle>Focused Physical Examination</CardTitle>
-                <CardDescription>System-wise examination findings</CardDescription>
+                <CardDescription>System-wise examination findings with Normal/Abnormal assessment</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="heent" className="flex items-center gap-2">
-                      <Mic className="h-4 w-4 text-blue-600" />
-                      HEENT (Head, Eyes, Ears, Nose, Throat)
-                    </Label>
-                    <VoiceTextarea
-                      id="heent"
-                      value={formData.examination.heent}
-                      onChange={(e) => updateNestedField('examination', 'heent', e.target.value)}
-                      placeholder="Inspect head, examine eyes, check ears, examine nose, evaluate throat, palpate thyroid and lymph nodes..."
-                      rows={4}
-                    />
+                  {/* HEENT */}
+                  <div className="p-4 border rounded-lg bg-slate-50">
+                    <Label className="text-base font-semibold mb-3 block">HEENT (Head, Eyes, Ears, Nose, Throat)</Label>
+                    <div className="flex gap-4 mb-3">
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="radio"
+                          id="heent-normal"
+                          checked={formData.examination.heent_status === 'Normal'}
+                          onChange={() => updateNestedField('examination', 'heent_status', 'Normal')}
+                          className="w-4 h-4"
+                        />
+                        <Label htmlFor="heent-normal" className="text-sm font-medium">Normal</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="radio"
+                          id="heent-abnormal"
+                          checked={formData.examination.heent_status === 'Abnormal'}
+                          onChange={() => updateNestedField('examination', 'heent_status', 'Abnormal')}
+                          className="w-4 h-4"
+                        />
+                        <Label htmlFor="heent-abnormal" className="text-sm font-medium">Abnormal</Label>
+                      </div>
+                    </div>
+                    
+                    {formData.examination.heent_status === 'Abnormal' && (
+                      <div className="space-y-3 mt-3">
+                        <div className="space-y-2">
+                          <Label htmlFor="heent-abnormality">Select Abnormality</Label>
+                          <select
+                            id="heent-abnormality"
+                            className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
+                            value={formData.examination.heent_abnormality}
+                            onChange={(e) => updateNestedField('examination', 'heent_abnormality', e.target.value)}
+                          >
+                            <option value="">Select...</option>
+                            <option value="Sunken eyes">Sunken eyes</option>
+                            <option value="Pale conjunctiva">Pale conjunctiva</option>
+                            <option value="Icterus">Icterus</option>
+                            <option value="Ear discharge">Ear discharge</option>
+                            <option value="Nasal discharge">Nasal discharge</option>
+                            <option value="Pharyngeal congestion">Pharyngeal congestion</option>
+                            <option value="Tonsillitis">Tonsillitis</option>
+                            <option value="Lymphadenopathy">Lymphadenopathy</option>
+                            <option value="Fontanelle abnormality">Fontanelle abnormality (bulging/sunken)</option>
+                            <option value="Other">Other</option>
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="heent-notes" className="flex items-center gap-2">
+                            <Mic className="h-4 w-4 text-blue-600" />
+                            Additional Notes
+                          </Label>
+                          <VoiceTextarea
+                            id="heent-notes"
+                            value={formData.examination.heent_notes}
+                            onChange={(e) => updateNestedField('examination', 'heent_notes', e.target.value)}
+                            placeholder="Additional findings..."
+                            rows={2}
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="respiratory" className="flex items-center gap-2">
-                      <Mic className="h-4 w-4 text-blue-600" />
-                      Respiratory System
-                    </Label>
-                    <VoiceTextarea
-                      id="respiratory"
-                      value={formData.examination.respiratory}
-                      onChange={(e) => updateNestedField('examination', 'respiratory', e.target.value)}
-                      placeholder="Chest examination, abnormal breathing sounds (stridor, wheezing, crackles), nasal obstruction, retractions, chest movement..."
-                      rows={4}
-                    />
+                  {/* Respiratory */}
+                  <div className="p-4 border rounded-lg bg-slate-50">
+                    <Label className="text-base font-semibold mb-3 block">Respiratory System</Label>
+                    <div className="flex gap-4 mb-3">
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="radio"
+                          id="respiratory-normal"
+                          checked={formData.examination.respiratory_status === 'Normal'}
+                          onChange={() => updateNestedField('examination', 'respiratory_status', 'Normal')}
+                          className="w-4 h-4"
+                        />
+                        <Label htmlFor="respiratory-normal" className="text-sm font-medium">Normal</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="radio"
+                          id="respiratory-abnormal"
+                          checked={formData.examination.respiratory_status === 'Abnormal'}
+                          onChange={() => updateNestedField('examination', 'respiratory_status', 'Abnormal')}
+                          className="w-4 h-4"
+                        />
+                        <Label htmlFor="respiratory-abnormal" className="text-sm font-medium">Abnormal</Label>
+                      </div>
+                    </div>
+                    
+                    {formData.examination.respiratory_status === 'Abnormal' && (
+                      <div className="space-y-3 mt-3">
+                        <div className="space-y-2">
+                          <Label htmlFor="respiratory-abnormality">Select Abnormality</Label>
+                          <select
+                            id="respiratory-abnormality"
+                            className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
+                            value={formData.examination.respiratory_abnormality}
+                            onChange={(e) => updateNestedField('examination', 'respiratory_abnormality', e.target.value)}
+                          >
+                            <option value="">Select...</option>
+                            <option value="Wheezing">Wheezing</option>
+                            <option value="Crackles/Rales">Crackles/Rales</option>
+                            <option value="Stridor">Stridor</option>
+                            <option value="Decreased air entry">Decreased air entry</option>
+                            <option value="Retractions">Retractions (subcostal/intercostal)</option>
+                            <option value="Nasal flaring">Nasal flaring</option>
+                            <option value="Grunting">Grunting</option>
+                            <option value="Cyanosis">Cyanosis</option>
+                            <option value="Other">Other</option>
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="respiratory-notes" className="flex items-center gap-2">
+                            <Mic className="h-4 w-4 text-blue-600" />
+                            Additional Notes
+                          </Label>
+                          <VoiceTextarea
+                            id="respiratory-notes"
+                            value={formData.examination.respiratory_notes}
+                            onChange={(e) => updateNestedField('examination', 'respiratory_notes', e.target.value)}
+                            placeholder="Additional findings..."
+                            rows={2}
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="cardiovascular" className="flex items-center gap-2">
-                      <Mic className="h-4 w-4 text-blue-600" />
-                      Cardiovascular System
-                    </Label>
-                    <VoiceTextarea
-                      id="cardiovascular"
-                      value={formData.examination.cardiovascular}
-                      onChange={(e) => updateNestedField('examination', 'cardiovascular', e.target.value)}
-                      placeholder="Signs of heart failure (gallop rhythm, crackles, peripheral edema), poor perfusion (cyanosis, feeble pulse, cold extremities, flushed skin)..."
-                      rows={4}
-                    />
+                  {/* Cardiovascular */}
+                  <div className="p-4 border rounded-lg bg-slate-50">
+                    <Label className="text-base font-semibold mb-3 block">Cardiovascular System</Label>
+                    <div className="flex gap-4 mb-3">
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="radio"
+                          id="cardiovascular-normal"
+                          checked={formData.examination.cardiovascular_status === 'Normal'}
+                          onChange={() => updateNestedField('examination', 'cardiovascular_status', 'Normal')}
+                          className="w-4 h-4"
+                        />
+                        <Label htmlFor="cardiovascular-normal" className="text-sm font-medium">Normal</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="radio"
+                          id="cardiovascular-abnormal"
+                          checked={formData.examination.cardiovascular_status === 'Abnormal'}
+                          onChange={() => updateNestedField('examination', 'cardiovascular_status', 'Abnormal')}
+                          className="w-4 h-4"
+                        />
+                        <Label htmlFor="cardiovascular-abnormal" className="text-sm font-medium">Abnormal</Label>
+                      </div>
+                    </div>
+                    
+                    {formData.examination.cardiovascular_status === 'Abnormal' && (
+                      <div className="space-y-3 mt-3">
+                        <div className="space-y-2">
+                          <Label htmlFor="cardiovascular-abnormality">Select Abnormality</Label>
+                          <select
+                            id="cardiovascular-abnormality"
+                            className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
+                            value={formData.examination.cardiovascular_abnormality}
+                            onChange={(e) => updateNestedField('examination', 'cardiovascular_abnormality', e.target.value)}
+                          >
+                            <option value="">Select...</option>
+                            <option value="Tachycardia">Tachycardia</option>
+                            <option value="Bradycardia">Bradycardia</option>
+                            <option value="Murmur">Murmur</option>
+                            <option value="Gallop rhythm">Gallop rhythm</option>
+                            <option value="Weak/Thready pulse">Weak/Thready pulse</option>
+                            <option value="Bounding pulse">Bounding pulse</option>
+                            <option value="Poor perfusion">Poor perfusion</option>
+                            <option value="Peripheral edema">Peripheral edema</option>
+                            <option value="Cold extremities">Cold extremities</option>
+                            <option value="Other">Other</option>
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="cardiovascular-notes" className="flex items-center gap-2">
+                            <Mic className="h-4 w-4 text-blue-600" />
+                            Additional Notes
+                          </Label>
+                          <VoiceTextarea
+                            id="cardiovascular-notes"
+                            value={formData.examination.cardiovascular_notes}
+                            onChange={(e) => updateNestedField('examination', 'cardiovascular_notes', e.target.value)}
+                            placeholder="Additional findings..."
+                            rows={2}
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="abdomen" className="flex items-center gap-2">
-                      <Mic className="h-4 w-4 text-blue-600" />
-                      Abdomen
-                    </Label>
-                    <VoiceTextarea
-                      id="abdomen"
-                      value={formData.examination.abdomen}
-                      onChange={(e) => updateNestedField('examination', 'abdomen', e.target.value)}
-                      placeholder="Tenderness, distention, signs of injury, hepatomegaly..."
-                      rows={3}
-                    />
+                  {/* Abdomen */}
+                  <div className="p-4 border rounded-lg bg-slate-50">
+                    <Label className="text-base font-semibold mb-3 block">Abdomen</Label>
+                    <div className="flex gap-4 mb-3">
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="radio"
+                          id="abdomen-normal"
+                          checked={formData.examination.abdomen_status === 'Normal'}
+                          onChange={() => updateNestedField('examination', 'abdomen_status', 'Normal')}
+                          className="w-4 h-4"
+                        />
+                        <Label htmlFor="abdomen-normal" className="text-sm font-medium">Normal</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="radio"
+                          id="abdomen-abnormal"
+                          checked={formData.examination.abdomen_status === 'Abnormal'}
+                          onChange={() => updateNestedField('examination', 'abdomen_status', 'Abnormal')}
+                          className="w-4 h-4"
+                        />
+                        <Label htmlFor="abdomen-abnormal" className="text-sm font-medium">Abnormal</Label>
+                      </div>
+                    </div>
+                    
+                    {formData.examination.abdomen_status === 'Abnormal' && (
+                      <div className="space-y-3 mt-3">
+                        <div className="space-y-2">
+                          <Label htmlFor="abdomen-abnormality">Select Abnormality</Label>
+                          <select
+                            id="abdomen-abnormality"
+                            className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
+                            value={formData.examination.abdomen_abnormality}
+                            onChange={(e) => updateNestedField('examination', 'abdomen_abnormality', e.target.value)}
+                          >
+                            <option value="">Select...</option>
+                            <option value="Distension">Distension</option>
+                            <option value="Tenderness">Tenderness</option>
+                            <option value="Guarding">Guarding</option>
+                            <option value="Rigidity">Rigidity</option>
+                            <option value="Hepatomegaly">Hepatomegaly</option>
+                            <option value="Splenomegaly">Splenomegaly</option>
+                            <option value="Palpable mass">Palpable mass</option>
+                            <option value="Absent bowel sounds">Absent bowel sounds</option>
+                            <option value="Hyperactive bowel sounds">Hyperactive bowel sounds</option>
+                            <option value="Other">Other</option>
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="abdomen-notes" className="flex items-center gap-2">
+                            <Mic className="h-4 w-4 text-blue-600" />
+                            Additional Notes
+                          </Label>
+                          <VoiceTextarea
+                            id="abdomen-notes"
+                            value={formData.examination.abdomen_notes}
+                            onChange={(e) => updateNestedField('examination', 'abdomen_notes', e.target.value)}
+                            placeholder="Additional findings..."
+                            rows={2}
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="back" className="flex items-center gap-2">
-                      <Mic className="h-4 w-4 text-blue-600" />
-                      Back / Spine
-                    </Label>
-                    <VoiceTextarea
-                      id="back"
-                      value={formData.examination.back}
-                      onChange={(e) => updateNestedField('examination', 'back', e.target.value)}
-                      placeholder="Signs of spine or vertebral injury..."
-                      rows={2}
-                    />
+                  {/* Back / Spine */}
+                  <div className="p-4 border rounded-lg bg-slate-50">
+                    <Label className="text-base font-semibold mb-3 block">Back / Spine</Label>
+                    <div className="flex gap-4 mb-3">
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="radio"
+                          id="back-normal"
+                          checked={formData.examination.back_status === 'Normal'}
+                          onChange={() => updateNestedField('examination', 'back_status', 'Normal')}
+                          className="w-4 h-4"
+                        />
+                        <Label htmlFor="back-normal" className="text-sm font-medium">Normal</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="radio"
+                          id="back-abnormal"
+                          checked={formData.examination.back_status === 'Abnormal'}
+                          onChange={() => updateNestedField('examination', 'back_status', 'Abnormal')}
+                          className="w-4 h-4"
+                        />
+                        <Label htmlFor="back-abnormal" className="text-sm font-medium">Abnormal</Label>
+                      </div>
+                    </div>
+                    
+                    {formData.examination.back_status === 'Abnormal' && (
+                      <div className="space-y-3 mt-3">
+                        <div className="space-y-2">
+                          <Label htmlFor="back-abnormality">Select Abnormality</Label>
+                          <select
+                            id="back-abnormality"
+                            className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
+                            value={formData.examination.back_abnormality}
+                            onChange={(e) => updateNestedField('examination', 'back_abnormality', e.target.value)}
+                          >
+                            <option value="">Select...</option>
+                            <option value="Tenderness">Tenderness</option>
+                            <option value="Visible deformity">Visible deformity</option>
+                            <option value="Bruising">Bruising</option>
+                            <option value="Swelling">Swelling</option>
+                            <option value="Limited movement">Limited movement</option>
+                            <option value="Other">Other</option>
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="back-notes" className="flex items-center gap-2">
+                            <Mic className="h-4 w-4 text-blue-600" />
+                            Additional Notes
+                          </Label>
+                          <VoiceTextarea
+                            id="back-notes"
+                            value={formData.examination.back_notes}
+                            onChange={(e) => updateNestedField('examination', 'back_notes', e.target.value)}
+                            placeholder="Additional findings..."
+                            rows={2}
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="extremities" className="flex items-center gap-2">
-                      <Mic className="h-4 w-4 text-blue-600" />
-                      Extremities
-                    </Label>
-                    <VoiceTextarea
-                      id="extremities"
-                      value={formData.examination.extremities}
-                      onChange={(e) => updateNestedField('examination', 'extremities', e.target.value)}
-                      placeholder="Assess for fractures, swelling, bruising, deformities..."
-                      rows={3}
-                    />
+                  {/* Extremities */}
+                  <div className="p-4 border rounded-lg bg-slate-50">
+                    <Label className="text-base font-semibold mb-3 block">Extremities</Label>
+                    <div className="flex gap-4 mb-3">
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="radio"
+                          id="extremities-normal"
+                          checked={formData.examination.extremities_status === 'Normal'}
+                          onChange={() => updateNestedField('examination', 'extremities_status', 'Normal')}
+                          className="w-4 h-4"
+                        />
+                        <Label htmlFor="extremities-normal" className="text-sm font-medium">Normal</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="radio"
+                          id="extremities-abnormal"
+                          checked={formData.examination.extremities_status === 'Abnormal'}
+                          onChange={() => updateNestedField('examination', 'extremities_status', 'Abnormal')}
+                          className="w-4 h-4"
+                        />
+                        <Label htmlFor="extremities-abnormal" className="text-sm font-medium">Abnormal</Label>
+                      </div>
+                    </div>
+                    
+                    {formData.examination.extremities_status === 'Abnormal' && (
+                      <div className="space-y-3 mt-3">
+                        <div className="space-y-2">
+                          <Label htmlFor="extremities-abnormality">Select Abnormality</Label>
+                          <select
+                            id="extremities-abnormality"
+                            className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
+                            value={formData.examination.extremities_abnormality}
+                            onChange={(e) => updateNestedField('examination', 'extremities_abnormality', e.target.value)}
+                          >
+                            <option value="">Select...</option>
+                            <option value="Fracture">Fracture</option>
+                            <option value="Dislocation">Dislocation</option>
+                            <option value="Swelling">Swelling</option>
+                            <option value="Bruising/Ecchymosis">Bruising/Ecchymosis</option>
+                            <option value="Deformity">Deformity</option>
+                            <option value="Limited range of motion">Limited range of motion</option>
+                            <option value="Decreased pulses">Decreased pulses</option>
+                            <option value="Cyanosis">Cyanosis</option>
+                            <option value="Clubbing">Clubbing</option>
+                            <option value="Other">Other</option>
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="extremities-notes" className="flex items-center gap-2">
+                            <Mic className="h-4 w-4 text-blue-600" />
+                            Additional Notes
+                          </Label>
+                          <VoiceTextarea
+                            id="extremities-notes"
+                            value={formData.examination.extremities_notes}
+                            onChange={(e) => updateNestedField('examination', 'extremities_notes', e.target.value)}
+                            placeholder="Additional findings..."
+                            rows={2}
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </CardContent>
