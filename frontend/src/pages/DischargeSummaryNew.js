@@ -398,21 +398,47 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
                 </div>
               )}
 
-              {/* Examination - Auto-filled */}
+              {/* Physical Examination - Auto-filled */}
               <div className="border-b border-slate-200 pb-4">
                 <h3 className="text-lg font-semibold text-slate-900 mb-3">Physical Examination</h3>
                 <div className="space-y-2 text-sm">
-                  {caseData.examination?.respiratory_summary && (
-                    <div><span className="font-medium">Respiratory:</span> {caseData.examination.respiratory_summary}</div>
+                  {caseData.examination?.general_notes && (
+                    <div><span className="font-medium">General:</span> {caseData.examination.general_notes}</div>
                   )}
-                  {caseData.examination?.cvs_summary && (
-                    <div><span className="font-medium">CVS:</span> {caseData.examination.cvs_summary}</div>
+                  {caseData.examination?.cvs_status && (
+                    <div>
+                      <span className="font-medium">CVS:</span> {caseData.examination.cvs_status}
+                      {caseData.examination.cvs_status === 'Abnormal' && caseData.examination.cvs_s1_s2 && 
+                        ` - ${caseData.examination.cvs_s1_s2} ${caseData.examination.cvs_pulse || ''}`}
+                    </div>
                   )}
-                  {caseData.examination?.abdomen_summary && (
-                    <div><span className="font-medium">Abdomen:</span> {caseData.examination.abdomen_summary}</div>
+                  {caseData.examination?.respiratory_status && (
+                    <div>
+                      <span className="font-medium">Respiratory:</span> {caseData.examination.respiratory_status}
+                      {caseData.examination.respiratory_status === 'Abnormal' && caseData.examination.respiratory_findings && 
+                        ` - ${caseData.examination.respiratory_findings}`}
+                    </div>
                   )}
-                  {caseData.examination?.cns_summary && (
-                    <div><span className="font-medium">CNS:</span> {caseData.examination.cns_summary}</div>
+                  {caseData.examination?.abdomen_status && (
+                    <div>
+                      <span className="font-medium">Abdomen:</span> {caseData.examination.abdomen_status}
+                      {caseData.examination.abdomen_status === 'Abnormal' && caseData.examination.abdomen_findings && 
+                        ` - ${caseData.examination.abdomen_findings}`}
+                    </div>
+                  )}
+                  {caseData.examination?.cns_status && (
+                    <div>
+                      <span className="font-medium">CNS:</span> {caseData.examination.cns_status}
+                      {caseData.examination.cns_status === 'Abnormal' && caseData.examination.cns_findings && 
+                        ` - ${caseData.examination.cns_findings}`}
+                    </div>
+                  )}
+                  {caseData.examination?.extremities_status && (
+                    <div>
+                      <span className="font-medium">Extremities:</span> {caseData.examination.extremities_status}
+                      {caseData.examination.extremities_status === 'Abnormal' && caseData.examination.extremities_findings && 
+                        ` - ${caseData.examination.extremities_findings}`}
+                    </div>
                   )}
                 </div>
               </div>
