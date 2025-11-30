@@ -1431,34 +1431,37 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="patient-uhid">UHID</Label>
+                    <Label htmlFor="patient-uhid">UHID <span className="text-xs text-slate-500">(optional)</span></Label>
                     <Input
                       id="patient-uhid"
                       data-testid="input-patient-uhid"
                       value={formData.patient.uhid}
                       onChange={(e) => updateNestedField('patient', 'uhid', e.target.value)}
+                      placeholder="Hospital ID (optional)"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="patient-age">Age *</Label>
+                    <Label htmlFor="patient-age">Age <span className="text-red-500">*</span></Label>
                     <Input
                       id="patient-age"
                       data-testid="input-patient-age"
                       value={formData.patient.age}
                       onChange={(e) => updateNestedField('patient', 'age', e.target.value)}
+                      placeholder="Age in years"
                       required
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="patient-sex">Sex</Label>
+                    <Label htmlFor="patient-sex">Sex <span className="text-red-500">*</span></Label>
                     <select
                       id="patient-sex"
                       data-testid="select-patient-sex"
                       className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
                       value={formData.patient.sex}
                       onChange={(e) => updateNestedField('patient', 'sex', e.target.value)}
+                      required
                     >
                       <option value="Male">Male</option>
                       <option value="Female">Female</option>
@@ -1467,22 +1470,24 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="patient-phone">Phone</Label>
+                    <Label htmlFor="patient-phone">Phone <span className="text-xs text-slate-500">(optional)</span></Label>
                     <Input
                       id="patient-phone"
                       data-testid="input-patient-phone"
                       value={formData.patient.phone}
                       onChange={(e) => updateNestedField('patient', 'phone', e.target.value)}
+                      placeholder="Contact number (optional)"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="patient-address">Address</Label>
+                    <Label htmlFor="patient-address">Address <span className="text-xs text-slate-500">(optional)</span></Label>
                     <Input
                       id="patient-address"
                       data-testid="input-patient-address"
                       value={formData.patient.address}
                       onChange={(e) => updateNestedField('patient', 'address', e.target.value)}
+                      placeholder="Residential address (optional)"
                     />
                   </div>
 
