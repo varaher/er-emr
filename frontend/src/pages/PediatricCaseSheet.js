@@ -492,7 +492,959 @@ export default function PediatricCaseSheet() {
             </div>
           </TabsContent>
 
-          {/* Continue in next message due to length... */}
+          {/* PAT (Pediatric Assessment Triangle) Tab */}
+          <TabsContent value="pat">
+            <Card>
+              <CardHeader>
+                <CardTitle>Pediatric Assessment Triangle (PAT)</CardTitle>
+                <CardDescription>First impression - visual assessment without touching the child</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  {/* Appearance */}
+                  <div className="p-4 border-l-4 border-blue-400 bg-blue-50 space-y-4">
+                    <h3 className="text-lg font-bold text-blue-900">Appearance</h3>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="pat-tone" className="flex items-center gap-2">
+                        <Mic className="h-4 w-4 text-blue-600" />
+                        Tone (muscle tone and movement)
+                      </Label>
+                      <VoiceTextarea
+                        id="pat-tone"
+                        value={formData.pat.appearance_tone}
+                        onChange={(e) => updateNestedField('pat', 'appearance_tone', e.target.value)}
+                        placeholder="Moves spontaneously, resists examination, sits or stands..."
+                        rows={2}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="pat-interactivity" className="flex items-center gap-2">
+                        <Mic className="h-4 w-4 text-blue-600" />
+                        Interactivity
+                      </Label>
+                      <VoiceTextarea
+                        id="pat-interactivity"
+                        value={formData.pat.appearance_interactivity}
+                        onChange={(e) => updateNestedField('pat', 'appearance_interactivity', e.target.value)}
+                        placeholder="Alert, engaged with clinician, interacts with people, reaches for objects..."
+                        rows={2}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="pat-consolability" className="flex items-center gap-2">
+                        <Mic className="h-4 w-4 text-blue-600" />
+                        Consolability
+                      </Label>
+                      <VoiceTextarea
+                        id="pat-consolability"
+                        value={formData.pat.appearance_consolability}
+                        onChange={(e) => updateNestedField('pat', 'appearance_consolability', e.target.value)}
+                        placeholder="Stops crying with holding or comforting by caregiver..."
+                        rows={2}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="pat-look" className="flex items-center gap-2">
+                        <Mic className="h-4 w-4 text-blue-600" />
+                        Look / Gaze
+                      </Label>
+                      <VoiceTextarea
+                        id="pat-look"
+                        value={formData.pat.appearance_look_gaze}
+                        onChange={(e) => updateNestedField('pat', 'appearance_look_gaze', e.target.value)}
+                        placeholder="Makes eye contact, tracks visually, normal/abnormal behavior..."
+                        rows={2}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="pat-speech" className="flex items-center gap-2">
+                        <Mic className="h-4 w-4 text-blue-600" />
+                        Speech / Cry
+                      </Label>
+                      <VoiceTextarea
+                        id="pat-speech"
+                        value={formData.pat.appearance_speech_cry}
+                        onChange={(e) => updateNestedField('pat', 'appearance_speech_cry', e.target.value)}
+                        placeholder="Age-appropriate speech or cry quality..."
+                        rows={2}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Work of Breathing */}
+                  <div className="p-4 border-l-4 border-yellow-400 bg-yellow-50 space-y-2">
+                    <h3 className="text-lg font-bold text-yellow-900">Work of Breathing</h3>
+                    <VoiceTextarea
+                      value={formData.pat.work_of_breathing}
+                      onChange={(e) => updateNestedField('pat', 'work_of_breathing', e.target.value)}
+                      placeholder="Assess respiratory rate, effort, abnormal sounds (stridor, wheezing, grunting)..."
+                      rows={3}
+                    />
+                  </div>
+
+                  {/* Circulation to Skin */}
+                  <div className="p-4 border-l-4 border-red-400 bg-red-50 space-y-2">
+                    <h3 className="text-lg font-bold text-red-900">Circulation to Skin</h3>
+                    <VoiceTextarea
+                      value={formData.pat.circulation_to_skin}
+                      onChange={(e) => updateNestedField('pat', 'circulation_to_skin', e.target.value)}
+                      placeholder="Skin color (pink, pale, cyanotic, mottled), capillary refill..."
+                      rows={3}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="flex justify-between gap-2 mt-6">
+              <Button variant="outline" onClick={goToPreviousTab}>
+                ← Back: Patient Info
+              </Button>
+              <Button onClick={goToNextTab} className="bg-sky-600 hover:bg-sky-700">
+                Next: ABCDE Assessment →
+              </Button>
+            </div>
+          </TabsContent>
+
+          {/* ABCDE Tab - Pediatric Primary Assessment */}
+          <TabsContent value="abcde">
+            <div className="space-y-6">
+              {/* Airway */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-red-700">A - Airway</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label>Cry Quality</Label>
+                      <select
+                        className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
+                        value={formData.abcde.airway_cry}
+                        onChange={(e) => updateNestedField('abcde', 'airway_cry', e.target.value)}
+                      >
+                        <option value="Good">Good</option>
+                        <option value="Weak">Weak</option>
+                        <option value="No Cry">No Cry</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Airway Status</Label>
+                      <select
+                        className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
+                        value={formData.abcde.airway_status}
+                        onChange={(e) => updateNestedField('abcde', 'airway_status', e.target.value)}
+                      >
+                        <option value="Patent">Patent</option>
+                        <option value="Threatened">Threatened</option>
+                        <option value="Compromised">Compromised</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2">
+                      <Mic className="h-4 w-4 text-blue-600" />
+                      Intervention
+                    </Label>
+                    <VoiceTextarea
+                      value={formData.abcde.airway_intervention}
+                      onChange={(e) => updateNestedField('abcde', 'airway_intervention', e.target.value)}
+                      placeholder="e.g., airway clearance, repositioning, intubation"
+                      rows={2}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Breathing */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-orange-700">B - Breathing</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label>Respiratory Rate (RR)</Label>
+                      <Input
+                        type="number"
+                        value={formData.abcde.breathing_rr}
+                        onChange={(e) => updateNestedField('abcde', 'breathing_rr', e.target.value)}
+                        placeholder="/min"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>SpO2 (%)</Label>
+                      <Input
+                        type="number"
+                        value={formData.abcde.breathing_spo2}
+                        onChange={(e) => updateNestedField('abcde', 'breathing_spo2', e.target.value)}
+                        placeholder="%"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Work of Breathing (WOB)</Label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                      {['Nasal flaring', 'Retractions', 'Grunting', 'Wheezing', 'Stridor', 'Snoring', 'Gurgling'].map(item => (
+                        <div key={item} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`wob-${item}`}
+                            checked={formData.abcde.breathing_wob.includes(item)}
+                            onCheckedChange={() => toggleArrayField('abcde', 'breathing_wob', item)}
+                          />
+                          <Label htmlFor={`wob-${item}`} className="text-sm">{item}</Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Abnormal Positioning</Label>
+                      <select
+                        className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
+                        value={formData.abcde.breathing_abnormal_positioning}
+                        onChange={(e) => updateNestedField('abcde', 'breathing_abnormal_positioning', e.target.value)}
+                      >
+                        <option value="No">No</option>
+                        <option value="Yes">Yes</option>
+                      </select>
+                    </div>
+
+                    {formData.abcde.breathing_abnormal_positioning === 'Yes' && (
+                      <div className="space-y-2">
+                        <Label>Position Details</Label>
+                        <Input
+                          value={formData.abcde.breathing_positioning_details}
+                          onChange={(e) => updateNestedField('abcde', 'breathing_positioning_details', e.target.value)}
+                          placeholder="Tripod, sniffing, seated..."
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2">
+                      <Mic className="h-4 w-4 text-blue-600" />
+                      Intervention
+                    </Label>
+                    <VoiceTextarea
+                      value={formData.abcde.breathing_intervention}
+                      onChange={(e) => updateNestedField('abcde', 'breathing_intervention', e.target.value)}
+                      placeholder="e.g., oxygen administration, CPAP, intubation"
+                      rows={2}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Circulation */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-pink-700">C - Circulation of Skin</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label>Capillary Refill Time (CRT)</Label>
+                      <select
+                        className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
+                        value={formData.abcde.circulation_crt}
+                        onChange={(e) => updateNestedField('abcde', 'circulation_crt', e.target.value)}
+                      >
+                        <option value="Normal">&lt; 2 seconds (Normal)</option>
+                        <option value="Delayed">&gt; 2 seconds (Delayed)</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Heart Rate (HR)</Label>
+                      <Input
+                        type="number"
+                        value={formData.abcde.circulation_hr}
+                        onChange={(e) => updateNestedField('abcde', 'circulation_hr', e.target.value)}
+                        placeholder="bpm"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Blood Pressure (BP)</Label>
+                      <Input
+                        value={formData.abcde.circulation_bp}
+                        onChange={(e) => updateNestedField('abcde', 'circulation_bp', e.target.value)}
+                        placeholder="Systolic/Diastolic"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Skin Color & Temperature</Label>
+                    <select
+                      className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
+                      value={formData.abcde.circulation_skin_color}
+                      onChange={(e) => updateNestedField('abcde', 'circulation_skin_color', e.target.value)}
+                    >
+                      <option value="Pink">Pink</option>
+                      <option value="Pale">Pale</option>
+                      <option value="Cyanosed">Cyanosed</option>
+                      <option value="Mottled">Mottled</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2">
+                      <Mic className="h-4 w-4 text-blue-600" />
+                      Intervention
+                    </Label>
+                    <VoiceTextarea
+                      value={formData.abcde.circulation_intervention}
+                      onChange={(e) => updateNestedField('abcde', 'circulation_intervention', e.target.value)}
+                      placeholder="e.g., IV fluids, medications"
+                      rows={2}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Disability */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-purple-700">D - Disability</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>AVPU / GCS</Label>
+                      <select
+                        className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
+                        value={formData.abcde.disability_avpu_gcs}
+                        onChange={(e) => updateNestedField('abcde', 'disability_avpu_gcs', e.target.value)}
+                      >
+                        <option value="Alert">Alert</option>
+                        <option value="Verbal">Responds to Verbal</option>
+                        <option value="Pain">Responds to Pain</option>
+                        <option value="Unresponsive">Unresponsive</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Glucose (GRBS)</Label>
+                      <Input
+                        type="number"
+                        value={formData.abcde.disability_glucose}
+                        onChange={(e) => updateNestedField('abcde', 'disability_glucose', e.target.value)}
+                        placeholder="mg/dL"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Pupils: Size and Response</Label>
+                    <Input
+                      value={formData.abcde.disability_pupils}
+                      onChange={(e) => updateNestedField('abcde', 'disability_pupils', e.target.value)}
+                      placeholder="e.g., Equal, round, reactive to light"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2">
+                      <Mic className="h-4 w-4 text-blue-600" />
+                      Abnormal Responses
+                    </Label>
+                    <VoiceTextarea
+                      value={formData.abcde.disability_abnormal_responses}
+                      onChange={(e) => updateNestedField('abcde', 'disability_abnormal_responses', e.target.value)}
+                      placeholder="Pinpoint, dilated, unilaterally dilated..."
+                      rows={2}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Exposure */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-teal-700">E - Exposure</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Temperature (°C)</Label>
+                      <Input
+                        type="number"
+                        step="0.1"
+                        value={formData.abcde.exposure_temperature}
+                        onChange={(e) => updateNestedField('abcde', 'exposure_temperature', e.target.value)}
+                        placeholder="Body temperature"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Signs of Trauma or Illness</Label>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                      {['Rashes', 'Petechiae', 'Ecchymosis', 'Bruises', 'Burns'].map(item => (
+                        <div key={item} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`sign-${item}`}
+                            checked={formData.abcde.exposure_signs.includes(item)}
+                            onCheckedChange={() => toggleArrayField('abcde', 'exposure_signs', item)}
+                          />
+                          <Label htmlFor={`sign-${item}`} className="text-sm">{item}</Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2">
+                      <Mic className="h-4 w-4 text-blue-600" />
+                      Extremities Findings
+                    </Label>
+                    <VoiceTextarea
+                      value={formData.abcde.exposure_extremities_findings}
+                      onChange={(e) => updateNestedField('abcde', 'exposure_extremities_findings', e.target.value)}
+                      placeholder="Check for deformities, bruising, tenderness..."
+                      rows={2}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* EFAST */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Adjunct: EFAST (If Trauma Suspected)</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Heart</Label>
+                      <Input
+                        value={formData.abcde.efast_heart}
+                        onChange={(e) => updateNestedField('abcde', 'efast_heart', e.target.value)}
+                        placeholder="Pericardial effusion?"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Abdomen</Label>
+                      <Input
+                        value={formData.abcde.efast_abdomen}
+                        onChange={(e) => updateNestedField('abcde', 'efast_abdomen', e.target.value)}
+                        placeholder="Free fluid?"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Lungs</Label>
+                      <Input
+                        value={formData.abcde.efast_lungs}
+                        onChange={(e) => updateNestedField('abcde', 'efast_lungs', e.target.value)}
+                        placeholder="Pleural effusion/pneumothorax?"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Pelvis</Label>
+                      <Input
+                        value={formData.abcde.efast_pelvis}
+                        onChange={(e) => updateNestedField('abcde', 'efast_pelvis', e.target.value)}
+                        placeholder="Pelvic fractures?"
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="flex justify-between gap-2 mt-6">
+              <Button variant="outline" onClick={goToPreviousTab}>
+                ← Back: PAT
+              </Button>
+              <Button onClick={goToNextTab} className="bg-sky-600 hover:bg-sky-700">
+                Next: SAMPLE History →
+              </Button>
+            </div>
+          </TabsContent>
+
+          {/* SAMPLE Tab */}
+          <TabsContent value="sample">
+            <Card>
+              <CardHeader>
+                <CardTitle>SAMPLE History</CardTitle>
+                <CardDescription>Comprehensive pediatric history</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  {/* S - Signs and Symptoms */}
+                  <div className="p-4 border-l-4 border-red-400 bg-red-50 space-y-2">
+                    <Label className="text-lg font-bold text-red-900">S - Signs and Symptoms</Label>
+                    <VoiceTextarea
+                      value={formData.sample.signs_symptoms}
+                      onChange={(e) => updateNestedField('sample', 'signs_symptoms', e.target.value)}
+                      placeholder="Breathing difficulty, fever, vomiting, diarrhea, irritability..."
+                      rows={4}
+                    />
+                  </div>
+
+                  {/* A - Allergies */}
+                  <div className="p-4 border-l-4 border-orange-400 bg-orange-50 space-y-3">
+                    <Label className="text-lg font-bold text-orange-900">A - Allergies</Label>
+                    <div className="space-y-2">
+                      <Label>Known Allergies (comma separated)</Label>
+                      <Input
+                        value={formData.sample.allergies.join(', ')}
+                        onChange={(e) => updateNestedField('sample', 'allergies', e.target.value.split(',').map(s => s.trim()))}
+                        placeholder="Medications, foods, latex..."
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2">
+                        <Mic className="h-4 w-4 text-blue-600" />
+                        Allergy Details & Reactions
+                      </Label>
+                      <VoiceTextarea
+                        value={formData.sample.allergies_details}
+                        onChange={(e) => updateNestedField('sample', 'allergies_details', e.target.value)}
+                        placeholder="Describe reactions, severity..."
+                        rows={2}
+                      />
+                    </div>
+                  </div>
+
+                  {/* M - Medications */}
+                  <div className="p-4 border-l-4 border-yellow-400 bg-yellow-50 space-y-3">
+                    <Label className="text-lg font-bold text-yellow-900">M - Medications</Label>
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2">
+                        <Mic className="h-4 w-4 text-blue-600" />
+                        Current Medications
+                      </Label>
+                      <VoiceTextarea
+                        value={formData.sample.medications}
+                        onChange={(e) => updateNestedField('sample', 'medications', e.target.value)}
+                        placeholder="Include over-the-counter drugs, vitamins, inhalers..."
+                        rows={3}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Last Dose and Time</Label>
+                      <Input
+                        value={formData.sample.medications_last_dose}
+                        onChange={(e) => updateNestedField('sample', 'medications_last_dose', e.target.value)}
+                        placeholder="e.g., Paracetamol 250mg at 10:00 AM"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Medications Found in Environment</Label>
+                      <Input
+                        value={formData.sample.medications_environment}
+                        onChange={(e) => updateNestedField('sample', 'medications_environment', e.target.value)}
+                        placeholder="Any medications child may have accessed"
+                      />
+                    </div>
+                  </div>
+
+                  {/* P - Past History */}
+                  <div className="p-4 border-l-4 border-green-400 bg-green-50 space-y-4">
+                    <Label className="text-lg font-bold text-green-900">P - Past Medical History</Label>
+                    
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2">
+                        <Mic className="h-4 w-4 text-blue-600" />
+                        Health History
+                      </Label>
+                      <VoiceTextarea
+                        value={formData.sample.past_medical_history}
+                        onChange={(e) => updateNestedField('sample', 'past_medical_history', e.target.value)}
+                        placeholder="Premature birth, significant illnesses, hospitalizations, underlying conditions (asthma, diabetes, heart disease)..."
+                        rows={4}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2">
+                        <Mic className="h-4 w-4 text-blue-600" />
+                        Past Surgeries
+                      </Label>
+                      <VoiceTextarea
+                        value={formData.sample.past_surgeries}
+                        onChange={(e) => updateNestedField('sample', 'past_surgeries', e.target.value)}
+                        placeholder="Previous surgical procedures..."
+                        rows={2}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2">
+                        <Mic className="h-4 w-4 text-blue-600" />
+                        Immunization Status
+                      </Label>
+                      <VoiceTextarea
+                        value={formData.sample.immunization_status}
+                        onChange={(e) => updateNestedField('sample', 'immunization_status', e.target.value)}
+                        placeholder="Up to date? Missing vaccines? Recent immunizations..."
+                        rows={2}
+                      />
+                    </div>
+                  </div>
+
+                  {/* L - Last Meal */}
+                  <div className="p-4 border-l-4 border-blue-400 bg-blue-50 space-y-3">
+                    <Label className="text-lg font-bold text-blue-900">L - Last Meal</Label>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Time of Last Intake</Label>
+                        <Input
+                          value={formData.sample.last_meal_time}
+                          onChange={(e) => updateNestedField('sample', 'last_meal_time', e.target.value)}
+                          placeholder="e.g., 2 hours ago"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Type (Liquid/Solid)</Label>
+                        <Input
+                          value={formData.sample.last_meal_type}
+                          onChange={(e) => updateNestedField('sample', 'last_meal_type', e.target.value)}
+                          placeholder="e.g., Milk, solid food"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* E - Events / HOPI */}
+                  <div className="p-4 border-l-4 border-purple-400 bg-purple-50 space-y-2">
+                    <Label className="text-lg font-bold text-purple-900">E - Events / History of Present Illness</Label>
+                    <VoiceTextarea
+                      value={formData.sample.events_hopi}
+                      onChange={(e) => updateNestedField('sample', 'events_hopi', e.target.value)}
+                      placeholder="Timeline of events leading to presentation, treatment provided before arrival..."
+                      rows={6}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="flex justify-between gap-2 mt-6">
+              <Button variant="outline" onClick={goToPreviousTab}>
+                ← Back: ABCDE
+              </Button>
+              <Button onClick={goToNextTab} className="bg-sky-600 hover:bg-sky-700">
+                Next: Physical Examination →
+              </Button>
+            </div>
+          </TabsContent>
+
+          {/* Physical Examination Tab */}
+          <TabsContent value="examination">
+            <Card>
+              <CardHeader>
+                <CardTitle>Focused Physical Examination</CardTitle>
+                <CardDescription>System-wise examination findings</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="heent" className="flex items-center gap-2">
+                      <Mic className="h-4 w-4 text-blue-600" />
+                      HEENT (Head, Eyes, Ears, Nose, Throat)
+                    </Label>
+                    <VoiceTextarea
+                      id="heent"
+                      value={formData.examination.heent}
+                      onChange={(e) => updateNestedField('examination', 'heent', e.target.value)}
+                      placeholder="Inspect head, examine eyes, check ears, examine nose, evaluate throat, palpate thyroid and lymph nodes..."
+                      rows={4}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="respiratory" className="flex items-center gap-2">
+                      <Mic className="h-4 w-4 text-blue-600" />
+                      Respiratory System
+                    </Label>
+                    <VoiceTextarea
+                      id="respiratory"
+                      value={formData.examination.respiratory}
+                      onChange={(e) => updateNestedField('examination', 'respiratory', e.target.value)}
+                      placeholder="Chest examination, abnormal breathing sounds (stridor, wheezing, crackles), nasal obstruction, retractions, chest movement..."
+                      rows={4}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="cardiovascular" className="flex items-center gap-2">
+                      <Mic className="h-4 w-4 text-blue-600" />
+                      Cardiovascular System
+                    </Label>
+                    <VoiceTextarea
+                      id="cardiovascular"
+                      value={formData.examination.cardiovascular}
+                      onChange={(e) => updateNestedField('examination', 'cardiovascular', e.target.value)}
+                      placeholder="Signs of heart failure (gallop rhythm, crackles, peripheral edema), poor perfusion (cyanosis, feeble pulse, cold extremities, flushed skin)..."
+                      rows={4}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="abdomen" className="flex items-center gap-2">
+                      <Mic className="h-4 w-4 text-blue-600" />
+                      Abdomen
+                    </Label>
+                    <VoiceTextarea
+                      id="abdomen"
+                      value={formData.examination.abdomen}
+                      onChange={(e) => updateNestedField('examination', 'abdomen', e.target.value)}
+                      placeholder="Tenderness, distention, signs of injury, hepatomegaly..."
+                      rows={3}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="back" className="flex items-center gap-2">
+                      <Mic className="h-4 w-4 text-blue-600" />
+                      Back / Spine
+                    </Label>
+                    <VoiceTextarea
+                      id="back"
+                      value={formData.examination.back}
+                      onChange={(e) => updateNestedField('examination', 'back', e.target.value)}
+                      placeholder="Signs of spine or vertebral injury..."
+                      rows={2}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="extremities" className="flex items-center gap-2">
+                      <Mic className="h-4 w-4 text-blue-600" />
+                      Extremities
+                    </Label>
+                    <VoiceTextarea
+                      id="extremities"
+                      value={formData.examination.extremities}
+                      onChange={(e) => updateNestedField('examination', 'extremities', e.target.value)}
+                      placeholder="Assess for fractures, swelling, bruising, deformities..."
+                      rows={3}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="flex justify-between gap-2 mt-6">
+              <Button variant="outline" onClick={goToPreviousTab}>
+                ← Back: SAMPLE
+              </Button>
+              <Button onClick={goToNextTab} className="bg-sky-600 hover:bg-sky-700">
+                Next: Investigations →
+              </Button>
+            </div>
+          </TabsContent>
+
+          {/* Investigations Tab */}
+          <TabsContent value="investigations">
+            <Card>
+              <CardHeader>
+                <CardTitle>Investigations</CardTitle>
+                <CardDescription>Select investigation panels</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  <div className="space-y-4">
+                    <Label className="text-base font-semibold">Pediatric Investigation Panels</Label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {Object.entries({
+                        'Pedia Mini Panel': ['CBC', 'Blood Glucose', 'Electrolytes'],
+                        'Pedia Febrile Seizure Panel': ['CBC', 'Glucose', 'Electrolytes', 'Calcium', 'Blood Culture'],
+                        'Pedia Sepsis Panel': ['CBC', 'CRP', 'Blood Culture', 'Urine Culture', 'Procalcitonin'],
+                        'Pedia Dehydration Panel': ['CBC', 'Electrolytes', 'Urea', 'Creatinine', 'Blood Gas'],
+                        'Pedia Respiratory Panel': ['CBC', 'CRP', 'Blood Gas', 'Chest X-ray'],
+                        'Pedia GI Panel': ['CBC', 'Electrolytes', 'LFT', 'Lipase', 'Stool Culture']
+                      }).map(([panel, tests]) => {
+                        const isSelected = formData.investigations.panels_selected.includes(panel);
+                        return (
+                          <div key={panel} className={`border rounded-lg p-3 ${isSelected ? 'border-sky-500 bg-sky-50' : 'border-slate-200'}`}>
+                            <div className="flex items-start space-x-2">
+                              <Checkbox
+                                id={`panel-${panel}`}
+                                checked={isSelected}
+                                onCheckedChange={() => toggleArrayField('investigations', 'panels_selected', panel)}
+                                className="mt-1"
+                              />
+                              <div className="flex-1">
+                                <Label htmlFor={`panel-${panel}`} className="text-sm font-semibold cursor-pointer">{panel}</Label>
+                                <div className="mt-1 text-xs text-slate-600">
+                                  {tests.join(', ')}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="results-notes" className="flex items-center gap-2">
+                      <Mic className="h-4 w-4 text-blue-600" />
+                      Investigation Results & Notes
+                    </Label>
+                    <VoiceTextarea
+                      id="results-notes"
+                      value={formData.investigations.results_notes}
+                      onChange={(e) => updateNestedField('investigations', 'results_notes', e.target.value)}
+                      placeholder="Document key investigation findings..."
+                      rows={6}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="flex justify-between gap-2 mt-6">
+              <Button variant="outline" onClick={goToPreviousTab}>
+                ← Back: Examination
+              </Button>
+              <Button onClick={goToNextTab} className="bg-sky-600 hover:bg-sky-700">
+                Next: Treatment →
+              </Button>
+            </div>
+          </TabsContent>
+
+          {/* Treatment Tab */}
+          <TabsContent value="treatment">
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Treatment in ER</CardTitle>
+                  <CardDescription>Document interventions and medications</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="intervention-notes" className="flex items-center gap-2">
+                        <Mic className="h-4 w-4 text-blue-600" />
+                        Treatment Given
+                      </Label>
+                      <VoiceTextarea
+                        id="intervention-notes"
+                        value={formData.treatment.intervention_notes}
+                        onChange={(e) => updateNestedField('treatment', 'intervention_notes', e.target.value)}
+                        placeholder="Medications, fluids, oxygen, procedures..."
+                        rows={6}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="course" className="flex items-center gap-2">
+                        <Mic className="h-4 w-4 text-blue-600" />
+                        Course in Hospital
+                      </Label>
+                      <VoiceTextarea
+                        id="course"
+                        value={formData.treatment.course_in_hospital}
+                        onChange={(e) => updateNestedField('treatment', 'course_in_hospital', e.target.value)}
+                        placeholder="Patient's clinical course during hospital stay..."
+                        rows={4}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Provisional Diagnosis at Time of Discharge/Shift</Label>
+                      <Input
+                        value={formData.treatment.differential_diagnoses.join(', ')}
+                        onChange={(e) => updateNestedField('treatment', 'differential_diagnoses', e.target.value.split(',').map(s => s.trim()))}
+                        placeholder="e.g., Respiratory distress, Dehydration, Sepsis"
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Disposition</CardTitle>
+                  <CardDescription>Patient outcome and disposition</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Disposition</Label>
+                        <select
+                          className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
+                          value={formData.disposition.type}
+                          onChange={(e) => updateNestedField('disposition', 'type', e.target.value)}
+                        >
+                          <option value="Discharge">Discharge</option>
+                          <option value="ICU">ICU</option>
+                          <option value="Ward">Ward</option>
+                          <option value="Room">Room</option>
+                          <option value="Referral">Referral</option>
+                          <option value="DAMA">DAMA (Against Medical Advice)</option>
+                        </select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Condition at Time of Shift</Label>
+                        <select
+                          className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
+                          value={formData.disposition.condition_at_discharge}
+                          onChange={(e) => updateNestedField('disposition', 'condition_at_discharge', e.target.value)}
+                        >
+                          <option value="Stable">Stable</option>
+                          <option value="Unstable">Unstable</option>
+                          <option value="Critical">Critical</option>
+                          <option value="Improved">Improved</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="em-resident">EM Resident</Label>
+                        <Input
+                          id="em-resident"
+                          value={formData.em_resident}
+                          onChange={(e) => setFormData(prev => ({ ...prev, em_resident: e.target.value }))}
+                          placeholder="Resident name"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="em-consultant">EM Consultant</Label>
+                        <Input
+                          id="em-consultant"
+                          value={formData.em_consultant}
+                          onChange={(e) => setFormData(prev => ({ ...prev, em_consultant: e.target.value }))}
+                          placeholder="Consultant name"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="flex justify-between gap-2 mt-6">
+              <Button variant="outline" onClick={goToPreviousTab}>
+                ← Back: Investigations
+              </Button>
+              <Button onClick={handleSave} className="bg-green-600 hover:bg-green-700" size="lg">
+                <Save className="h-5 w-5 mr-2" />
+                Complete & Save Pediatric Case Sheet
+              </Button>
+            </div>
+          </TabsContent>
           
         </Tabs>
       </main>
