@@ -66,11 +66,35 @@ export default function DischargeSummaryNew() {
       const data = response.data;
       setCaseData(data);
       
-      // Pre-fill treatment notes
+      // Auto-fill all fields from case sheet
+      const isPediatric = data.case_type === 'pediatric';
+      
       setDischargeData(prev => ({
         ...prev,
-        treatment_given: data.treatment?.intervention_notes || '',
-        differential_diagnoses: data.treatment?.differential_diagnoses?.join(', ') || ''
+        // Patient info
+        mlc: data.patient?.mlc ? 'Yes' : 'No',
+        allergies: data.history?.allergies?.join(', ') || data.sample?.allergies?.join(', ') || 'NKDA',
+        
+        // Clinical presentation
+        presenting_complaint: data.presenting_complaint?.text || '',
+        hopi: data.history?.hpi || data.sample?.events_hopi || '',
+        past_history: `Medical: ${data.history?.past_medical?.join(', ') || data.sample?.past_medical_history || 'None'}\nSurgical: ${data.history?.past_surgical || data.sample?.past_surgeries || 'None'}`,
+        family_gynae_history: data.history?.family_gyn_additional_notes || data.sample?.family_gynae_history || 'Not significant',
+        lmp: data.history?.last_meal_lmp || data.sample?.last_meal_time || 'N/A',
+        
+        // Examination
+        general_examination: buildGeneralExamination(data, isPediatric),
+        primary_assessment: buildPrimaryAssessment(data, isPediatric),
+        secondary_assessment: buildSecondaryAssessment(data, isPediatric),
+        
+        // Treatment & Course
+        course_in_hospital: data.treatment?.course_in_hospital || '',
+        investigations: data.investigations?.results_notes || buildInvestigationsSummary(data),
+        diagnosis: data.treatment?.differential_diagnoses?.join(', ') || '',
+        
+        // Disposition
+        ed_resident: data.em_resident || '',
+        ed_consultant: data.em_consultant || ''
       }));
     } catch (error) {
       toast.error('Failed to fetch case data');
