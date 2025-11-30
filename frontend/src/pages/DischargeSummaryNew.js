@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { VoiceTextarea } from '@/components/VoiceTextInput';
 import { toast } from 'sonner';
 import { ArrowLeft, Save, Printer, FileText, Mic, Download } from 'lucide-react';
@@ -20,12 +21,38 @@ export default function DischargeSummaryNew() {
   
   // Editable discharge summary fields
   const [dischargeData, setDischargeData] = useState({
-    differential_diagnoses: '',
-    treatment_given: '',
-    medications: '',
+    // Auto-filled from case sheet
+    mlc: '',
+    allergies: '',
+    presenting_complaint: '',
+    hopi: '',
+    past_history: '',
+    family_gynae_history: '',
+    lmp: '',
+    general_examination: '',
+    primary_assessment: '',
+    secondary_assessment: '',
+    course_in_hospital: '',
+    investigations: '',
+    diagnosis: '',
+    
+    // Editable fields
+    discharge_medications: '',
+    disposition_type: 'Normal Discharge',
+    condition_at_discharge: 'STABLE',
+    discharge_vitals: {
+      hr: '',
+      bp: '',
+      rr: '',
+      spo2: '',
+      gcs: '',
+      pain_score: '',
+      grbs: '',
+      temp: ''
+    },
     follow_up_advice: '',
-    follow_up_date: '',
-    discharge_condition: 'Stable'
+    ed_resident: '',
+    ed_consultant: ''
   });
 
   useEffect(() => {
