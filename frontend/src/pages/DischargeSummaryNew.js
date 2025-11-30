@@ -617,7 +617,7 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
         </div>
       </main>
 
-      <style jsx>{`
+      <style>{`
         @media print {
           body {
             background: white;
