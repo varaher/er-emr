@@ -2992,7 +2992,7 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
             {/* Navigation Buttons */}
             <div className="flex justify-between gap-2 mt-6">
               <Button variant="outline" onClick={goToPreviousTab}>
-                ← Back: History
+                ← Back: Secondary Survey
               </Button>
               <Button onClick={goToNextTab} className="bg-sky-600 hover:bg-sky-700">
                 Next: Investigations →
