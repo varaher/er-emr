@@ -2225,178 +2225,193 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
             </div>
           </TabsContent>
 
-          {/* History Tab */}
+          {/* Secondary Survey Tab - SAMPLE Format */}
           <TabsContent value="history">
             <Card>
               <CardHeader>
-                <CardTitle>History</CardTitle>
-                <CardDescription>Past medical history and present illness details</CardDescription>
+                <CardTitle>Secondary Survey - SAMPLE</CardTitle>
+                <CardDescription>Comprehensive patient history using SAMPLE format</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="hpi" className="flex items-center gap-2">
-                      History of Present Illness
-                      <span className="text-xs text-slate-500 flex items-center gap-1">
-                        <Mic className="h-3 w-3" />
-                        Voice enabled
-                      </span>
+                  {/* S - Signs and Symptoms */}
+                  <div className="space-y-3 p-4 border-l-4 border-red-400 bg-red-50">
+                    <Label className="text-lg font-bold text-red-900 flex items-center gap-2">
+                      S - Signs and Symptoms
                     </Label>
-                    <VoiceTextarea
-                      id="hpi"
-                      data-testid="textarea-hpi"
-                      value={formData.history.hpi}
-                      onChange={(e) => updateNestedField('history', 'hpi', e.target.value)}
-                      placeholder="Document the history of present illness..."
-                      rows={6}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="hpi-additional-notes" className="flex items-center gap-2">
-                      <Mic className="h-4 w-4 text-blue-600" />
-                      HPI Additional Notes
-                    </Label>
-                    <VoiceTextarea
-                      id="hpi-additional-notes"
-                      data-testid="textarea-hpi-additional-notes"
-                      value={formData.history.hpi_additional_notes}
-                      onChange={(e) => updateNestedField('history', 'hpi_additional_notes', e.target.value)}
-                      placeholder="Additional observations for HPI..."
-                      rows={2}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="signs-symptoms" className="flex items-center gap-2">
-                      <Mic className="h-4 w-4 text-blue-600" />
-                      Signs and Symptoms
-                    </Label>
-                    <VoiceTextarea
-                      id="signs-symptoms"
-                      data-testid="textarea-signs-symptoms"
-                      value={formData.history.signs_and_symptoms}
-                      onChange={(e) => updateNestedField('history', 'signs_and_symptoms', e.target.value)}
-                      placeholder="Document signs and symptoms observed..."
-                      rows={4}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="secondary-survey-additional-notes" className="flex items-center gap-2">
-                      <Mic className="h-4 w-4 text-blue-600" />
-                      Secondary Survey Additional Notes
-                    </Label>
-                    <VoiceTextarea
-                      id="secondary-survey-additional-notes"
-                      data-testid="textarea-secondary-survey-additional-notes"
-                      value={formData.history.secondary_survey_additional_notes}
-                      onChange={(e) => updateNestedField('history', 'secondary_survey_additional_notes', e.target.value)}
-                      placeholder="Additional observations from secondary survey..."
-                      rows={2}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Past Medical History</Label>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                      {['Hypertension', 'Diabetes', 'CAD', 'CKD', 'CLD', 'COPD/Asthma', 'Epilepsy', 'Stroke', 'Malignancy'].map(item => (
-                        <div key={item} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`pmh-${item}`}
-                            checked={formData.history.past_medical.includes(item)}
-                            onCheckedChange={() => toggleArrayField('history', 'past_medical', item)}
-                          />
-                          <Label htmlFor={`pmh-${item}`} className="text-sm">{item}</Label>
-                        </div>
-                      ))}
+                    <div className="space-y-2">
+                      <Label htmlFor="signs-symptoms" className="flex items-center gap-2">
+                        <Mic className="h-4 w-4 text-blue-600" />
+                        Current Signs and Symptoms
+                      </Label>
+                      <VoiceTextarea
+                        id="signs-symptoms"
+                        data-testid="textarea-signs-symptoms"
+                        value={formData.history.signs_and_symptoms}
+                        onChange={(e) => updateNestedField('history', 'signs_and_symptoms', e.target.value)}
+                        placeholder="Document all presenting signs and symptoms..."
+                        rows={4}
+                      />
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="past-medical-additional-notes" className="flex items-center gap-2">
-                      <Mic className="h-4 w-4 text-blue-600" />
-                      Past Medical History - Additional Notes
+                  {/* A - Allergies */}
+                  <div className="space-y-3 p-4 border-l-4 border-orange-400 bg-orange-50">
+                    <Label className="text-lg font-bold text-orange-900 flex items-center gap-2">
+                      A - Allergies
                     </Label>
-                    <VoiceTextarea
-                      id="past-medical-additional-notes"
-                      data-testid="textarea-past-medical-additional-notes"
-                      value={formData.history.past_medical_additional_notes}
-                      onChange={(e) => updateNestedField('history', 'past_medical_additional_notes', e.target.value)}
-                      placeholder="Additional details about past medical history..."
-                      rows={2}
-                    />
+                    <div className="space-y-2">
+                      <Label htmlFor="allergies-field">Known Allergies (comma separated)</Label>
+                      <Input
+                        id="allergies-field"
+                        data-testid="input-allergies"
+                        value={formData.history.allergies.join(', ')}
+                        onChange={(e) => updateNestedField('history', 'allergies', e.target.value.split(',').map(s => s.trim()))}
+                        placeholder="e.g., Penicillin, Peanuts, Latex"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="allergies-additional-notes" className="flex items-center gap-2">
+                        <Mic className="h-4 w-4 text-blue-600" />
+                        Allergy Details
+                      </Label>
+                      <VoiceTextarea
+                        id="allergies-additional-notes"
+                        data-testid="textarea-allergies-additional-notes"
+                        value={formData.history.allergies_additional_notes}
+                        onChange={(e) => updateNestedField('history', 'allergies_additional_notes', e.target.value)}
+                        placeholder="Describe reactions, severity, etc..."
+                        rows={2}
+                      />
+                    </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="past-surgical" className="flex items-center gap-2">
-                      <Mic className="h-4 w-4 text-blue-600" />
-                      Surgical History
+                  {/* M - Medications */}
+                  <div className="space-y-3 p-4 border-l-4 border-yellow-400 bg-yellow-50">
+                    <Label className="text-lg font-bold text-yellow-900 flex items-center gap-2">
+                      M - Medications
                     </Label>
-                    <VoiceTextarea
-                      id="past-surgical"
-                      data-testid="textarea-past-surgical"
-                      value={formData.history.past_surgical}
-                      onChange={(e) => updateNestedField('history', 'past_surgical', e.target.value)}
-                      placeholder="Document past surgical history..."
-                      rows={2}
-                    />
+                    <div className="space-y-2">
+                      <Label htmlFor="medications" className="flex items-center gap-2">
+                        <Mic className="h-4 w-4 text-blue-600" />
+                        Current Medications
+                      </Label>
+                      <VoiceTextarea
+                        id="medications"
+                        data-testid="textarea-medications"
+                        value={formData.history.medications || ''}
+                        onChange={(e) => updateNestedField('history', 'medications', e.target.value)}
+                        placeholder="List current medications with dosages..."
+                        rows={3}
+                      />
+                    </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="past-surgical-additional-notes" className="flex items-center gap-2">
-                      <Mic className="h-4 w-4 text-blue-600" />
-                      Surgical History - Additional Notes
+                  {/* P - Past Medical/Surgical/Family/Gynae History */}
+                  <div className="space-y-3 p-4 border-l-4 border-green-400 bg-green-50">
+                    <Label className="text-lg font-bold text-green-900 flex items-center gap-2">
+                      P - Past History
                     </Label>
-                    <VoiceTextarea
-                      id="past-surgical-additional-notes"
-                      data-testid="textarea-past-surgical-additional-notes"
-                      value={formData.history.past_surgical_additional_notes}
-                      onChange={(e) => updateNestedField('history', 'past_surgical_additional_notes', e.target.value)}
-                      placeholder="Additional details about surgical history..."
-                      rows={2}
-                    />
+                    
+                    {/* Past Medical History */}
+                    <div className="space-y-2">
+                      <Label className="font-semibold text-green-800">Past Medical History</Label>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                        {['Hypertension', 'Diabetes', 'CAD', 'CKD', 'CLD', 'COPD/Asthma', 'Epilepsy', 'Stroke', 'Malignancy'].map(item => (
+                          <div key={item} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`pmh-${item}`}
+                              checked={formData.history.past_medical.includes(item)}
+                              onCheckedChange={() => toggleArrayField('history', 'past_medical', item)}
+                            />
+                            <Label htmlFor={`pmh-${item}`} className="text-sm">{item}</Label>
+                          </div>
+                        ))}
+                      </div>
+                      <VoiceTextarea
+                        id="past-medical-additional-notes"
+                        data-testid="textarea-past-medical-additional-notes"
+                        value={formData.history.past_medical_additional_notes}
+                        onChange={(e) => updateNestedField('history', 'past_medical_additional_notes', e.target.value)}
+                        placeholder="Additional medical history details..."
+                        rows={2}
+                        className="mt-2"
+                      />
+                    </div>
+
+                    {/* Past Surgical History */}
+                    <div className="space-y-2">
+                      <Label htmlFor="past-surgical" className="flex items-center gap-2 font-semibold text-green-800">
+                        <Mic className="h-4 w-4 text-blue-600" />
+                        Surgical History
+                      </Label>
+                      <VoiceTextarea
+                        id="past-surgical"
+                        data-testid="textarea-past-surgical"
+                        value={formData.history.past_surgical}
+                        onChange={(e) => updateNestedField('history', 'past_surgical', e.target.value)}
+                        placeholder="Previous surgeries and procedures..."
+                        rows={2}
+                      />
+                    </div>
+
+                    {/* Family / Gynae History */}
+                    <div className="space-y-2">
+                      <Label htmlFor="family-gyn-additional-notes" className="flex items-center gap-2 font-semibold text-green-800">
+                        <Mic className="h-4 w-4 text-blue-600" />
+                        Family / Gynae History
+                      </Label>
+                      <VoiceTextarea
+                        id="family-gyn-additional-notes"
+                        data-testid="textarea-family-gyn-additional-notes"
+                        value={formData.history.family_gyn_additional_notes}
+                        onChange={(e) => updateNestedField('history', 'family_gyn_additional_notes', e.target.value)}
+                        placeholder="Family history and gynecological history (LMP, gravida, para, etc.)..."
+                        rows={2}
+                      />
+                    </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="family-gyn-additional-notes" className="flex items-center gap-2">
-                      <Mic className="h-4 w-4 text-blue-600" />
-                      Family / Gynae History
+                  {/* L - Last Meal / LMP */}
+                  <div className="space-y-3 p-4 border-l-4 border-blue-400 bg-blue-50">
+                    <Label className="text-lg font-bold text-blue-900 flex items-center gap-2">
+                      L - Last Meal / LMP
                     </Label>
-                    <VoiceTextarea
-                      id="family-gyn-additional-notes"
-                      data-testid="textarea-family-gyn-additional-notes"
-                      value={formData.history.family_gyn_additional_notes}
-                      onChange={(e) => updateNestedField('history', 'family_gyn_additional_notes', e.target.value)}
-                      placeholder="Document family history and gynecological history (LMP, etc.)..."
-                      rows={2}
-                    />
+                    <div className="space-y-2">
+                      <Label htmlFor="last-meal-lmp" className="flex items-center gap-2">
+                        <Mic className="h-4 w-4 text-blue-600" />
+                        Last Oral Intake / LMP
+                      </Label>
+                      <VoiceTextarea
+                        id="last-meal-lmp"
+                        data-testid="textarea-last-meal-lmp"
+                        value={formData.history.last_meal_lmp || ''}
+                        onChange={(e) => updateNestedField('history', 'last_meal_lmp', e.target.value)}
+                        placeholder="Time of last meal/drink. For females: Last menstrual period date..."
+                        rows={2}
+                      />
+                    </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="allergies-field">Allergies</Label>
-                    <Input
-                      id="allergies-field"
-                      data-testid="input-allergies"
-                      value={formData.history.allergies.join(', ')}
-                      onChange={(e) => updateNestedField('history', 'allergies', e.target.value.split(',').map(s => s.trim()))}
-                      placeholder="Enter allergies separated by commas"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="allergies-additional-notes" className="flex items-center gap-2">
-                      <Mic className="h-4 w-4 text-blue-600" />
-                      Allergies - Additional Notes
+                  {/* E - Events / HOPI */}
+                  <div className="space-y-3 p-4 border-l-4 border-purple-400 bg-purple-50">
+                    <Label className="text-lg font-bold text-purple-900 flex items-center gap-2">
+                      E - Events / History of Present Illness
                     </Label>
-                    <VoiceTextarea
-                      id="allergies-additional-notes"
-                      data-testid="textarea-allergies-additional-notes"
-                      value={formData.history.allergies_additional_notes}
-                      onChange={(e) => updateNestedField('history', 'allergies_additional_notes', e.target.value)}
-                      placeholder="Additional details about allergies..."
-                      rows={2}
-                    />
+                    <div className="space-y-2">
+                      <Label htmlFor="hpi" className="flex items-center gap-2">
+                        <Mic className="h-4 w-4 text-blue-600" />
+                        Events Leading to Presentation / HOPI
+                      </Label>
+                      <VoiceTextarea
+                        id="hpi"
+                        data-testid="textarea-hpi"
+                        value={formData.history.hpi}
+                        onChange={(e) => updateNestedField('history', 'hpi', e.target.value)}
+                        placeholder="Detailed timeline of events leading to this presentation..."
+                        rows={6}
+                      />
+                    </div>
                   </div>
 
                   <div className="space-y-4 border-t pt-4">
