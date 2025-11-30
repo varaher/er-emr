@@ -1400,8 +1400,8 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
             <TabsTrigger value="patient" data-testid="tab-patient">Patient Info</TabsTrigger>
             <TabsTrigger value="vitals" data-testid="tab-vitals">Vitals</TabsTrigger>
             <TabsTrigger value="primary" data-testid="tab-primary">ABCDE</TabsTrigger>
-            <TabsTrigger value="history" data-testid="tab-history">History</TabsTrigger>
-            <TabsTrigger value="examination" data-testid="tab-examination">Examination</TabsTrigger>
+            <TabsTrigger value="history" data-testid="tab-history">Secondary Survey</TabsTrigger>
+            <TabsTrigger value="examination" data-testid="tab-examination">Physical Examination</TabsTrigger>
             <TabsTrigger value="investigations" data-testid="tab-investigations">Investigations</TabsTrigger>
             <TabsTrigger value="treatment" data-testid="tab-treatment">Treatment</TabsTrigger>
           </TabsList>
