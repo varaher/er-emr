@@ -1289,13 +1289,15 @@ async def transcribe_audio(
         # Initialize Speech-to-Text with Emergent LLM key
         stt = OpenAISpeechToText(api_key=EMERGENT_LLM_KEY)
         
-        # Transcribe using Whisper
+        # Transcribe using Whisper with optimized medical settings
         with open(temp_audio_path, "rb") as audio_file:
             response = await stt.transcribe(
                 file=audio_file,
                 model="whisper-1",
                 language="en",
-                response_format="text"
+                response_format="text",
+                temperature=0.0,  # Maximum accuracy for medical terminology
+                prompt="Medical emergency room documentation. Patient vitals: heart rate, blood pressure, respiratory rate, temperature, SpO2, GCS. Clinical symptoms and findings."  # Medical context
             )
         
         # Clean up temp file
