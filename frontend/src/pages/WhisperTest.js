@@ -78,7 +78,7 @@ export default function WhisperTest() {
                 <WhisperTextarea
                   value={text2}
                   onChange={(e) => setText2(e.target.value)}
-                  placeholder="Record a detailed history - speak for 1-2 minutes continuously..."
+                  placeholder="Record a detailed history - speak for 1-2 minutes continuously"
                   rows={8}
                 />
               </div>
