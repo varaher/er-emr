@@ -2666,8 +2666,11 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
                       onExtractedData={handleExaminationExtraction}
                       section="examination"
                       placeholder="Click Record: Patient has pallor, no icterus, cardiovascular exam shows regular rhythm, chest clear, abdomen soft..."
-                      rows={4
+                      rows={4}
                     />
+                    <p className="text-xs text-slate-600 mt-2">
+                      ✨ <strong>AI will extract:</strong> General findings, Pallor/Icterus/Clubbing, CVS, Respiratory, Abdomen, CNS examination findings
+                    </p>
                   </div>
 
                   {/* CVS Examination with Normal/Abnormal Pattern */}
