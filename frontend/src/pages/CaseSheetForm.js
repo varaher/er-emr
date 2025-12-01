@@ -2330,17 +2330,20 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
                     </Label>
                     <div className="space-y-2">
                       <Label htmlFor="signs-symptoms" className="flex items-center gap-2">
-                        <Mic className="h-4 w-4 text-blue-600" />
-                        Current Signs and Symptoms
+                        <Sparkles className="h-4 w-4 text-blue-600" />
+                        Current Signs and Symptoms (AI-Powered)
                       </Label>
-                      <VoiceTextarea
-                        id="signs-symptoms"
-                        data-testid="textarea-signs-symptoms"
+                      <WhisperCaseSheetInput
                         value={formData.history.signs_and_symptoms}
                         onChange={(e) => updateNestedField('history', 'signs_and_symptoms', e.target.value)}
-                        placeholder="Document all presenting signs and symptoms..."
+                        onExtractedData={handleHistoryExtraction}
+                        section="history"
+                        placeholder="Click Record and speak: Patient has chest pain, shortness of breath, known allergies to penicillin, on aspirin and metformin..."
                         rows={4}
                       />
+                      <p className="text-xs text-slate-600">
+                        ✨ <strong>AI will extract:</strong> Symptoms, Allergies, Medications, Past Medical History, Surgical History
+                      </p>
                     </div>
                   </div>
 
