@@ -420,6 +420,61 @@ export default function CaseSheetForm() {
     }
   };
 
+  // AI Extraction Handlers for Case Sheet
+  const handleHistoryExtraction = (extractedData) => {
+    setFormData(prev => ({
+      ...prev,
+      history: {
+        ...prev.history,
+        ...(extractedData.signs_and_symptoms && { signs_and_symptoms: extractedData.signs_and_symptoms }),
+        ...(extractedData.drug_history && { drug_history: extractedData.drug_history }),
+        ...(extractedData.past_surgical && { past_surgical: extractedData.past_surgical }),
+        ...(extractedData.family_history && { family_history: extractedData.family_history }),
+        ...(extractedData.allergies && extractedData.allergies.length > 0 && { 
+          allergies: [...new Set([...prev.history.allergies, ...extractedData.allergies])]
+        }),
+        ...(extractedData.past_medical && extractedData.past_medical.length > 0 && { 
+          past_medical: [...new Set([...prev.history.past_medical, ...extractedData.past_medical])]
+        })
+      }
+    }));
+    toast.success('✨ History data applied!', { duration: 2000 });
+  };
+
+  const handleExaminationExtraction = (extractedData) => {
+    setFormData(prev => ({
+      ...prev,
+      examination: {
+        ...prev.examination,
+        ...(extractedData.general_notes && { general_notes: extractedData.general_notes }),
+        ...(extractedData.cvs_findings && { cvs_additional_notes: extractedData.cvs_findings }),
+        ...(extractedData.respiratory_findings && { respiratory_additional_notes: extractedData.respiratory_findings }),
+        ...(extractedData.abdomen_findings && { abdomen_additional_notes: extractedData.abdomen_findings }),
+        ...(extractedData.cns_findings && { cns_additional_notes: extractedData.cns_findings }),
+        ...(extractedData.general_pallor !== undefined && { general_pallor: extractedData.general_pallor }),
+        ...(extractedData.general_icterus !== undefined && { general_icterus: extractedData.general_icterus }),
+        ...(extractedData.general_clubbing !== undefined && { general_clubbing: extractedData.general_clubbing }),
+        ...(extractedData.general_lymphadenopathy !== undefined && { general_lymphadenopathy: extractedData.general_lymphadenopathy })
+      }
+    }));
+    toast.success('✨ Examination data applied!', { duration: 2000 });
+  };
+
+  const handlePrimaryAssessmentExtraction = (extractedData) => {
+    setFormData(prev => ({
+      ...prev,
+      primary_assessment: {
+        ...prev.primary_assessment,
+        ...(extractedData.airway_notes && { airway_additional_notes: extractedData.airway_notes }),
+        ...(extractedData.breathing_notes && { breathing_additional_notes: extractedData.breathing_notes }),
+        ...(extractedData.circulation_notes && { circulation_additional_notes: extractedData.circulation_notes }),
+        ...(extractedData.disability_notes && { disability_additional_notes: extractedData.disability_notes }),
+        ...(extractedData.exposure_local_exam_notes && { exposure_additional_notes: extractedData.exposure_local_exam_notes })
+      }
+    }));
+    toast.success('✨ Primary assessment data applied!', { duration: 2000 });
+  };
+
   const handleTimestampSelection = () => {
     const now = new Date();
     
