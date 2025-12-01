@@ -1269,6 +1269,46 @@ class AddendumRequest(BaseModel):
     case_id: str
     note: str
 
+@api_router.post("/transcribe-audio")
+async def transcribe_audio(
+    audio: UploadFile = File(...),
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """
+    Transcribe audio using OpenAI Whisper API
+    Supports continuous recording for medical dictation
+    """
+    try:
+        # Save uploaded audio to temporary file
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".webm") as temp_audio:
+            content = await audio.read()
+            temp_audio.write(content)
+            temp_audio_path = temp_audio.name
+        
+        # Initialize OpenAI client
+        openai_client = openai.OpenAI(api_key=EMERGENT_LLM_KEY)
+        
+        # Transcribe using Whisper
+        with open(temp_audio_path, "rb") as audio_file:
+            transcript = openai_client.audio.transcriptions.create(
+                model="whisper-1",
+                file=audio_file,
+                language="en",  # Can be made dynamic
+                response_format="text"
+            )
+        
+        # Clean up temp file
+        os.unlink(temp_audio_path)
+        
+        return {
+            "success": True,
+            "transcription": transcript
+        }
+        
+    except Exception as e:
+        logging.error(f"Whisper transcription error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Transcription failed: {str(e)}")
+
 @api_router.post("/cases/{case_id}/addendum")
 async def add_addendum(case_id: str, request: AddendumRequest, current_user: UserResponse = Depends(get_current_user)):
     """Add an addendum note to a locked case"""
@@ -1283,7 +1323,7 @@ async def add_addendum(case_id: str, request: AddendumRequest, current_user: Use
     # Create addendum with IST timestamp
     ist = timezone(timedelta(hours=5, minutes=30))
     addendum = {
-        "id": str(uuid4()),
+        "id": str(uuid.uuid4()),
         "timestamp": datetime.now(ist).isoformat(),
         "added_by_user_id": current_user.id,
         "added_by_name": current_user.name,
