@@ -32,9 +32,10 @@ export default function WhisperTriageInput({
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
           channelCount: 1,
-          sampleRate: 16000,
+          sampleRate: 48000,  // Higher quality for medical accuracy
           echoCancellation: true,
-          noiseSuppression: true
+          noiseSuppression: true,
+          autoGainControl: true  // Auto-adjust volume for consistent quality
         } 
       });
       
