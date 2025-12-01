@@ -233,6 +233,35 @@ export default function PediatricCaseSheet() {
     if (id && id !== 'new') {
       fetchCase();
     }
+    
+    // Auto-populate from triage data
+    const triageData = location.state || {};
+    if (triageData.chief_complaint || triageData.vitals) {
+      setFormData(prev => ({
+        ...prev,
+        presenting_complaint: {
+          ...prev.presenting_complaint,
+          text: triageData.chief_complaint || prev.presenting_complaint.text
+        },
+        vitals_at_arrival: triageData.vitals ? {
+          hr: triageData.vitals.hr || prev.vitals_at_arrival.hr,
+          bp_systolic: triageData.vitals.bp_systolic || prev.vitals_at_arrival.bp_systolic,
+          bp_diastolic: triageData.vitals.bp_diastolic || prev.vitals_at_arrival.bp_diastolic,
+          rr: triageData.vitals.rr || prev.vitals_at_arrival.rr,
+          spo2: triageData.vitals.spo2 || prev.vitals_at_arrival.spo2,
+          temperature: triageData.vitals.temperature || prev.vitals_at_arrival.temperature,
+          gcs_e: triageData.vitals.gcs_e || prev.vitals_at_arrival.gcs_e,
+          gcs_v: triageData.vitals.gcs_v || prev.vitals_at_arrival.gcs_v,
+          gcs_m: triageData.vitals.gcs_m || prev.vitals_at_arrival.gcs_m,
+          grbs: prev.vitals_at_arrival.grbs,
+          pain_score: prev.vitals_at_arrival.pain_score
+        } : prev.vitals_at_arrival
+      }));
+      
+      if (triageData.chief_complaint) {
+        toast.success('✅ Chief complaint auto-filled from triage', { duration: 3000 });
+      }
+    }
   }, [id]);
 
   const fetchCase = async () => {
