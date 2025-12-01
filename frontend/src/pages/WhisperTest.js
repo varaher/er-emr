@@ -33,9 +33,9 @@ export default function WhisperTest() {
         <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
           <h3 className="font-semibold text-blue-900 mb-2">✨ How to Test:</h3>
           <ol className="text-sm text-blue-800 space-y-1 list-decimal ml-5">
-            <li>Click the "Record" button (microphone icon)</li>
+            <li>Click the &ldquo;Record&rdquo; button (microphone icon)</li>
             <li>Start speaking - you can talk continuously for minutes</li>
-            <li>Click "Stop" when done</li>
+            <li>Click &ldquo;Stop&rdquo; when done</li>
             <li>Wait 2-3 seconds for AI transcription</li>
             <li>Your text will appear automatically!</li>
           </ol>
@@ -59,7 +59,7 @@ export default function WhisperTest() {
                 <WhisperTextarea
                   value={text1}
                   onChange={(e) => setText1(e.target.value)}
-                  placeholder="Record: 'Patient presents with chest pain radiating to left arm, associated with shortness of breath for 2 hours...'"
+                  placeholder="Record: Patient presents with chest pain radiating to left arm, associated with shortness of breath for 2 hours..."
                   rows={4}
                 />
               </div>
@@ -97,7 +97,7 @@ export default function WhisperTest() {
                 <WhisperTextarea
                   value={text3}
                   onChange={(e) => setText3(e.target.value)}
-                  placeholder="Record: 'Patient received IV normal saline 500ml stat, injection pantoprazole 40mg IV...'"
+                  placeholder="Record: Patient received IV normal saline 500ml stat, injection pantoprazole 40mg IV..."
                   rows={6}
                 />
               </div>
