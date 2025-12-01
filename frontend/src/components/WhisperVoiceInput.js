@@ -111,7 +111,8 @@ export default function WhisperVoiceInput({ value, onChange, className = "" }) {
       
     } catch (error) {
       console.error('Transcription error:', error);
-      toast.error('Transcription failed. Please try again.');
+      const errorMessage = error.response?.data?.detail || error.message || 'Transcription failed';
+      toast.error(`❌ ${errorMessage}`);
     } finally {
       setIsTranscribing(false);
       audioChunksRef.current = [];
