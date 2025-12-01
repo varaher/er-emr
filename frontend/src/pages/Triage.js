@@ -120,7 +120,12 @@ export default function Triage() {
         triageId: triageResult.id,
         triagePriority: triageResult.priority_level,
         triageColor: triageResult.priority_color,
-        age_group: formData.age_group
+        age_group: formData.age_group,
+        // Pass recorded voice data
+        chief_complaint: formData.chief_complaint,
+        additional_notes: formData.additional_notes,
+        // Pass vitals
+        vitals: formData.vitals
       }
     });
   };
