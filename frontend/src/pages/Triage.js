@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { ArrowLeft, AlertCircle, Clock } from 'lucide-react';
 import { WhisperTextarea } from '@/components/WhisperVoiceInput';
+import WhisperTriageInput from '@/components/WhisperTriageInput';
 
 export default function Triage() {
   const navigate = useNavigate();
