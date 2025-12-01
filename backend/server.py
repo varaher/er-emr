@@ -1387,16 +1387,20 @@ Rules:
 - BP: extract systolic and diastolic separately
 - Return ONLY the JSON object, no additional text"""
 
-        # Use LlmChat for extraction
-        llm = LlmChat(model="gpt-4o-mini", api_key=EMERGENT_LLM_KEY)
-        response = await llm.chat(
-            [UserMessage(content=extraction_prompt)],
-            response_format="json"
+        # Use OpenAI client with Emergent key for extraction
+        import json
+        from openai import AsyncOpenAI
+        
+        client = AsyncOpenAI(api_key=EMERGENT_LLM_KEY)
+        
+        response = await client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": extraction_prompt}],
+            response_format={"type": "json_object"}
         )
         
         # Parse the JSON response
-        import json
-        extracted_data = json.loads(response.content)
+        extracted_data = json.loads(response.choices[0].message.content)
         
         return {
             "success": True,
