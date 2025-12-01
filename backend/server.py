@@ -1276,7 +1276,7 @@ async def transcribe_audio(
     current_user: UserResponse = Depends(get_current_user)
 ):
     """
-    Transcribe audio using OpenAI Whisper API
+    Transcribe audio using OpenAI Whisper API via emergentintegrations
     Supports continuous recording for medical dictation
     """
     try:
@@ -1286,15 +1286,15 @@ async def transcribe_audio(
             temp_audio.write(content)
             temp_audio_path = temp_audio.name
         
-        # Initialize OpenAI client
-        openai_client = openai.OpenAI(api_key=EMERGENT_LLM_KEY)
+        # Initialize Speech-to-Text with Emergent LLM key
+        stt = OpenAISpeechToText(api_key=EMERGENT_LLM_KEY)
         
         # Transcribe using Whisper
         with open(temp_audio_path, "rb") as audio_file:
-            transcript = openai_client.audio.transcriptions.create(
-                model="whisper-1",
+            response = await stt.transcribe(
                 file=audio_file,
-                language="en",  # Can be made dynamic
+                model="whisper-1",
+                language="en",
                 response_format="text"
             )
         
@@ -1303,7 +1303,7 @@ async def transcribe_audio(
         
         return {
             "success": True,
-            "transcription": transcript
+            "transcription": response.text
         }
         
     except Exception as e:
