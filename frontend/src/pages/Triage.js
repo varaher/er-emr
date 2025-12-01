@@ -458,6 +458,61 @@ export default function Triage() {
               </CardContent>
             </Card>
 
+            {/* Voice Input - Chief Complaint */}
+            <Card className="border-blue-200 bg-blue-50">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  🎤 Chief Complaint / Presenting Complaint
+                </CardTitle>
+                <CardDescription className="text-blue-700">
+                  Use voice recording for quick documentation (Whisper AI - continuous recording)
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <Label htmlFor="chief-complaint" className="text-sm font-semibold">
+                    Main Reason for Visit
+                  </Label>
+                  <WhisperTextarea
+                    id="chief-complaint"
+                    value={formData.chief_complaint}
+                    onChange={(e) => setFormData({ ...formData, chief_complaint: e.target.value })}
+                    placeholder="Click 'Record' and speak: Patient presents with chest pain for 2 hours..."
+                    rows={3}
+                  />
+                  <p className="text-xs text-slate-600">
+                    💡 Tip: Click Record, speak continuously, then click Stop. No more disconnections!
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Voice Input - Additional Notes */}
+            <Card className="border-blue-200 bg-blue-50">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  🎤 Additional Triage Notes
+                </CardTitle>
+                <CardDescription className="text-blue-700">
+                  Any additional observations or remarks
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <Label htmlFor="additional-notes" className="text-sm font-semibold">
+                    Notes / Observations
+                  </Label>
+                  <WhisperTextarea
+                    id="additional-notes"
+                    value={formData.additional_notes}
+                    onChange={(e) => setFormData({ ...formData, additional_notes: e.target.value })}
+                    placeholder="Click 'Record' for quick notes: Patient arrived via ambulance, family present..."
+                    rows={3}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Symptoms */}
             <Card>
               <CardHeader>
