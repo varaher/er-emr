@@ -6,6 +6,7 @@ import Triage from "@/pages/Triage";
 import CaseSheetForm from "@/pages/CaseSheetForm";
 import PediatricCaseSheet from "@/pages/PediatricCaseSheet";
 import DischargeSummaryNew from "@/pages/DischargeSummaryNew";
+import WhisperTest from "@/pages/WhisperTest";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import "@/App.css";
 
