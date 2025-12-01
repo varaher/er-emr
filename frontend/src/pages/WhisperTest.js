@@ -70,7 +70,7 @@ export default function WhisperTest() {
           <Card>
             <CardHeader>
               <CardTitle>Test 2: History of Present Illness (Long Form)</CardTitle>
-              <CardDescription>Test continuous recording for 1-2 minutes</CardDescription>
+              <CardDescription>Test continuous recording for 1 to 2 minutes</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
