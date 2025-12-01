@@ -1415,6 +1415,114 @@ Rules:
         logging.error(f"Data extraction error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Extraction failed: {str(e)}")
 
+class ExtractCaseSheetDataRequest(BaseModel):
+    text: str
+    section: str  # 'history', 'examination', 'primary_assessment'
+
+@api_router.post("/extract-casesheet-data")
+async def extract_casesheet_data(
+    request: ExtractCaseSheetDataRequest,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """
+    Extract structured medical data from case sheet voice transcriptions
+    Section-specific extraction for history, examination, and primary assessment
+    """
+    try:
+        # Create section-specific prompts
+        if request.section == 'history':
+            extraction_prompt = f"""You are a medical data extraction AI. Extract structured history data from this transcription.
+
+Transcription: "{request.text}"
+
+Extract and return ONLY a valid JSON object:
+{{
+  "signs_and_symptoms": "extracted text or null",
+  "allergies": ["list of allergies"] or [],
+  "past_medical": ["list of conditions"] or [],
+  "drug_history": "extracted medications text or null",
+  "past_surgical": "extracted surgical history or null",
+  "family_history": "extracted family history or null"
+}}
+
+Rules:
+- Extract ONLY explicitly mentioned information
+- For allergies: return array of allergy strings
+- For past_medical: return array of condition strings  
+- Return null for missing text fields
+- Return empty arrays for missing list fields
+- Return ONLY the JSON object, no additional text"""
+
+        elif request.section == 'examination':
+            extraction_prompt = f"""You are a medical data extraction AI. Extract structured examination findings from this transcription.
+
+Transcription: "{request.text}"
+
+Extract and return ONLY a valid JSON object:
+{{
+  "general_notes": "extracted general examination text or null",
+  "cvs_findings": "extracted CVS examination text or null",
+  "respiratory_findings": "extracted respiratory examination text or null",
+  "abdomen_findings": "extracted abdominal examination text or null",
+  "cns_findings": "extracted CNS examination text or null",
+  "general_pallor": boolean,
+  "general_icterus": boolean,
+  "general_clubbing": boolean,
+  "general_lymphadenopathy": boolean
+}}
+
+Rules:
+- Extract physical examination findings mentioned
+- For boolean fields: true if explicitly mentioned as present, false otherwise
+- Return null for text fields with no relevant findings
+- Return ONLY the JSON object, no additional text"""
+
+        elif request.section == 'primary_assessment':
+            extraction_prompt = f"""You are a medical data extraction AI. Extract ABCDE assessment data from this transcription.
+
+Transcription: "{request.text}"
+
+Extract and return ONLY a valid JSON object:
+{{
+  "airway_notes": "extracted airway assessment or null",
+  "breathing_notes": "extracted breathing assessment or null",
+  "circulation_notes": "extracted circulation assessment or null",
+  "disability_notes": "extracted disability/neuro assessment or null",
+  "exposure_local_exam_notes": "extracted exposure findings or null"
+}}
+
+Rules:
+- Extract ABCDE primary survey findings
+- Return null for sections not mentioned
+- Return ONLY the JSON object, no additional text"""
+
+        else:
+            raise HTTPException(status_code=400, detail=f"Invalid section: {request.section}")
+
+        # Use emergentintegrations LlmChat for extraction
+        import json
+        
+        llm = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=f"casesheet_extraction_{current_user.id}_{request.section}",
+            system_message="You are a medical data extraction AI. Extract structured data from medical documentation and return valid JSON."
+        )
+        
+        llm = llm.with_model(provider="openai", model="gpt-4o-mini")
+        response_text = await llm.send_message(UserMessage(text=extraction_prompt))
+        
+        extracted_data = json.loads(response_text)
+        
+        return {
+            "success": True,
+            "section": request.section,
+            "data": extracted_data
+        }
+        
+    except Exception as e:
+        logging.error(f"Case sheet extraction error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Extraction failed: {str(e)}")
+
 @api_router.post("/cases/{case_id}/addendum")
 async def add_addendum(case_id: str, request: AddendumRequest, current_user: UserResponse = Depends(get_current_user)):
     """Add an addendum note to a locked case"""
