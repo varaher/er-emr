@@ -1401,7 +1401,7 @@ Rules:
         llm = llm.with_model(provider="openai", model="gpt-4o-mini")
         
         # Send extraction request
-        response_text = await llm.send_message(UserMessage(content=extraction_prompt))
+        response_text = await llm.send_message(UserMessage(text=extraction_prompt))
         
         # Parse the JSON response
         extracted_data = json.loads(response_text)
