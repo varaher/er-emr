@@ -1310,6 +1310,103 @@ async def transcribe_audio(
         logging.error(f"Whisper transcription error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Transcription failed: {str(e)}")
 
+class ExtractTriageDataRequest(BaseModel):
+    text: str
+
+@api_router.post("/extract-triage-data")
+async def extract_triage_data(
+    request: ExtractTriageDataRequest,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """
+    Extract structured medical data from transcribed text for triage
+    Uses AI to parse vitals, symptoms, and other relevant information
+    """
+    try:
+        # Create AI prompt for extraction
+        extraction_prompt = f"""You are a medical data extraction AI. Extract structured data from the following medical transcription.
+
+Transcription: "{request.text}"
+
+Extract and return ONLY a valid JSON object with these fields (use null for missing data):
+{{
+  "vitals": {{
+    "hr": number or null,
+    "bp_systolic": number or null,
+    "bp_diastolic": number or null,
+    "rr": number or null,
+    "spo2": number or null,
+    "temperature": number or null,
+    "gcs_e": number (1-4) or null,
+    "gcs_v": number (1-5) or null,
+    "gcs_m": number (1-6) or null,
+    "capillary_refill": number or null
+  }},
+  "symptoms": {{
+    "obstructed_airway": boolean,
+    "facial_burns": boolean,
+    "stridor": boolean,
+    "severe_respiratory_distress": boolean,
+    "moderate_respiratory_distress": boolean,
+    "mild_respiratory_symptoms": boolean,
+    "cyanosis": boolean,
+    "apnea": boolean,
+    "shock": boolean,
+    "severe_bleeding": boolean,
+    "cardiac_arrest": boolean,
+    "chest_pain": boolean,
+    "chest_pain_with_hypotension": boolean,
+    "seizure_ongoing": boolean,
+    "seizure_controlled": boolean,
+    "confusion": boolean,
+    "focal_deficits": boolean,
+    "lethargic_unconscious": boolean,
+    "major_trauma": boolean,
+    "moderate_trauma": boolean,
+    "minor_injury": boolean,
+    "severe_burns": boolean,
+    "anaphylaxis": boolean,
+    "suspected_stroke": boolean,
+    "sepsis": boolean,
+    "gi_bleed": boolean,
+    "fever": boolean,
+    "non_blanching_rash": boolean,
+    "severe_dehydration": boolean,
+    "moderate_dehydration": boolean,
+    "abdominal_pain_severe": boolean,
+    "abdominal_pain_moderate": boolean,
+    "abdominal_pain_mild": boolean
+  }}
+}}
+
+Rules:
+- Extract ONLY values explicitly mentioned
+- For symptoms: true if mentioned, false otherwise
+- For vitals: extract numeric values only
+- GCS: E (Eye 1-4), V (Verbal 1-5), M (Motor 1-6)
+- BP: extract systolic and diastolic separately
+- Return ONLY the JSON object, no additional text"""
+
+        # Use LlmChat for extraction
+        llm = LlmChat(model="gpt-4o-mini", api_key=EMERGENT_LLM_KEY)
+        response = await llm.chat(
+            [UserMessage(content=extraction_prompt)],
+            response_format="json"
+        )
+        
+        # Parse the JSON response
+        import json
+        extracted_data = json.loads(response.content)
+        
+        return {
+            "success": True,
+            "data": extracted_data
+        }
+        
+    except Exception as e:
+        logging.error(f"Data extraction error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Extraction failed: {str(e)}")
+
 @api_router.post("/cases/{case_id}/addendum")
 async def add_addendum(case_id: str, request: AddendumRequest, current_user: UserResponse = Depends(get_current_user)):
     """Add an addendum note to a locked case"""
