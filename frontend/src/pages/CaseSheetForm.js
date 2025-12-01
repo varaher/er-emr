@@ -2638,16 +2638,16 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
 
                   <div className="space-y-2">
                     <Label htmlFor="general-additional-notes" className="flex items-center gap-2">
-                      <Mic className="h-4 w-4 text-blue-600" />
-                      General Examination - Additional Notes
+                      <Sparkles className="h-4 w-4 text-blue-600" />
+                      Physical Examination Notes (AI-Powered)
                     </Label>
-                    <VoiceTextarea
-                      id="general-additional-notes"
-                      data-testid="textarea-general-additional-notes"
+                    <WhisperCaseSheetInput
                       value={formData.examination.general_additional_notes}
                       onChange={(e) => updateNestedField('examination', 'general_additional_notes', e.target.value)}
-                      placeholder="Additional observations for general examination..."
-                      rows={2}
+                      onExtractedData={handleExaminationExtraction}
+                      section="examination"
+                      placeholder="Click Record: Patient has pallor, no icterus, cardiovascular exam shows regular rhythm, chest clear, abdomen soft..."
+                      rows={4
                     />
                   </div>
 
