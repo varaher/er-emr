@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { VoiceTextInput, VoiceTextarea } from '@/components/VoiceTextInput';
+import WhisperCaseSheetInput from '@/components/WhisperCaseSheetInput';
 import { toast } from 'sonner';
 import { ArrowLeft, Save, Sparkles, AlertCircle, Mic, Database, Clock, FileText, Download } from 'lucide-react';
 import { generateCaseSheetPDF } from '@/utils/pdfGenerator';
