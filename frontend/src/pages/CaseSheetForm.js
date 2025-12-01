@@ -1870,6 +1870,25 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-6">
+                    {/* AI-Powered ABCDE Assessment */}
+                    <div className="p-4 bg-blue-50 border-2 border-blue-200 rounded-lg">
+                      <Label className="flex items-center gap-2 mb-2 font-semibold text-blue-900">
+                        <Sparkles className="h-5 w-5" />
+                        Quick ABCDE Assessment (AI-Powered)
+                      </Label>
+                      <WhisperCaseSheetInput
+                        value={formData.primary_assessment.airway_additional_notes}
+                        onChange={(e) => updateNestedField('primary_assessment', 'airway_additional_notes', e.target.value)}
+                        onExtractedData={handlePrimaryAssessmentExtraction}
+                        section="primary_assessment"
+                        placeholder="Click Record: Airway patent, breathing regular 16/min, circulation stable HR 80 BP 120/80, GCS 15, no external injuries..."
+                        rows={3}
+                      />
+                      <p className="text-xs text-slate-600 mt-2">
+                        ✨ <strong>AI will extract:</strong> Airway status, Breathing assessment, Circulation findings, Disability/Neuro, Exposure findings
+                      </p>
+                    </div>
+
                     {/* A - Airway */}
                     <div className="border-b border-slate-200 pb-6">
                       <h3 className="text-lg font-semibold text-slate-900 mb-4">A - Airway</h3>
