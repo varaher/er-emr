@@ -151,6 +151,34 @@ export default function Triage() {
     }));
   };
 
+  const handleExtractedData = (extractedData) => {
+    // Apply extracted vitals
+    if (extractedData.vitals) {
+      setFormData(prev => ({
+        ...prev,
+        vitals: {
+          ...prev.vitals,
+          ...Object.fromEntries(
+            Object.entries(extractedData.vitals).filter(([_, v]) => v !== null)
+          )
+        }
+      }));
+    }
+
+    // Apply extracted symptoms
+    if (extractedData.symptoms) {
+      setFormData(prev => ({
+        ...prev,
+        symptoms: {
+          ...prev.symptoms,
+          ...extractedData.symptoms
+        }
+      }));
+    }
+
+    toast.success('✨ Auto-filled vitals and symptoms!', { duration: 3000 });
+  };
+
   const getPriorityBadge = (result) => {
     const colorClasses = {
       red: 'bg-red-600 text-white',
