@@ -1325,12 +1325,31 @@ async def extract_triage_data(
     Uses AI to parse vitals, symptoms, and other relevant information
     """
     try:
-        # Create AI prompt for extraction
-        extraction_prompt = f"""You are a medical data extraction AI. Extract structured data from the following medical transcription.
+        # Create AI prompt with 3-STAGE EXTRACTION for noise immunity
+        extraction_prompt = f"""You are an advanced medical data extraction AI with 3-stage processing.
 
-Transcription: "{request.text}"
+STAGE 1 - CLEAN THE TRANSCRIPT:
+Raw transcription: "{request.text}"
 
-Extract and return ONLY a valid JSON object with these fields (use null for missing data):
+First, clean this text by:
+- Removing repeated words/phrases (e.g., "operation operation operation" → remove)
+- Removing filler words (um, uh, like, you know)
+- Removing incomplete words or noise artifacts
+- Normalizing numbers ("one forty over eighty" → "140/80", "one ten" → "110")
+- Keeping ONLY medically relevant information
+
+STAGE 2 - IDENTIFY MEDICAL ENTITIES:
+From the cleaned text, identify:
+- Heart Rate (HR): look for "heart rate", "HR", "pulse" followed by number
+- Blood Pressure (BP): look for "BP", "blood pressure", "systolic/diastolic", "over" pattern
+- Respiratory Rate (RR): look for "respiratory rate", "RR", "breathing" followed by number
+- SpO2: look for "SpO2", "oxygen saturation", "sats" followed by number or percentage
+- Temperature: look for "temperature", "temp", "fever" followed by number
+- GCS: look for "GCS", "Glasgow", "E", "V", "M" followed by numbers 1-6
+- Symptoms: chest pain, fever, seizure, respiratory distress, trauma, bleeding, etc.
+
+STAGE 3 - STRUCTURE THE DATA:
+Return ONLY a valid JSON object:
 {{
   "vitals": {{
     "hr": number or null,
@@ -1381,13 +1400,15 @@ Extract and return ONLY a valid JSON object with these fields (use null for miss
   }}
 }}
 
-Rules:
-- Extract ONLY values explicitly mentioned
+CRITICAL RULES:
+- Ignore any repeated/garbage words completely
+- Extract ONLY explicitly mentioned medical values
 - For symptoms: true if mentioned, false otherwise
-- For vitals: extract numeric values only
+- For vitals: extract numeric values only, ignore text noise
 - GCS: E (Eye 1-4), V (Verbal 1-5), M (Motor 1-6)
 - BP: extract systolic and diastolic separately
-- Return ONLY the JSON object, no additional text"""
+- If uncertain about a value, use null rather than guessing
+- Return ONLY the JSON object, no additional text or explanation"""
 
         # Use emergentintegrations LlmChat for extraction
         import json
