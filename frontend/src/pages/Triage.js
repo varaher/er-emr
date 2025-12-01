@@ -153,17 +153,26 @@ export default function Triage() {
   };
 
   const handleExtractedData = (extractedData) => {
+    const newAutoFilledFields = {};
+
     // Apply extracted vitals
     if (extractedData.vitals) {
+      const validVitals = Object.fromEntries(
+        Object.entries(extractedData.vitals).filter(([_, v]) => v !== null)
+      );
+      
       setFormData(prev => ({
         ...prev,
         vitals: {
           ...prev.vitals,
-          ...Object.fromEntries(
-            Object.entries(extractedData.vitals).filter(([_, v]) => v !== null)
-          )
+          ...validVitals
         }
       }));
+
+      // Track which vitals were auto-filled
+      Object.keys(validVitals).forEach(key => {
+        newAutoFilledFields[`vital_${key}`] = true;
+      });
     }
 
     // Apply extracted symptoms
@@ -175,8 +184,16 @@ export default function Triage() {
           ...extractedData.symptoms
         }
       }));
+
+      // Track which symptoms were auto-filled
+      Object.entries(extractedData.symptoms).forEach(([key, value]) => {
+        if (value === true) {
+          newAutoFilledFields[`symptom_${key}`] = true;
+        }
+      });
     }
 
+    setAutoFilledFields(newAutoFilledFields);
     toast.success('✨ Auto-filled vitals and symptoms!', { duration: 3000 });
   };
 
