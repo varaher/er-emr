@@ -18,6 +18,7 @@ export default function Triage() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [triageResult, setTriageResult] = useState(null);
+  const [autoFilledFields, setAutoFilledFields] = useState({});
 
   const [formData, setFormData] = useState({
     age_group: 'adult',
