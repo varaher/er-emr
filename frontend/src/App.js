@@ -94,6 +94,14 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/whisper-test"
+              element={
+                <ProtectedRoute>
+                  <WhisperTest />
+                </ProtectedRoute>
+              }
+            />
           </Routes>
           <Toaster />
         </div>
