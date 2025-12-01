@@ -262,14 +262,14 @@ export default function Triage() {
               </CardContent>
             </Card>
 
-            {/* Voice Input - Chief Complaint */}
+            {/* Voice Input - Chief Complaint with AI Extraction */}
             <Card className="border-blue-200 bg-blue-50">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   🎤 Chief Complaint / Presenting Complaint
                 </CardTitle>
                 <CardDescription className="text-blue-700">
-                  Use voice recording for quick documentation
+                  Use voice recording - AI will auto-extract vitals & symptoms
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -277,15 +277,14 @@ export default function Triage() {
                   <Label htmlFor="chief-complaint" className="text-sm font-semibold">
                     Main Reason for Visit
                   </Label>
-                  <WhisperTextarea
-                    id="chief-complaint"
+                  <WhisperTriageInput
                     value={formData.chief_complaint}
                     onChange={(e) => setFormData({ ...formData, chief_complaint: e.target.value })}
-                    placeholder="Click 'Record' and speak: Patient presents with chest pain for 2 hours..."
-                    rows={3}
+                    onExtractedData={handleExtractedData}
+                    className="min-h-[80px]"
                   />
                   <p className="text-xs text-slate-600">
-                    💡 Tip: Click Record, speak continuously, then click Stop. No more disconnections!
+                    ✨ <strong>AI-Powered:</strong> Speak vitals & symptoms - AI will auto-fill the form below!
                   </p>
                 </div>
               </CardContent>
