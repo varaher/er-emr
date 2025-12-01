@@ -30,7 +30,7 @@ export default function WhisperCaseSheetInput({
   }, []);
 
   const startRecording = async () => {
-    try:
+    try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
           channelCount: 1,
