@@ -10,6 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { ArrowLeft, AlertCircle, Clock } from 'lucide-react';
+import { WhisperTextarea } from '@/components/WhisperVoiceInput';
 
 export default function Triage() {
   const navigate = useNavigate();
@@ -19,6 +20,8 @@ export default function Triage() {
 
   const [formData, setFormData] = useState({
     age_group: 'adult',
+    chief_complaint: '',
+    additional_notes: '',
     vitals: {
       hr: null,
       bp_systolic: null,
