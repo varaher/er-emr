@@ -51,7 +51,7 @@ export default function WhisperTest() {
           <Card>
             <CardHeader>
               <CardTitle>Test 1: Chief Complaint</CardTitle>
-              <CardDescription>Try dictating a patient's chief complaint</CardDescription>
+              <CardDescription>Try dictating a patient chief complaint</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
