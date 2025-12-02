@@ -815,31 +815,51 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
   };
 
   const handleTranscriptComplete = (parsedData) => {
-    // Merge parsed data with existing form data
+    // Comprehensive mapping of AI-extracted data to case sheet form
     setFormData(prevData => {
       const updated = { ...prevData };
       
-      // Update history fields
-      if (parsedData.history) {
-        updated.history = { ...updated.history, ...parsedData.history };
+      // 1. PATIENT INFORMATION
+      if (parsedData.patient_info) {
+        if (parsedData.patient_info.name) updated.patient.name = parsedData.patient_info.name;
+        if (parsedData.patient_info.age) updated.patient.age = parsedData.patient_info.age;
+        if (parsedData.patient_info.gender) updated.patient.gender = parsedData.patient_info.gender;
       }
       
-      // Update examination fields
-      if (parsedData.examination) {
-        updated.examination = { ...updated.examination, ...parsedData.examination };
+      // 2. VITALS AT ARRIVAL (can be edited, but won't change triage)
+      if (parsedData.vitals) {
+        if (parsedData.vitals.hr) updated.vitals.hr = parsedData.vitals.hr;
+        if (parsedData.vitals.bp_systolic) updated.vitals.bp_systolic = parsedData.vitals.bp_systolic;
+        if (parsedData.vitals.bp_diastolic) updated.vitals.bp_diastolic = parsedData.vitals.bp_diastolic;
+        if (parsedData.vitals.rr) updated.vitals.rr = parsedData.vitals.rr;
+        if (parsedData.vitals.spo2) updated.vitals.spo2 = parsedData.vitals.spo2;
+        if (parsedData.vitals.temperature) updated.vitals.temperature = parsedData.vitals.temperature;
+        if (parsedData.vitals.gcs_e) updated.vitals.gcs_e = parsedData.vitals.gcs_e;
+        if (parsedData.vitals.gcs_v) updated.vitals.gcs_v = parsedData.vitals.gcs_v;
+        if (parsedData.vitals.gcs_m) updated.vitals.gcs_m = parsedData.vitals.gcs_m;
       }
       
-      // Update presenting complaint
+      // 3. PRESENTING COMPLAINT
       if (parsedData.presenting_complaint) {
         updated.presenting_complaint = { ...updated.presenting_complaint, ...parsedData.presenting_complaint };
       }
       
-      // Update primary assessment
+      // 4. PRIMARY ASSESSMENT - ABCDE (auto-calculated by backend!)
       if (parsedData.primary_assessment) {
         updated.primary_assessment = { ...updated.primary_assessment, ...parsedData.primary_assessment };
       }
       
-      // Update treatment
+      // 5. SECONDARY SURVEY - SAMPLE (History)
+      if (parsedData.history) {
+        updated.history = { ...updated.history, ...parsedData.history };
+      }
+      
+      // 6. PHYSICAL EXAMINATION
+      if (parsedData.examination) {
+        updated.examination = { ...updated.examination, ...parsedData.examination };
+      }
+      
+      // 7. TREATMENT IN ER
       if (parsedData.treatment) {
         updated.treatment = { ...updated.treatment, ...parsedData.treatment };
       }
@@ -847,7 +867,20 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
       return updated;
     });
     
-    toast.success('Case sheet updated with transcript data! Please review and save.');
+    // Display red flags as toast notifications
+    if (parsedData.red_flags && parsedData.red_flags.length > 0) {
+      parsedData.red_flags.forEach(flag => {
+        if (flag.includes('🚨')) {
+          toast.error(flag, { duration: 10000 });
+        } else {
+          toast.warning(flag, { duration: 8000 });
+        }
+      });
+    }
+    
+    toast.success('✅ Case sheet updated with AI-extracted data! Review and save.', {
+      description: 'All sections have been auto-populated from your voice recording.'
+    });
   };
 
   const handleSaveToEMR = async () => {
