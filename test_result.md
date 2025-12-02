@@ -455,6 +455,21 @@ test_plan:
   test_all: false
   test_priority: "high_first"
 
+  - task: "Pediatric Case Sheet Feature"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/pages/EditPediatricCaseSheetNew.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Testing new Pediatric Case Sheet feature with AI-powered voice documentation, pediatric-specific fields, and age-appropriate triage calculation"
+      - working: true
+        agent: "testing"
+        comment: "✅ COMPREHENSIVE TESTING COMPLETED: Pediatric Case Sheet feature is fully functional. Dashboard button 'New Pediatric Case Sheet' with Baby icon working correctly. Navigation to /case-pediatric-new/new successful. All 7 tabs present (Patient, Growth, PAT, Vitals, ABCDE, History, Exam). AI-Powered Pediatric Voice Documentation with language selector (12+ languages) working. Pediatric-specific fields confirmed: age unit selector (years/months/days), Growth Parameters, PAT (Pediatric Assessment Triangle), Capillary Refill Time in vitals, pediatric history fields. Form functionality excellent with proper validation. Save functionality working. Triage auto-calculation for pediatric patients implemented. No critical errors found."
+
 agent_communication:
   - agent: "testing"
     message: "Starting comprehensive testing of ER-EMR Case Sheet application. Will test login flow, navigation, triage system, and all new features including voice-enabled fields, adjuvants section, psychological assessment, and Normal/Abnormal examination patterns. Testing will focus on UI functionality, data persistence, and user experience."
@@ -472,3 +487,5 @@ agent_communication:
     message: "PDF & WORD DOWNLOAD TESTING COMPLETED ✅ Comprehensive code review and testing of PDF/Word download functionality: 1) ✅ VERIFIED: Download buttons correctly hidden for new/unsaved cases (conditional rendering: id && id !== 'new') 2) ✅ VERIFIED: Download buttons visible after saving cases 3) ✅ VERIFIED: PDF generation implemented with jsPDF library, comprehensive case data formatting 4) ✅ VERIFIED: Word generation implemented with proper document structure 5) ✅ VERIFIED: Error handling shows toast messages for unsaved cases 6) ✅ VERIFIED: Discharge Summary PDF download implemented 7) ❌ AUTHENTICATION ISSUE: Unable to complete live testing due to login system blocking access, but code implementation is correct and follows all requirements from the review request."
   - agent: "main"
     message: "PHASE 1 (P0) - PDF/WORD DOWNLOAD FIX COMPLETED ✅ Verified implementation is correct: 1) Buttons properly hidden for new cases 2) Buttons visible for saved cases 3) Robust PDF generation with safe getters for null/undefined handling 4) Word generation working correctly 5) Proper error handling and toast messages 6) User's original 'failed to generate pdf' error was due to attempting downloads before saving - now prevented by conditional button rendering. Feature is PRODUCTION READY."
+  - agent: "testing"
+    message: "PEDIATRIC CASE SHEET TESTING COMPLETED ✅ Successfully tested the new Pediatric Case Sheet feature comprehensively: 1) Dashboard 'New Pediatric Case Sheet' button with Baby icon working correctly 2) Navigation to /case-pediatric-new/new successful 3) All 7 tabs functional (Patient, Growth, PAT, Vitals, ABCDE, History, Exam) 4) AI-Powered Pediatric Voice Documentation with 12+ language support working 5) Pediatric-specific fields confirmed: age unit selector, Growth Parameters, PAT assessment, Capillary Refill Time, birth history, immunization status, developmental milestones, feeding history 6) Form interactions excellent with proper validation 7) Save functionality working 8) Pediatric triage auto-calculation implemented 9) No critical errors found. Feature is production-ready and meets all requirements."
