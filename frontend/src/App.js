@@ -4,6 +4,7 @@ import Login from "@/pages/Login";
 import Dashboard from "@/pages/Dashboard";
 import Triage from "@/pages/Triage";
 import CaseSheetForm from "@/pages/CaseSheetForm";
+import EditCaseSheetNew from "@/pages/EditCaseSheetNew";
 import PediatricCaseSheet from "@/pages/PediatricCaseSheet";
 import DischargeSummaryNew from "@/pages/DischargeSummaryNew";
 import WhisperTest from "@/pages/WhisperTest";
