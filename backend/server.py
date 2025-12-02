@@ -902,6 +902,66 @@ async def delete_case(case_id: str, current_user: UserResponse = Depends(get_cur
         raise HTTPException(status_code=404, detail="Case not found")
     return {"message": "Case deleted successfully"}
 
+# Pediatric Case Sheet Endpoints
+@api_router.post("/cases-pediatric")
+async def create_pediatric_case(data: dict, current_user: UserResponse = Depends(get_current_user)):
+    """Create a new pediatric case sheet"""
+    try:
+        case_data = {
+            **data,
+            "id": str(uuid.uuid4()),
+            "created_at": datetime.now(timezone.utc),
+            "updated_at": datetime.now(timezone.utc),
+            "case_type": "pediatric"
+        }
+        
+        await db.cases_pediatric.insert_one(case_data)
+        return {"id": case_data["id"], "message": "Pediatric case created successfully"}
+    except Exception as e:
+        logging.error(f"Error creating pediatric case: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/cases-pediatric")
+async def get_all_pediatric_cases(current_user: UserResponse = Depends(get_current_user)):
+    """Get all pediatric cases"""
+    cases = await db.cases_pediatric.find({}, {"_id": 0}).to_list(1000)
+    return cases
+
+@api_router.get("/cases-pediatric/{case_id}")
+async def get_pediatric_case(case_id: str, current_user: UserResponse = Depends(get_current_user)):
+    """Get a specific pediatric case"""
+    case = await db.cases_pediatric.find_one({"id": case_id}, {"_id": 0})
+    if not case:
+        raise HTTPException(status_code=404, detail="Pediatric case not found")
+    return case
+
+@api_router.put("/cases-pediatric/{case_id}")
+async def update_pediatric_case(case_id: str, data: dict, current_user: UserResponse = Depends(get_current_user)):
+    """Update a pediatric case"""
+    case = await db.cases_pediatric.find_one({"id": case_id})
+    if not case:
+        raise HTTPException(status_code=404, detail="Pediatric case not found")
+    
+    update_data = {
+        **data,
+        "updated_at": datetime.now(timezone.utc)
+    }
+    
+    await db.cases_pediatric.update_one(
+        {"id": case_id},
+        {"$set": update_data}
+    )
+    
+    return {"message": "Pediatric case updated successfully"}
+
+@api_router.delete("/cases-pediatric/{case_id}")
+async def delete_pediatric_case(case_id: str, current_user: UserResponse = Depends(get_current_user)):
+    """Delete a pediatric case"""
+    result = await db.cases_pediatric.delete_one({"id": case_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Pediatric case not found")
+    return {"message": "Pediatric case deleted successfully"}
+
 # AI endpoints
 @api_router.post("/ai/generate", response_model=AIResponse)
 async def generate_ai_response(request: AIGenerateRequest, current_user: UserResponse = Depends(get_current_user)):
