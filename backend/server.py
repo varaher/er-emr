@@ -1683,6 +1683,7 @@ Rules:
 
 class ExtractCaseDataRequest(BaseModel):
     transcript: str
+    is_pediatric: bool = False
 
 @api_router.post("/extract-case-data")
 async def extract_case_data(
