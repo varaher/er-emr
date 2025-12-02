@@ -815,66 +815,75 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
   };
 
   const handleTranscriptComplete = (parsedData) => {
-    console.log('🔍 Received parsed data:', parsedData); // Debug log
+    console.log('🔍 STEP 1: Received parsed data from backend:', JSON.stringify(parsedData, null, 2));
     
-    // Comprehensive mapping of AI-extracted data to case sheet form
+    // Create the updated form data object
+    const mappedData = {};
+    
+    // 1. PATIENT INFORMATION
+    if (parsedData.patient_info) {
+      console.log('📝 Mapping patient info:', parsedData.patient_info);
+      mappedData.patient = {
+        ...formData.patient,
+        ...(parsedData.patient_info.name && { name: parsedData.patient_info.name }),
+        ...(parsedData.patient_info.age && { age: parsedData.patient_info.age }),
+        ...(parsedData.patient_info.gender && { sex: parsedData.patient_info.gender })
+      };
+    }
+    
+    // 2. VITALS AT ARRIVAL
+    if (parsedData.vitals) {
+      console.log('📝 Mapping vitals:', parsedData.vitals);
+      mappedData.vitals_at_arrival = {
+        ...formData.vitals_at_arrival,
+        ...(parsedData.vitals.hr && { hr: parsedData.vitals.hr }),
+        ...(parsedData.vitals.bp_systolic && { bp_systolic: parsedData.vitals.bp_systolic }),
+        ...(parsedData.vitals.bp_diastolic && { bp_diastolic: parsedData.vitals.bp_diastolic }),
+        ...(parsedData.vitals.rr && { rr: parsedData.vitals.rr }),
+        ...(parsedData.vitals.spo2 && { spo2: parsedData.vitals.spo2 }),
+        ...(parsedData.vitals.temperature && { temperature: parsedData.vitals.temperature }),
+        ...(parsedData.vitals.gcs_e && { gcs_e: parsedData.vitals.gcs_e }),
+        ...(parsedData.vitals.gcs_v && { gcs_v: parsedData.vitals.gcs_v }),
+        ...(parsedData.vitals.gcs_m && { gcs_m: parsedData.vitals.gcs_m })
+      };
+      console.log('✅ Vitals mapped to:', mappedData.vitals_at_arrival);
+    }
+    
+    // 3. PRESENTING COMPLAINT
+    if (parsedData.presenting_complaint) {
+      mappedData.presenting_complaint = { ...formData.presenting_complaint, ...parsedData.presenting_complaint };
+    }
+    
+    // 4. PRIMARY ASSESSMENT - ABCDE
+    if (parsedData.primary_assessment) {
+      mappedData.primary_assessment = { ...formData.primary_assessment, ...parsedData.primary_assessment };
+    }
+    
+    // 5. HISTORY
+    if (parsedData.history) {
+      mappedData.history = { ...formData.history, ...parsedData.history };
+    }
+    
+    // 6. EXAMINATION
+    if (parsedData.examination) {
+      mappedData.examination = { ...formData.examination, ...parsedData.examination };
+    }
+    
+    // 7. TREATMENT
+    if (parsedData.treatment) {
+      mappedData.treatment = { ...formData.treatment, ...parsedData.treatment };
+    }
+    
+    console.log('🎯 STEP 2: About to call setFormData with:', mappedData);
+    
+    // Apply all mapped data to form state
     setFormData(prevData => {
-      const updated = { ...prevData };
-      
-      // 1. PATIENT INFORMATION
-      if (parsedData.patient_info) {
-        if (parsedData.patient_info.name) updated.patient.name = parsedData.patient_info.name;
-        if (parsedData.patient_info.age) updated.patient.age = parsedData.patient_info.age;
-        if (parsedData.patient_info.gender) updated.patient.sex = parsedData.patient_info.gender; // Note: 'sex' not 'gender'
-      }
-      
-      // 2. VITALS AT ARRIVAL (can be edited, but won't change triage)
-      if (parsedData.vitals) {
-        if (parsedData.vitals.hr) updated.vitals_at_arrival.hr = parsedData.vitals.hr;
-        if (parsedData.vitals.bp_systolic) updated.vitals_at_arrival.bp_systolic = parsedData.vitals.bp_systolic;
-        if (parsedData.vitals.bp_diastolic) updated.vitals_at_arrival.bp_diastolic = parsedData.vitals.bp_diastolic;
-        if (parsedData.vitals.rr) updated.vitals_at_arrival.rr = parsedData.vitals.rr;
-        if (parsedData.vitals.spo2) updated.vitals_at_arrival.spo2 = parsedData.vitals.spo2;
-        if (parsedData.vitals.temperature) updated.vitals_at_arrival.temperature = parsedData.vitals.temperature;
-        if (parsedData.vitals.gcs_e) updated.vitals_at_arrival.gcs_e = parsedData.vitals.gcs_e;
-        if (parsedData.vitals.gcs_v) updated.vitals_at_arrival.gcs_v = parsedData.vitals.gcs_v;
-        if (parsedData.vitals.gcs_m) updated.vitals_at_arrival.gcs_m = parsedData.vitals.gcs_m;
-        
-        console.log('✅ Vitals mapped:', updated.vitals_at_arrival); // Debug log
-      }
-      
-      // 3. PRESENTING COMPLAINT
-      if (parsedData.presenting_complaint) {
-        updated.presenting_complaint = { ...updated.presenting_complaint, ...parsedData.presenting_complaint };
-        console.log('✅ Presenting complaint mapped'); // Debug log
-      }
-      
-      // 4. PRIMARY ASSESSMENT - ABCDE (auto-calculated by backend!)
-      if (parsedData.primary_assessment) {
-        updated.primary_assessment = { ...updated.primary_assessment, ...parsedData.primary_assessment };
-        console.log('✅ Primary assessment (ABCDE) mapped'); // Debug log
-      }
-      
-      // 5. SECONDARY SURVEY - SAMPLE (History)
-      if (parsedData.history) {
-        updated.history = { ...updated.history, ...parsedData.history };
-        console.log('✅ History mapped'); // Debug log
-      }
-      
-      // 6. PHYSICAL EXAMINATION
-      if (parsedData.examination) {
-        updated.examination = { ...updated.examination, ...parsedData.examination };
-        console.log('✅ Examination mapped'); // Debug log
-      }
-      
-      // 7. TREATMENT IN ER
-      if (parsedData.treatment) {
-        updated.treatment = { ...updated.treatment, ...parsedData.treatment };
-        console.log('✅ Treatment mapped'); // Debug log
-      }
-      
-      console.log('🎯 Final updated formData:', updated); // Debug log
-      return updated;
+      const finalData = {
+        ...prevData,
+        ...mappedData
+      };
+      console.log('✅ STEP 3: setFormData called. Final state:', finalData);
+      return finalData;
     });
     
     // Display red flags as toast notifications
