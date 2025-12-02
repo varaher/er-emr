@@ -204,11 +204,7 @@ export default function ContinuousVoiceRecorder({ onTranscriptComplete, caseShee
       return;
     }
 
-    if (!caseSheetId) {
-      toast.error('Please save the case first');
-      return;
-    }
-
+    // Allow auto-populate even for new unsaved cases
     setIsProcessing(true);
 
     try {
