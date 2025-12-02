@@ -230,12 +230,28 @@ export default function ContinuousVoiceRecorder({ onTranscriptComplete, caseShee
 
       const result = await response.json();
       
-      toast.success('Transcript processed! Case sheet fields updated.');
-      onTranscriptComplete(result.parsed_data);
-      
-      // Clear transcript
-      fullTranscriptRef.current = '';
-      setTranscript('');
+      if (result.success) {
+        toast.success('✅ Transcript processed! Fields auto-populated.');
+        
+        // Show red flags if any
+        if (result.red_flags && result.red_flags.length > 0) {
+          result.red_flags.forEach(flag => {
+            if (flag.includes('🚨')) {
+              toast.error(flag, { duration: 8000 });
+            } else {
+              toast.warning(flag, { duration: 6000 });
+            }
+          });
+        }
+        
+        onTranscriptComplete(result.data);
+        
+        // Clear transcript
+        fullTranscriptRef.current = '';
+        setTranscript('');
+      } else {
+        toast.error('Failed to process transcript');
+      }
     } catch (error) {
       console.error('Transcript processing error:', error);
       toast.error('Failed to process transcript');
