@@ -1292,10 +1292,103 @@ CRITICAL RULES:
         
         parsed_data = json.loads(json_str)
         
+        # Auto-calculate ABCDE and Red Flags based on vitals
+        abcde_data = {}
+        red_flags = []
+        
+        if 'vitals' in parsed_data and parsed_data['vitals']:
+            vitals = parsed_data['vitals']
+            
+            # Calculate GCS total
+            gcs_total = 0
+            if vitals.get('gcs_e'): gcs_total += vitals['gcs_e']
+            if vitals.get('gcs_v'): gcs_total += vitals['gcs_v']
+            if vitals.get('gcs_m'): gcs_total += vitals['gcs_m']
+            
+            # AIRWAY Assessment
+            if gcs_total > 0 and gcs_total <= 8:
+                abcde_data['airway_status'] = 'Threatened'
+                abcde_data['airway_additional_notes'] = f'Low GCS ({gcs_total}) - Airway may be compromised'
+                red_flags.append(f'🚨 CRITICAL: GCS {gcs_total} - Consider airway protection')
+            elif gcs_total >= 13:
+                abcde_data['airway_status'] = 'Patent'
+            
+            # BREATHING Assessment
+            rr = vitals.get('rr')
+            spo2 = vitals.get('spo2')
+            
+            if rr and (rr < 10 or rr > 30):
+                abcde_data['breathing_status'] = 'Abnormal'
+                abcde_data['breathing_additional_notes'] = f'Abnormal RR: {rr}/min'
+                if rr < 10:
+                    red_flags.append(f'🚨 CRITICAL: Bradypnea (RR {rr}) - Consider ventilatory support')
+                else:
+                    red_flags.append(f'⚠️ Tachypnea (RR {rr}) - Assess for respiratory distress')
+            
+            if spo2 and spo2 < 90:
+                abcde_data['breathing_status'] = 'Abnormal'
+                abcde_data['breathing_additional_notes'] = f'Low SpO2: {spo2}%'
+                if spo2 < 85:
+                    red_flags.append(f'🚨 CRITICAL: Severe hypoxia (SpO2 {spo2}%) - Immediate oxygen/NIV required')
+                else:
+                    red_flags.append(f'⚠️ Hypoxia (SpO2 {spo2}%) - Consider oxygen supplementation')
+            
+            # CIRCULATION Assessment  
+            bp_sys = vitals.get('bp_systolic')
+            hr = vitals.get('hr')
+            
+            if bp_sys and bp_sys < 90:
+                abcde_data['circulation_status'] = 'Compromised'
+                abcde_data['circulation_additional_notes'] = f'Hypotension: {bp_sys} mmHg systolic'
+                red_flags.append(f'🚨 CRITICAL: Hypotension (SBP {bp_sys}) - Possible shock, fluid resuscitation needed')
+            elif bp_sys and bp_sys > 180:
+                abcde_data['circulation_status'] = 'Abnormal'
+                red_flags.append(f'⚠️ Severe Hypertension (SBP {bp_sys}) - Monitor for hypertensive emergency')
+            
+            if hr and hr < 40:
+                red_flags.append(f'🚨 CRITICAL: Severe Bradycardia (HR {hr}) - Consider pacing/atropine')
+            elif hr and hr > 130:
+                red_flags.append(f'⚠️ Tachycardia (HR {hr}) - Assess for shock/sepsis/arrhythmia')
+            
+            # DISABILITY Assessment
+            if gcs_total > 0:
+                if gcs_total < 9:
+                    abcde_data['disability_status'] = 'Severe impairment'
+                    abcde_data['disability_additional_notes'] = f'GCS {gcs_total} (E{vitals.get("gcs_e","-")}V{vitals.get("gcs_v","-")}M{vitals.get("gcs_m","-")})'
+                elif gcs_total < 13:
+                    abcde_data['disability_status'] = 'Moderate impairment'
+                    abcde_data['disability_additional_notes'] = f'GCS {gcs_total} (E{vitals.get("gcs_e","-")}V{vitals.get("gcs_v","-")}M{vitals.get("gcs_m","-")})'
+                    red_flags.append(f'⚠️ Altered mental status (GCS {gcs_total})')
+                else:
+                    abcde_data['disability_status'] = 'Alert'
+                    abcde_data['disability_additional_notes'] = f'GCS {gcs_total}'
+            
+            # EXPOSURE Assessment
+            temp = vitals.get('temperature')
+            if temp:
+                if temp < 35:
+                    abcde_data['exposure_status'] = 'Hypothermia'
+                    abcde_data['exposure_additional_notes'] = f'Temperature: {temp}°C'
+                    red_flags.append(f'⚠️ Hypothermia ({temp}°C) - Warming measures needed')
+                elif temp > 38.5:
+                    abcde_data['exposure_status'] = 'Fever'
+                    abcde_data['exposure_additional_notes'] = f'Temperature: {temp}°C'
+                    red_flags.append(f'⚠️ Fever ({temp}°C) - Consider sepsis workup')
+        
+        # Add ABCDE and red flags to primary assessment
+        if abcde_data:
+            if 'primary_assessment' not in parsed_data:
+                parsed_data['primary_assessment'] = {}
+            parsed_data['primary_assessment'].update(abcde_data)
+        
+        if red_flags:
+            parsed_data['red_flags'] = red_flags
+        
         return {
             "success": True,
             "parsed_data": parsed_data,
-            "message": "Transcript parsed successfully. Review and save the auto-populated fields."
+            "message": "Transcript parsed successfully. ABCDE assessment and red flags auto-calculated. Review and save.",
+            "red_flags": red_flags
         }
     
     except json.JSONDecodeError as e:
