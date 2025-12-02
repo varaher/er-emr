@@ -448,9 +448,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "PDF Download for Case Sheet"
-    - "PDF Download for Discharge Summary"
-    - "Continuous Voice Recording with AI Auto-population"
+    - "Pediatric Case Sheet Feature"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
