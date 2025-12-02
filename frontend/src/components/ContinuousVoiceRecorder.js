@@ -10,8 +10,10 @@ export default function ContinuousVoiceRecorder({ onTranscriptComplete, caseShee
   const [transcript, setTranscript] = useState('');
   const [selectedLanguage, setSelectedLanguage] = useState('en-US');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [recordingDuration, setRecordingDuration] = useState(0);
   const recognitionRef = useRef(null);
   const fullTranscriptRef = useRef('');
+  const durationIntervalRef = useRef(null);
 
   const languages = [
     // English
