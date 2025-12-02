@@ -1268,8 +1268,8 @@ CRITICAL RULES:
         chat = LlmChat(
             api_key=EMERGENT_LLM_KEY,
             session_id=f"transcript_parse_{request.case_sheet_id}",
-            system_message="You are a medical transcription AI. Extract structured data from doctor's notes and return ONLY valid JSON."
-        ).with_model("openai", "gpt-5.1")
+            system_message="You are a medical transcription AI with 3-stage processing. Clean, extract, and structure medical data from doctor's notes. Return ONLY valid JSON."
+        ).with_model("openai", "gpt-4o-mini")
         
         user_message = UserMessage(text=prompt)
         response = await chat.send_message(user_message)
