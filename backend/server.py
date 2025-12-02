@@ -1696,8 +1696,115 @@ async def extract_case_data(
     Similar to /extract-triage-data but for full case sheets
     """
     try:
-        # Create comprehensive 3-STAGE extraction prompt
-        extraction_prompt = f"""You are an advanced medical AI with 3-STAGE PROCESSING for case sheet documentation.
+        # Create comprehensive 3-STAGE extraction prompt (with pediatric support)
+        if request.is_pediatric:
+            extraction_prompt = f"""You are an advanced PEDIATRIC medical AI with 3-STAGE PROCESSING for pediatric case sheet documentation.
+
+STAGE 1 - CLEAN THE TRANSCRIPT:
+Raw transcript: "{request.transcript}"
+
+Clean by:
+- Removing repeated words/phrases (e.g., "han han han", "patient name patient name" → remove duplicates)
+- Removing filler words (um, uh, like, you know, pahle, complete)
+- Removing incomplete words or noise artifacts
+- Normalizing numbers ("one forty over eighty" → "140/80")
+- Converting non-English to English
+- Keeping ONLY medically relevant information
+
+STAGE 2 - IDENTIFY & EXTRACT PEDIATRIC MEDICAL DATA:
+From the cleaned text, extract:
+- Patient demographics (name, age with unit: days/months/years, gender)
+- Growth parameters (weight in kg, height in cm, head circumference in cm)
+- PAT (Pediatric Assessment Triangle): appearance, work of breathing, circulation to skin
+- Chief complaint and HPI
+- Birth history, immunization status, developmental milestones, feeding history
+- Past medical/surgical history, allergies, medications
+- Vital signs (HR, BP, RR, SpO2, Temp, GCS, Capillary Refill Time)
+- Physical examination findings (dehydration status, all systems, skin)
+- Primary assessment notes (ABCDE)
+- Treatment/interventions
+
+STAGE 3 - STRUCTURE THE DATA:
+Return ONLY a valid JSON object:
+
+{{
+  "patient_info": {{
+    "name": "string or null",
+    "age": number or null,
+    "age_unit": "years/months/days or null",
+    "gender": "Male/Female/Other or null"
+  }},
+  "growth_parameters": {{
+    "weight": number (kg) or null,
+    "height": number (cm) or null,
+    "head_circumference": number (cm) or null,
+    "bmi": number or null
+  }},
+  "pat": {{
+    "appearance": "Normal/Abnormal or null",
+    "work_of_breathing": "Normal/Increased or null",
+    "circulation_to_skin": "Normal/Abnormal or null",
+    "overall_impression": "Stable/Sick/Critical or null"
+  }},
+  "vitals": {{
+    "hr": number or null,
+    "bp_systolic": number or null,
+    "bp_diastolic": number or null,
+    "rr": number or null,
+    "spo2": number or null,
+    "temperature": number or null,
+    "gcs_e": number (1-4) or null,
+    "gcs_v": number (1-5) or null,
+    "gcs_m": number (1-6) or null,
+    "capillary_refill": number (seconds) or null
+  }},
+  "history": {{
+    "signs_and_symptoms": "string or null",
+    "birth_history": "string or null",
+    "immunization_status": "string or null",
+    "developmental_milestones": "string or null",
+    "feeding_history": "string or null",
+    "past_medical": ["conditions"] or [],
+    "allergies": ["allergies"] or [],
+    "drug_history": "string or null",
+    "past_surgical": "string or null",
+    "family_history": "string or null"
+  }},
+  "examination": {{
+    "general_notes": "string or null",
+    "general_pallor": boolean,
+    "general_icterus": boolean,
+    "general_cyanosis": boolean,
+    "general_dehydration": "None/Mild/Moderate/Severe or null",
+    "cvs_additional_notes": "string or null",
+    "respiratory_additional_notes": "string or null",
+    "abdomen_additional_notes": "string or null",
+    "cns_additional_notes": "string or null",
+    "skin_notes": "string or null",
+    "musculoskeletal_notes": "string or null"
+  }},
+  "primary_assessment": {{
+    "airway_additional_notes": "string or null",
+    "breathing_additional_notes": "string or null",
+    "circulation_additional_notes": "string or null",
+    "disability_additional_notes": "string or null",
+    "exposure_additional_notes": "string or null"
+  }},
+  "presenting_complaint": {{
+    "text": "string or null",
+    "duration": "string or null",
+    "onset_type": "Sudden/Gradual or null"
+  }}
+}}
+
+CRITICAL RULES:
+- Ignore repeated/garbage words completely
+- Extract ONLY explicitly mentioned values
+- Use null for missing data
+- Return ONLY the JSON object, no other text
+"""
+        else:
+            extraction_prompt = f"""You are an advanced medical AI with 3-STAGE PROCESSING for case sheet documentation.
 
 STAGE 1 - CLEAN THE TRANSCRIPT:
 Raw transcript: "{request.transcript}"
