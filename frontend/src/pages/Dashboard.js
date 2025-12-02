@@ -182,7 +182,7 @@ export default function Dashboard() {
             className="border-pink-300 text-pink-700 hover:bg-pink-50"
             data-testid="create-pediatric-case-button"
           >
-            <Plus className="h-5 w-5 mr-2" />
+            <Baby className="h-5 w-5 mr-2" />
             New Pediatric Case Sheet
           </Button>
         </div>
