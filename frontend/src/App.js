@@ -81,6 +81,14 @@ function App() {
               }
             />
             <Route
+              path="/case-pediatric-new/:id"
+              element={
+                <ProtectedRoute>
+                  <EditPediatricCaseSheetNew />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/case-pediatric/new"
               element={
                 <ProtectedRoute>
