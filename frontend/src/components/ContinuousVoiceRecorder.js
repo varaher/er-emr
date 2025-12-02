@@ -212,17 +212,15 @@ export default function ContinuousVoiceRecorder({ onTranscriptComplete, caseShee
     setIsProcessing(true);
 
     try {
-      // Call backend AI endpoint to parse transcript and populate fields
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/ai/parse-transcript`, {
+      // Call backend AI endpoint to extract case data (consistent with triage endpoint pattern)
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/extract-case-data`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify({
-          case_sheet_id: caseSheetId,
-          transcript: transcript,
-          source_language: selectedLanguage
+          transcript: transcript
         })
       });
 
