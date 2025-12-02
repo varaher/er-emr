@@ -112,12 +112,30 @@ export default function ContinuousVoiceRecorder({ onTranscriptComplete, caseShee
 
     recognition.onend = () => {
       if (isRecording) {
-        // Restart if still in recording mode
-        try {
-          recognition.start();
-        } catch (e) {
-          console.log('Recognition restart failed:', e);
-        }
+        // Auto-restart for continuous recording (bypasses browser time limits)
+        console.log('Recognition ended, restarting for continuous recording...');
+        setTimeout(() => {
+          try {
+            if (isRecording && recognitionRef.current) {
+              recognition.start();
+              console.log('✅ Recognition restarted successfully');
+            }
+          } catch (e) {
+            console.warn('Recognition restart failed:', e);
+            // If restart fails, try again after a longer delay
+            setTimeout(() => {
+              try {
+                if (isRecording && recognitionRef.current) {
+                  recognition.start();
+                }
+              } catch (err) {
+                console.error('Final restart attempt failed:', err);
+                toast.warning('Recording paused. Click "Start" again to continue.', { duration: 5000 });
+                setIsRecording(false);
+              }
+            }, 500);
+          }
+        }, 100); // Small delay to prevent rapid restart issues
       }
     };
 
