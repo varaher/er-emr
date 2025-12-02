@@ -63,7 +63,14 @@ export default function ContinuousVoiceRecorder({ onTranscriptComplete, caseShee
 
     recognition.onstart = () => {
       setIsRecording(true);
-      toast.success('Recording started. Speak naturally...');
+      setRecordingDuration(0);
+      
+      // Start duration counter
+      durationIntervalRef.current = setInterval(() => {
+        setRecordingDuration(prev => prev + 1);
+      }, 1000);
+      
+      toast.success('🎤 Recording started. Speak naturally - no time limit!');
     };
 
     recognition.onresult = (event) => {
