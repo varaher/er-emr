@@ -156,7 +156,7 @@ export default function Dashboard() {
         </div>
 
         {/* Actions */}
-        <div className="mb-6 flex gap-3">
+        <div className="mb-6 flex gap-3 flex-wrap">
           <Button 
             onClick={() => navigate('/triage')} 
             size="lg"
@@ -167,13 +167,23 @@ export default function Dashboard() {
             Start Triage
           </Button>
           <Button 
-            onClick={() => navigate('/case/new')} 
+            onClick={() => navigate('/case-sheet-new/new')} 
             size="lg"
             variant="outline"
             data-testid="create-new-case-button"
           >
             <Plus className="h-5 w-5 mr-2" />
-            Create Case (Skip Triage)
+            New Adult Case Sheet
+          </Button>
+          <Button 
+            onClick={() => navigate('/case-pediatric-new/new')} 
+            size="lg"
+            variant="outline"
+            className="border-pink-300 text-pink-700 hover:bg-pink-50"
+            data-testid="create-pediatric-case-button"
+          >
+            <Plus className="h-5 w-5 mr-2" />
+            New Pediatric Case Sheet
           </Button>
         </div>
 
