@@ -1172,54 +1172,96 @@ class TranscriptParseRequest(BaseModel):
 async def parse_transcript(request: TranscriptParseRequest, current_user: UserResponse = Depends(get_current_user)):
     """Parse continuous voice transcript and extract structured case sheet data"""
     
-    prompt = f"""
-You are an expert emergency medicine physician assistant. A doctor has recorded a patient encounter in {request.source_language}.
+    prompt = f"""You are an advanced medical AI with 3-STAGE PROCESSING capability.
 
-TRANSCRIPT:
-{request.transcript}
+STAGE 1 - CLEAN THE TRANSCRIPT:
+Raw transcript (recorded in {request.source_language}):
+"{request.transcript}"
 
-Your task is to extract structured information from this transcript and map it to the appropriate case sheet fields.
+First, clean this text by:
+- Removing repeated words/phrases (e.g., "the the the patient" → "the patient")
+- Removing filler words (um, uh, like, you know, operation operation)
+- Removing incomplete words or noise artifacts
+- Normalizing numbers and medical terms
+- Converting non-English text to English
+- Keeping ONLY medically relevant information
 
-Return ONLY a valid JSON object with the following structure (include only fields that have relevant information from the transcript):
+STAGE 2 - IDENTIFY MEDICAL DATA:
+From the cleaned text, identify and extract:
+- Patient demographics (name, age, gender)
+- Chief complaint and duration
+- History of present illness (HPI)
+- Past medical history, surgical history, allergies
+- Current medications
+- Vital signs (HR, BP, RR, SpO2, Temp, GCS)
+- Physical examination findings (general, CVS, respiratory, abdomen, CNS)
+- Primary assessment (ABCDE)
+- Treatment/interventions mentioned
+
+STAGE 3 - STRUCTURE THE DATA:
+Return ONLY a valid JSON object with this structure (omit fields not mentioned):
 
 {{
+  "patient_info": {{
+    "name": "patient name if mentioned",
+    "age": number or null,
+    "gender": "male/female/other or null"
+  }},
   "history": {{
-    "hpi": "extracted history of present illness",
+    "hpi": "history of present illness",
     "signs_and_symptoms": "observed signs and symptoms",
     "past_medical": ["condition1", "condition2"],
     "allergies": ["allergy1", "allergy2"],
-    "past_surgical": "surgical history text",
+    "past_surgical": "surgical history",
     "drug_history": "current medications"
   }},
+  "vitals": {{
+    "hr": number or null,
+    "bp_systolic": number or null,
+    "bp_diastolic": number or null,
+    "rr": number or null,
+    "spo2": number or null,
+    "temperature": number or null,
+    "gcs_e": number or null,
+    "gcs_v": number or null,
+    "gcs_m": number or null
+  }},
   "examination": {{
-    "general_notes": "general examination findings",
-    "cvs_status": "Normal" or "Abnormal",
-    "cvs_s1_s2": "if abnormal",
-    "respiratory_status": "Normal" or "Abnormal",
-    "abdomen_status": "Normal" or "Abnormal",
-    "cns_status": "Normal" or "Abnormal"
+    "general_notes": "general findings",
+    "general_pallor": boolean,
+    "general_icterus": boolean,
+    "cvs_status": "Normal or Abnormal",
+    "cvs_additional_notes": "CVS findings",
+    "respiratory_status": "Normal or Abnormal",
+    "respiratory_additional_notes": "respiratory findings",
+    "abdomen_status": "Normal or Abnormal",
+    "abdomen_additional_notes": "abdominal findings",
+    "cns_status": "Normal or Abnormal",
+    "cns_additional_notes": "CNS findings"
   }},
   "presenting_complaint": {{
     "text": "chief complaint",
-    "duration": "duration text",
-    "onset_type": "sudden/gradual"
+    "duration": "duration",
+    "onset_type": "sudden or gradual"
   }},
   "primary_assessment": {{
-    "airway_notes": "airway assessment notes",
-    "breathing_notes": "breathing assessment notes",
-    "circulation_notes": "circulation notes"
+    "airway_additional_notes": "airway assessment",
+    "breathing_additional_notes": "breathing assessment",
+    "circulation_additional_notes": "circulation assessment",
+    "disability_additional_notes": "disability assessment",
+    "exposure_additional_notes": "exposure findings"
   }},
   "treatment": {{
-    "intervention_notes": "treatments mentioned"
+    "intervention_notes": "treatments given"
   }}
 }}
 
-IMPORTANT:
-- Extract only information explicitly mentioned in the transcript
-- If a field is not mentioned, omit it from the JSON
-- Be accurate and precise
-- Convert non-English text to English in the output
-- Use medical terminology appropriately
+CRITICAL RULES:
+- Ignore any repeated/garbage words completely
+- Extract ONLY explicitly mentioned information
+- If uncertain, omit the field rather than guessing
+- Use proper medical terminology
+- Return ONLY the JSON object, no additional text
 """
 
     try:
