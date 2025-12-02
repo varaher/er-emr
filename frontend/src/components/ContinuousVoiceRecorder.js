@@ -216,8 +216,16 @@ export default function ContinuousVoiceRecorder({ onTranscriptComplete, caseShee
         setIsRecording(false);
         recognitionRef.current.stop();
         
+        // Stop duration counter
+        if (durationIntervalRef.current) {
+          clearInterval(durationIntervalRef.current);
+          durationIntervalRef.current = null;
+        }
+        
         if (fullTranscriptRef.current.trim()) {
-          toast.info('Processing transcript with AI...');
+          const minutes = Math.floor(recordingDuration / 60);
+          const seconds = recordingDuration % 60;
+          toast.success(`🎤 Recording stopped (${minutes}m ${seconds}s). Ready to process!`);
         }
       } catch (error) {
         console.error('Failed to stop recording:', error);
