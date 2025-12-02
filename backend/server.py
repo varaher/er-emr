@@ -1681,6 +1681,188 @@ Rules:
         logging.error(f"Case sheet extraction error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Extraction failed: {str(e)}")
 
+class ExtractCaseDataRequest(BaseModel):
+    transcript: str
+
+@api_router.post("/extract-case-data")
+async def extract_case_data(
+    request: ExtractCaseDataRequest,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """
+    Extract complete case sheet data from continuous voice transcript
+    Includes cleaning, extraction, and ABCDE auto-calculation
+    Similar to /extract-triage-data but for full case sheets
+    """
+    try:
+        # Create comprehensive 3-STAGE extraction prompt
+        extraction_prompt = f"""You are an advanced medical AI with 3-STAGE PROCESSING for case sheet documentation.
+
+STAGE 1 - CLEAN THE TRANSCRIPT:
+Raw transcript: "{request.transcript}"
+
+Clean by:
+- Removing repeated words/phrases (e.g., "han han han", "patient name patient name" → remove duplicates)
+- Removing filler words (um, uh, like, you know, pahle, complete)
+- Removing incomplete words or noise artifacts
+- Normalizing numbers ("one forty over eighty" → "140/80")
+- Converting non-English to English
+- Keeping ONLY medically relevant information
+
+STAGE 2 - IDENTIFY & EXTRACT MEDICAL DATA:
+From the cleaned text, extract:
+- Patient demographics (name, age, gender)
+- Chief complaint and HPI
+- Past medical/surgical history, allergies, medications
+- Vital signs (HR, BP, RR, SpO2, Temp, GCS)
+- Physical examination findings (all systems)
+- Primary assessment notes
+- Treatment/interventions
+
+STAGE 3 - STRUCTURE THE DATA:
+Return ONLY a valid JSON object:
+
+{{
+  "patient_info": {{
+    "name": "string or null",
+    "age": number or null,
+    "gender": "string or null"
+  }},
+  "vitals": {{
+    "hr": number or null,
+    "bp_systolic": number or null,
+    "bp_diastolic": number or null,
+    "rr": number or null,
+    "spo2": number or null,
+    "temperature": number or null,
+    "gcs_e": number (1-4) or null,
+    "gcs_v": number (1-5) or null,
+    "gcs_m": number (1-6) or null
+  }},
+  "history": {{
+    "signs_and_symptoms": "string or null",
+    "past_medical": ["conditions"] or [],
+    "allergies": ["allergies"] or [],
+    "drug_history": "string or null",
+    "past_surgical": "string or null",
+    "family_history": "string or null"
+  }},
+  "examination": {{
+    "general_notes": "string or null",
+    "general_pallor": boolean,
+    "general_icterus": boolean,
+    "general_clubbing": boolean,
+    "general_lymphadenopathy": boolean,
+    "cvs_additional_notes": "string or null",
+    "respiratory_additional_notes": "string or null",
+    "abdomen_additional_notes": "string or null",
+    "cns_additional_notes": "string or null"
+  }},
+  "primary_assessment": {{
+    "airway_additional_notes": "string or null",
+    "breathing_additional_notes": "string or null",
+    "circulation_additional_notes": "string or null",
+    "disability_additional_notes": "string or null",
+    "exposure_additional_notes": "string or null"
+  }}
+}}
+
+CRITICAL RULES:
+- Ignore repeated/garbage words completely
+- Extract ONLY explicitly mentioned values
+- Use null for missing data
+- Return ONLY the JSON object, no other text"""
+
+        # Use LlmChat for extraction
+        import json
+        
+        llm = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=f"case_extraction_{current_user.id}",
+            system_message="You are a medical case sheet AI. Clean transcripts, extract structured data, return valid JSON."
+        )
+        
+        llm = llm.with_model(provider="openai", model="gpt-4o-mini")
+        response_text = await llm.send_message(UserMessage(text=extraction_prompt))
+        
+        # Parse JSON
+        extracted_data = json.loads(response_text)
+        
+        # Auto-calculate ABCDE and Red Flags
+        abcde_data = {}
+        red_flags = []
+        
+        if 'vitals' in extracted_data and extracted_data['vitals']:
+            vitals = extracted_data['vitals']
+            
+            # Calculate GCS total
+            gcs_total = 0
+            if vitals.get('gcs_e'): gcs_total += vitals['gcs_e']
+            if vitals.get('gcs_v'): gcs_total += vitals['gcs_v']
+            if vitals.get('gcs_m'): gcs_total += vitals['gcs_m']
+            
+            # AIRWAY
+            if gcs_total > 0 and gcs_total <= 8:
+                abcde_data['airway_status'] = 'Threatened'
+                red_flags.append(f'🚨 CRITICAL: GCS {gcs_total} - Consider airway protection')
+            
+            # BREATHING
+            rr = vitals.get('rr')
+            spo2 = vitals.get('spo2')
+            
+            if rr and (rr < 10 or rr > 30):
+                if rr < 10:
+                    red_flags.append(f'🚨 CRITICAL: Bradypnea (RR {rr})')
+                else:
+                    red_flags.append(f'⚠️ Tachypnea (RR {rr})')
+            
+            if spo2 and spo2 < 90:
+                if spo2 < 85:
+                    red_flags.append(f'🚨 CRITICAL: Severe hypoxia (SpO2 {spo2}%)')
+                else:
+                    red_flags.append(f'⚠️ Hypoxia (SpO2 {spo2}%)')
+            
+            # CIRCULATION
+            bp_sys = vitals.get('bp_systolic')
+            hr = vitals.get('hr')
+            
+            if bp_sys and bp_sys < 90:
+                red_flags.append(f'🚨 CRITICAL: Hypotension (SBP {bp_sys})')
+            
+            if hr and hr < 40:
+                red_flags.append(f'🚨 CRITICAL: Severe Bradycardia (HR {hr})')
+            elif hr and hr > 130:
+                red_flags.append(f'⚠️ Tachycardia (HR {hr})')
+            
+            # DISABILITY
+            if gcs_total > 0 and gcs_total < 13:
+                red_flags.append(f'⚠️ Altered mental status (GCS {gcs_total})')
+            
+            # EXPOSURE
+            temp = vitals.get('temperature')
+            if temp and temp > 38.5:
+                red_flags.append(f'⚠️ Fever ({temp}°C) - Consider sepsis')
+        
+        # Add ABCDE to primary assessment
+        if abcde_data and 'primary_assessment' not in extracted_data:
+            extracted_data['primary_assessment'] = {}
+        
+        if abcde_data:
+            extracted_data['primary_assessment'].update(abcde_data)
+        
+        if red_flags:
+            extracted_data['red_flags'] = red_flags
+        
+        return {
+            "success": True,
+            "data": extracted_data,
+            "red_flags": red_flags
+        }
+        
+    except Exception as e:
+        logging.error(f"Case data extraction error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Extraction failed: {str(e)}")
+
 @api_router.post("/cases/{case_id}/addendum")
 async def add_addendum(case_id: str, request: AddendumRequest, current_user: UserResponse = Depends(get_current_user)):
     """Add an addendum note to a locked case"""
