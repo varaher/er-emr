@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Plus, FileText, Activity, User, LogOut, Clock, AlertTriangle } from 'lucide-react';
+import { Plus, FileText, Activity, User, LogOut, Clock, AlertTriangle, Baby } from 'lucide-react';
 
 export default function Dashboard() {
   const navigate = useNavigate();
