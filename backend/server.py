@@ -2138,22 +2138,38 @@ async def get_save_history(case_sheet_id: str, current_user: UserResponse = Depe
     
     return saves
 
+# Include API router
 app.include_router(api_router)
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
+# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
 
+# Health check endpoint (outside /api prefix)
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for monitoring"""
+    return {
+        "status": "healthy",
+        "service": "ER-EMR Backend",
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+
+# Root endpoint
+@app.get("/")
+async def root():
+    """Root endpoint"""
+    return {
+        "message": "ER-EMR Backend API",
+        "version": "1.0.0",
+        "docs": "/docs",
+        "health": "/health"
+    }
+
+# Shutdown event
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
