@@ -46,29 +46,137 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Models
+# ============================================
+# AUTHENTICATION & USER MANAGEMENT MODELS
+# ============================================
+
+# Hospital/Institution Model
+class Hospital(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    type: str = "hospital"  # hospital, clinic, institution
+    address: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    country: str = "India"
+    phone: Optional[str] = None
+    email: Optional[str] = None
+    license_number: Optional[str] = None
+    subscription_tier: str = "free"  # free, basic, premium, enterprise
+    subscription_status: str = "active"  # active, expired, suspended
+    subscription_start: Optional[datetime] = None
+    subscription_end: Optional[datetime] = None
+    max_users: int = 5  # Default for free tier
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+# Subscription Plan Model
+class SubscriptionPlan(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    tier: str  # free, basic, premium, enterprise
+    name: str
+    price_monthly: float
+    price_yearly: float
+    max_users: int
+    max_cases_per_month: int
+    features: List[str] = []
+    ai_credits_per_month: int = 0
+    support_level: str = "community"  # community, email, priority, dedicated
+
+# User Registration Model
 class UserRegister(BaseModel):
+    # Basic Info
     email: str
     password: str
     name: str
-    role: str = "resident"  # resident, consultant, admin
+    
+    # Role & Permissions
+    role: str = "resident"  # resident, consultant, admin, hospital_admin
+    user_type: str = "individual"  # individual, institutional
+    
+    # Professional Info
+    mobile: Optional[str] = None
+    specialization: Optional[str] = None
+    medical_license_number: Optional[str] = None
+    
+    # Hospital/Institution (for institutional users)
+    hospital_id: Optional[str] = None  # Link to existing hospital
+    hospital_name: Optional[str] = None  # For creating new hospital
+    hospital_type: Optional[str] = "hospital"
+    hospital_address: Optional[str] = None
+    hospital_city: Optional[str] = None
+    hospital_state: Optional[str] = None
+    
+    # Subscription (for future use)
+    subscription_tier: str = "free"
 
+# User Login Model
 class UserLogin(BaseModel):
     email: str
     password: str
 
+# User Response Model (returned after auth)
 class UserResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str
     email: str
     name: str
     role: str
+    user_type: str
+    
+    # Professional Info
+    mobile: Optional[str] = None
+    specialization: Optional[str] = None
+    medical_license_number: Optional[str] = None
+    
+    # Hospital/Institution
+    hospital_id: Optional[str] = None
+    hospital_name: Optional[str] = None
+    
+    # Subscription
+    subscription_tier: str
+    subscription_status: str
+    subscription_end: Optional[datetime] = None
+    
     created_at: datetime
+    updated_at: Optional[datetime] = None
 
+# Token Response Model
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     user: UserResponse
+
+# User Profile Update Model
+class UserProfileUpdate(BaseModel):
+    name: Optional[str] = None
+    mobile: Optional[str] = None
+    specialization: Optional[str] = None
+    medical_license_number: Optional[str] = None
+    hospital_id: Optional[str] = None
+
+# Hospital Create/Update Models
+class HospitalCreate(BaseModel):
+    name: str
+    type: str = "hospital"
+    address: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    country: str = "India"
+    phone: Optional[str] = None
+    email: Optional[str] = None
+    license_number: Optional[str] = None
+
+class HospitalUpdate(BaseModel):
+    name: Optional[str] = None
+    type: Optional[str] = None
+    address: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    phone: Optional[str] = None
+    email: Optional[str] = None
+    license_number: Optional[str] = None
 
 # Triage Models
 class TriageVitals(BaseModel):
