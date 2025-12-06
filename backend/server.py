@@ -610,8 +610,18 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
 
 # Auth endpoints
+# ============================================
+# AUTHENTICATION ENDPOINTS
+# ============================================
+
 @api_router.post("/auth/register", response_model=TokenResponse)
+@api_router.post("/auth/signup", response_model=TokenResponse)  # Alias for register
 async def register(user_data: UserRegister):
+    """
+    Register a new user (individual or institutional)
+    Supports both individual doctors and hospital/institution accounts
+    """
+    # Check if email already exists
     existing_user = await db.users.find_one({"email": user_data.email})
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -619,13 +629,67 @@ async def register(user_data: UserRegister):
     user_id = str(uuid.uuid4())
     hashed_password = hash_password(user_data.password)
     
+    # Handle hospital/institution creation or linking
+    hospital_id = user_data.hospital_id
+    hospital_name = None
+    
+    if user_data.user_type == "institutional":
+        if user_data.hospital_id:
+            # Link to existing hospital
+            hospital = await db.hospitals.find_one({"id": user_data.hospital_id}, {"_id": 0})
+            if not hospital:
+                raise HTTPException(status_code=404, detail="Hospital not found")
+            hospital_id = hospital["id"]
+            hospital_name = hospital["name"]
+        elif user_data.hospital_name:
+            # Create new hospital
+            new_hospital = Hospital(
+                name=user_data.hospital_name,
+                type=user_data.hospital_type or "hospital",
+                address=user_data.hospital_address,
+                city=user_data.hospital_city,
+                state=user_data.hospital_state,
+                subscription_tier=user_data.subscription_tier,
+                subscription_status="active",
+                subscription_start=datetime.now(timezone.utc)
+            )
+            
+            hospital_doc = new_hospital.model_dump()
+            hospital_doc['created_at'] = hospital_doc['created_at'].isoformat()
+            hospital_doc['updated_at'] = hospital_doc['updated_at'].isoformat()
+            
+            await db.hospitals.insert_one(hospital_doc)
+            hospital_id = new_hospital.id
+            hospital_name = new_hospital.name
+            
+            logging.info(f"Created new hospital: {hospital_name} (ID: {hospital_id})")
+    
+    # Create user document
     new_user = {
         "id": user_id,
         "email": user_data.email,
         "password": hashed_password,
         "name": user_data.name,
         "role": user_data.role,
-        "created_at": datetime.now(timezone.utc).isoformat()
+        "user_type": user_data.user_type,
+        
+        # Professional Info
+        "mobile": user_data.mobile,
+        "specialization": user_data.specialization,
+        "medical_license_number": user_data.medical_license_number,
+        
+        # Hospital/Institution
+        "hospital_id": hospital_id,
+        "hospital_name": hospital_name,
+        
+        # Subscription
+        "subscription_tier": user_data.subscription_tier,
+        "subscription_status": "active",
+        "subscription_start": datetime.now(timezone.utc).isoformat(),
+        "subscription_end": None,
+        
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat()
     }
     
     await db.users.insert_one(new_user)
@@ -637,16 +701,38 @@ async def register(user_data: UserRegister):
         email=user_data.email,
         name=user_data.name,
         role=user_data.role,
+        user_type=user_data.user_type,
+        mobile=user_data.mobile,
+        specialization=user_data.specialization,
+        medical_license_number=user_data.medical_license_number,
+        hospital_id=hospital_id,
+        hospital_name=hospital_name,
+        subscription_tier=user_data.subscription_tier,
+        subscription_status="active",
         created_at=datetime.fromisoformat(new_user["created_at"])
     )
+    
+    logging.info(f"User registered: {user_data.email} (Type: {user_data.user_type}, Role: {user_data.role})")
     
     return TokenResponse(access_token=access_token, user=user_response)
 
 @api_router.post("/auth/login", response_model=TokenResponse)
 async def login(credentials: UserLogin):
+    """
+    Login with email and password
+    Returns access token and user profile
+    """
     user = await db.users.find_one({"email": credentials.email})
     if not user or not verify_password(credentials.password, user["password"]):
         raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    # Check subscription status
+    subscription_status = user.get("subscription_status", "active")
+    if subscription_status == "expired":
+        raise HTTPException(
+            status_code=403, 
+            detail="Subscription expired. Please renew your subscription to continue."
+        )
     
     access_token = create_access_token(data={"sub": user["id"]})
     
@@ -654,15 +740,312 @@ async def login(credentials: UserLogin):
         id=user["id"],
         email=user["email"],
         name=user["name"],
-        role=user["role"],
-        created_at=datetime.fromisoformat(user["created_at"]) if isinstance(user["created_at"], str) else user["created_at"]
+        role=user.get("role", "resident"),
+        user_type=user.get("user_type", "individual"),
+        mobile=user.get("mobile"),
+        specialization=user.get("specialization"),
+        medical_license_number=user.get("medical_license_number"),
+        hospital_id=user.get("hospital_id"),
+        hospital_name=user.get("hospital_name"),
+        subscription_tier=user.get("subscription_tier", "free"),
+        subscription_status=subscription_status,
+        subscription_end=datetime.fromisoformat(user["subscription_end"]) if user.get("subscription_end") else None,
+        created_at=datetime.fromisoformat(user["created_at"]) if isinstance(user["created_at"], str) else user["created_at"],
+        updated_at=datetime.fromisoformat(user["updated_at"]) if user.get("updated_at") and isinstance(user["updated_at"], str) else None
     )
+    
+    logging.info(f"User logged in: {credentials.email}")
     
     return TokenResponse(access_token=access_token, user=user_response)
 
 @api_router.get("/auth/me", response_model=UserResponse)
 async def get_me(current_user: UserResponse = Depends(get_current_user)):
+    """Get current user profile"""
     return current_user
+
+@api_router.put("/auth/profile", response_model=UserResponse)
+async def update_profile(
+    profile_update: UserProfileUpdate,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """
+    Update user profile
+    Users can update their professional info and hospital affiliation
+    """
+    update_data = profile_update.model_dump(exclude_unset=True)
+    update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    # If hospital_id is being updated, fetch hospital name
+    if "hospital_id" in update_data and update_data["hospital_id"]:
+        hospital = await db.hospitals.find_one({"id": update_data["hospital_id"]}, {"_id": 0})
+        if hospital:
+            update_data["hospital_name"] = hospital["name"]
+        else:
+            raise HTTPException(status_code=404, detail="Hospital not found")
+    
+    await db.users.update_one(
+        {"id": current_user.id},
+        {"$set": update_data}
+    )
+    
+    # Fetch updated user
+    updated_user = await db.users.find_one({"id": current_user.id}, {"_id": 0})
+    
+    return UserResponse(
+        id=updated_user["id"],
+        email=updated_user["email"],
+        name=updated_user.get("name", ""),
+        role=updated_user.get("role", "resident"),
+        user_type=updated_user.get("user_type", "individual"),
+        mobile=updated_user.get("mobile"),
+        specialization=updated_user.get("specialization"),
+        medical_license_number=updated_user.get("medical_license_number"),
+        hospital_id=updated_user.get("hospital_id"),
+        hospital_name=updated_user.get("hospital_name"),
+        subscription_tier=updated_user.get("subscription_tier", "free"),
+        subscription_status=updated_user.get("subscription_status", "active"),
+        subscription_end=datetime.fromisoformat(updated_user["subscription_end"]) if updated_user.get("subscription_end") else None,
+        created_at=datetime.fromisoformat(updated_user["created_at"]) if isinstance(updated_user["created_at"], str) else updated_user["created_at"],
+        updated_at=datetime.fromisoformat(updated_user["updated_at"]) if isinstance(updated_user["updated_at"], str) else None
+    )
+
+# ============================================
+# HOSPITAL/INSTITUTION MANAGEMENT ENDPOINTS
+# ============================================
+
+@api_router.post("/hospitals", response_model=Hospital)
+async def create_hospital(
+    hospital_data: HospitalCreate,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """
+    Create a new hospital/institution
+    Only admins and hospital admins can create hospitals
+    """
+    if current_user.role not in ["admin", "hospital_admin"]:
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+    
+    # Check if hospital name already exists
+    existing = await db.hospitals.find_one({"name": hospital_data.name})
+    if existing:
+        raise HTTPException(status_code=400, detail="Hospital name already exists")
+    
+    hospital = Hospital(**hospital_data.model_dump())
+    
+    hospital_doc = hospital.model_dump()
+    hospital_doc['created_at'] = hospital_doc['created_at'].isoformat()
+    hospital_doc['updated_at'] = hospital_doc['updated_at'].isoformat()
+    
+    await db.hospitals.insert_one(hospital_doc)
+    
+    logging.info(f"Hospital created: {hospital.name} by user {current_user.email}")
+    
+    return hospital
+
+@api_router.get("/hospitals", response_model=List[Hospital])
+async def get_hospitals(current_user: UserResponse = Depends(get_current_user)):
+    """Get all hospitals"""
+    hospitals = await db.hospitals.find({}, {"_id": 0}).to_list(1000)
+    
+    for hospital in hospitals:
+        if isinstance(hospital.get('created_at'), str):
+            hospital['created_at'] = datetime.fromisoformat(hospital['created_at'])
+        if isinstance(hospital.get('updated_at'), str):
+            hospital['updated_at'] = datetime.fromisoformat(hospital['updated_at'])
+        if hospital.get('subscription_start') and isinstance(hospital['subscription_start'], str):
+            hospital['subscription_start'] = datetime.fromisoformat(hospital['subscription_start'])
+        if hospital.get('subscription_end') and isinstance(hospital['subscription_end'], str):
+            hospital['subscription_end'] = datetime.fromisoformat(hospital['subscription_end'])
+    
+    return hospitals
+
+@api_router.get("/hospitals/{hospital_id}", response_model=Hospital)
+async def get_hospital(
+    hospital_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Get a specific hospital"""
+    hospital = await db.hospitals.find_one({"id": hospital_id}, {"_id": 0})
+    if not hospital:
+        raise HTTPException(status_code=404, detail="Hospital not found")
+    
+    if isinstance(hospital.get('created_at'), str):
+        hospital['created_at'] = datetime.fromisoformat(hospital['created_at'])
+    if isinstance(hospital.get('updated_at'), str):
+        hospital['updated_at'] = datetime.fromisoformat(hospital['updated_at'])
+    if hospital.get('subscription_start') and isinstance(hospital['subscription_start'], str):
+        hospital['subscription_start'] = datetime.fromisoformat(hospital['subscription_start'])
+    if hospital.get('subscription_end') and isinstance(hospital['subscription_end'], str):
+        hospital['subscription_end'] = datetime.fromisoformat(hospital['subscription_end'])
+    
+    return hospital
+
+@api_router.put("/hospitals/{hospital_id}", response_model=Hospital)
+async def update_hospital(
+    hospital_id: str,
+    hospital_update: HospitalUpdate,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """
+    Update hospital information
+    Only admins and hospital admins can update hospitals
+    """
+    if current_user.role not in ["admin", "hospital_admin"]:
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+    
+    hospital = await db.hospitals.find_one({"id": hospital_id})
+    if not hospital:
+        raise HTTPException(status_code=404, detail="Hospital not found")
+    
+    update_data = hospital_update.model_dump(exclude_unset=True)
+    update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.hospitals.update_one(
+        {"id": hospital_id},
+        {"$set": update_data}
+    )
+    
+    updated_hospital = await db.hospitals.find_one({"id": hospital_id}, {"_id": 0})
+    
+    if isinstance(updated_hospital.get('created_at'), str):
+        updated_hospital['created_at'] = datetime.fromisoformat(updated_hospital['created_at'])
+    if isinstance(updated_hospital.get('updated_at'), str):
+        updated_hospital['updated_at'] = datetime.fromisoformat(updated_hospital['updated_at'])
+    if updated_hospital.get('subscription_start') and isinstance(updated_hospital['subscription_start'], str):
+        updated_hospital['subscription_start'] = datetime.fromisoformat(updated_hospital['subscription_start'])
+    if updated_hospital.get('subscription_end') and isinstance(updated_hospital['subscription_end'], str):
+        updated_hospital['subscription_end'] = datetime.fromisoformat(updated_hospital['subscription_end'])
+    
+    return updated_hospital
+
+@api_router.get("/hospitals/{hospital_id}/users")
+async def get_hospital_users(
+    hospital_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Get all users affiliated with a hospital"""
+    if current_user.role not in ["admin", "hospital_admin"] and current_user.hospital_id != hospital_id:
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+    
+    users = await db.users.find({"hospital_id": hospital_id}, {"_id": 0, "password": 0}).to_list(1000)
+    
+    return {"hospital_id": hospital_id, "users": users, "total": len(users)}
+
+# ============================================
+# SUBSCRIPTION MANAGEMENT ENDPOINTS
+# ============================================
+
+@api_router.get("/subscription/plans")
+async def get_subscription_plans():
+    """
+    Get available subscription plans
+    Returns pricing and features for all tiers
+    """
+    plans = [
+        SubscriptionPlan(
+            tier="free",
+            name="Free Tier",
+            price_monthly=0,
+            price_yearly=0,
+            max_users=5,
+            max_cases_per_month=50,
+            features=[
+                "Basic case sheet management",
+                "Triage system",
+                "5 users maximum",
+                "50 cases per month",
+                "Community support"
+            ],
+            ai_credits_per_month=100,
+            support_level="community"
+        ),
+        SubscriptionPlan(
+            tier="basic",
+            name="Basic Plan",
+            price_monthly=999,
+            price_yearly=9999,
+            max_users=20,
+            max_cases_per_month=500,
+            features=[
+                "All Free features",
+                "20 users",
+                "500 cases per month",
+                "AI voice transcription",
+                "Email support",
+                "Data export"
+            ],
+            ai_credits_per_month=1000,
+            support_level="email"
+        ),
+        SubscriptionPlan(
+            tier="premium",
+            name="Premium Plan",
+            price_monthly=2999,
+            price_yearly=29999,
+            max_users=100,
+            max_cases_per_month=2000,
+            features=[
+                "All Basic features",
+                "100 users",
+                "2000 cases per month",
+                "Advanced AI features",
+                "Priority support",
+                "Custom integrations",
+                "Analytics dashboard"
+            ],
+            ai_credits_per_month=5000,
+            support_level="priority"
+        ),
+        SubscriptionPlan(
+            tier="enterprise",
+            name="Enterprise Plan",
+            price_monthly=9999,
+            price_yearly=99999,
+            max_users=9999,
+            max_cases_per_month=999999,
+            features=[
+                "All Premium features",
+                "Unlimited users",
+                "Unlimited cases",
+                "Dedicated support",
+                "Custom deployment",
+                "On-premise option",
+                "SLA guarantee",
+                "Custom AI training"
+            ],
+            ai_credits_per_month=50000,
+            support_level="dedicated"
+        )
+    ]
+    
+    return {"plans": [plan.model_dump() for plan in plans]}
+
+@api_router.get("/subscription/status")
+async def get_subscription_status(current_user: UserResponse = Depends(get_current_user)):
+    """Get current user's subscription status"""
+    user = await db.users.find_one({"id": current_user.id}, {"_id": 0})
+    
+    subscription_info = {
+        "tier": user.get("subscription_tier", "free"),
+        "status": user.get("subscription_status", "active"),
+        "start_date": user.get("subscription_start"),
+        "end_date": user.get("subscription_end"),
+        "user_type": user.get("user_type", "individual")
+    }
+    
+    # If institutional user, get hospital subscription
+    if user.get("hospital_id"):
+        hospital = await db.hospitals.find_one({"id": user["hospital_id"]}, {"_id": 0})
+        if hospital:
+            subscription_info["hospital_subscription"] = {
+                "tier": hospital.get("subscription_tier", "free"),
+                "status": hospital.get("subscription_status", "active"),
+                "max_users": hospital.get("max_users", 5),
+                "start_date": hospital.get("subscription_start"),
+                "end_date": hospital.get("subscription_end")
+            }
+    
+    return subscription_info
 
 # Triage calculation algorithm
 def calculate_triage_priority(age_group: str, vitals: TriageVitals, symptoms: TriageSymptoms) -> Dict[str, Any]:
