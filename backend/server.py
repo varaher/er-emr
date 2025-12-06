@@ -628,12 +628,10 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
 # AUTHENTICATION ENDPOINTS
 # ============================================
 
-@api_router.post("/auth/register", response_model=TokenResponse)
-@api_router.post("/auth/signup", response_model=TokenResponse)  # Alias for register
-async def register(user_data: UserRegister):
+async def register_user_internal(user_data: UserRegister) -> TokenResponse:
     """
-    Register a new user (individual or institutional)
-    Supports both individual doctors and hospital/institution accounts
+    Internal function to handle user registration logic
+    Used by both /auth/register and /auth/signup endpoints
     """
     # Check if email already exists
     existing_user = await db.users.find_one({"email": user_data.email})
@@ -729,6 +727,24 @@ async def register(user_data: UserRegister):
     logging.info(f"User registered: {user_data.email} (Type: {user_data.user_type}, Role: {user_data.role})")
     
     return TokenResponse(access_token=access_token, user=user_response)
+
+
+@api_router.post("/auth/register", response_model=TokenResponse)
+async def register(user_data: UserRegister):
+    """
+    Register a new user (individual or institutional)
+    Supports both individual doctors and hospital/institution accounts
+    """
+    return await register_user_internal(user_data)
+
+
+@api_router.post("/auth/signup", response_model=TokenResponse)
+async def signup(user_data: UserRegister):
+    """
+    Signup - Alias for register endpoint
+    Same functionality as /auth/register
+    """
+    return await register_user_internal(user_data)
 
 @api_router.post("/auth/login", response_model=TokenResponse)
 async def login(credentials: UserLogin):
