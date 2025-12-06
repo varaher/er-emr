@@ -589,6 +589,10 @@ def create_access_token(data: dict) -> str:
     return encoded_jwt
 
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    """
+    Get current authenticated user from JWT token
+    Supports enhanced user model with hospital and subscription info
+    """
     try:
         token = credentials.credentials
         payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
@@ -596,12 +600,22 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         if user_id is None:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
         
-        user = await db.users.find_one({"id": user_id}, {"_id": 0})
+        user = await db.users.find_one({"id": user_id}, {"_id": 0, "password": 0})
         if user is None:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
         
-        if isinstance(user['created_at'], str):
+        # Convert datetime strings to datetime objects
+        if isinstance(user.get('created_at'), str):
             user['created_at'] = datetime.fromisoformat(user['created_at'])
+        if isinstance(user.get('updated_at'), str):
+            user['updated_at'] = datetime.fromisoformat(user['updated_at'])
+        if user.get('subscription_end') and isinstance(user['subscription_end'], str):
+            user['subscription_end'] = datetime.fromisoformat(user['subscription_end'])
+        
+        # Provide defaults for missing fields (for backward compatibility)
+        user.setdefault('user_type', 'individual')
+        user.setdefault('subscription_tier', 'free')
+        user.setdefault('subscription_status', 'active')
         
         return UserResponse(**user)
     except jwt.ExpiredSignatureError:
