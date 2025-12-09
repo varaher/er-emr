@@ -1991,6 +1991,24 @@ CRITICAL RULES:
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Transcript parsing failed: {str(e)}")
 
+@api_router.post("/cases/parse-transcript")
+async def parse_transcript_alias(
+    request: dict,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """
+    Parse transcript endpoint (Alias for ai/parse-transcript)
+    Extracts structured medical data from voice transcription
+    """
+    # Convert request to TranscriptParseRequest format
+    parse_request = TranscriptParseRequest(
+        case_sheet_id=request.get("case_id", ""),
+        transcript=request.get("transcript", ""),
+        source_language=request.get("source_language", "en")
+    )
+    
+    return await parse_transcript(parse_request, current_user)
+
 # Addendum endpoints
 class AddendumRequest(BaseModel):
     case_id: str
