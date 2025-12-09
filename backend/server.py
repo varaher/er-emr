@@ -1996,14 +1996,13 @@ class AddendumRequest(BaseModel):
     case_id: str
     note: str
 
-@api_router.post("/transcribe-audio")
-async def transcribe_audio(
-    audio: UploadFile = File(...),
-    current_user: UserResponse = Depends(get_current_user)
+async def transcribe_audio_internal(
+    audio: UploadFile,
+    current_user: UserResponse
 ):
     """
-    Transcribe audio using OpenAI Whisper API via emergentintegrations
-    Supports continuous recording for medical dictation
+    Internal function for audio transcription
+    Used by both /transcribe-audio and /ai/voice-to-text endpoints
     """
     try:
         # Save uploaded audio to temporary file
@@ -2037,6 +2036,28 @@ async def transcribe_audio(
     except Exception as e:
         logging.error(f"Whisper transcription error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Transcription failed: {str(e)}")
+
+@api_router.post("/transcribe-audio")
+async def transcribe_audio(
+    audio: UploadFile = File(...),
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """
+    Transcribe audio using OpenAI Whisper API via emergentintegrations
+    Supports continuous recording for medical dictation
+    """
+    return await transcribe_audio_internal(audio, current_user)
+
+@api_router.post("/ai/voice-to-text")
+async def voice_to_text(
+    file: UploadFile = File(...),
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """
+    Voice to text transcription endpoint (Alias for transcribe-audio)
+    Transcribes audio files to text using OpenAI Whisper
+    """
+    return await transcribe_audio_internal(file, current_user)
 
 class ExtractTriageDataRequest(BaseModel):
     text: str
