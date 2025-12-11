@@ -4,7 +4,7 @@ import json
 from datetime import datetime
 
 class EREmrAPITester:
-    def __init__(self, base_url="https://medvoice-13.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://med-voice-assist-3.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.token = None
         self.tests_run = 0
