@@ -2014,18 +2014,29 @@ class AddendumRequest(BaseModel):
     case_id: str
     note: str
 
-async def transcribe_audio_internal(
-    audio: UploadFile,
-    current_user: UserResponse
-):
+# ============================================
+# DUAL-ENGINE VOICE TRANSCRIPTION SYSTEM
+# ============================================
+
+# Sarvam AI Configuration
+SARVAM_STT_URL = "https://api.sarvam.ai/speech-to-text"
+SARVAM_API_KEY = os.environ.get("SARVAM_API_KEY", "")
+
+# Indian language codes supported by Sarvam
+INDIC_LANGS = {"hi", "mr", "bn", "ta", "te", "kn", "ml", "gu", "pa", "or", "as", "ur"}
+
+async def transcribe_with_openai_whisper(
+    file: UploadFile,
+    language: Optional[str] = None
+) -> dict:
     """
-    Internal function for audio transcription
-    Used by both /transcribe-audio and /ai/voice-to-text endpoints
+    Transcribe audio using OpenAI Whisper via emergentintegrations
+    Optimized for medical terminology
     """
     try:
         # Save uploaded audio to temporary file
         with tempfile.NamedTemporaryFile(delete=False, suffix=".webm") as temp_audio:
-            content = await audio.read()
+            content = await file.read()
             temp_audio.write(content)
             temp_audio_path = temp_audio.name
         
@@ -2037,23 +2048,145 @@ async def transcribe_audio_internal(
             response = await stt.transcribe(
                 file=audio_file,
                 model="whisper-1",
-                language="en",
+                language=language or "en",
                 response_format="text",
                 temperature=0.0,  # Maximum accuracy for medical terminology
-                prompt="Medical emergency room documentation. Patient vitals: heart rate, blood pressure, respiratory rate, temperature, SpO2, GCS. Clinical symptoms and findings."  # Medical context
+                prompt="Medical emergency room documentation. Patient vitals: heart rate, blood pressure, respiratory rate, temperature, SpO2, GCS. Clinical symptoms and findings."
             )
         
         # Clean up temp file
         os.unlink(temp_audio_path)
         
+        transcription = response.text if hasattr(response, 'text') else str(response)
+        
         return {
-            "success": True,
-            "transcription": response.text
+            "engine_used": "openai",
+            "transcription": transcription,
+            "language": language or "en",
+            "raw": {"model": "whisper-1", "response": transcription}
         }
         
     except Exception as e:
-        logging.error(f"Whisper transcription error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Transcription failed: {str(e)}")
+        logging.error(f"OpenAI Whisper transcription error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"OpenAI transcription failed: {str(e)}")
+
+async def transcribe_with_sarvam(
+    file: UploadFile,
+    language: Optional[str] = None
+) -> dict:
+    """
+    Transcribe audio using Sarvam AI STT API
+    Optimized for Indian languages
+    """
+    try:
+        import httpx
+        
+        if not SARVAM_API_KEY:
+            raise HTTPException(
+                status_code=500,
+                detail="Sarvam AI API key not configured. Please add SARVAM_API_KEY to environment variables."
+            )
+        
+        # Read audio file
+        audio_bytes = await file.read()
+        file.file.seek(0)
+        
+        # Prepare request headers
+        headers = {
+            "api-subscription-key": SARVAM_API_KEY,
+        }
+        
+        # Prepare form data
+        data = {}
+        if language:
+            data["language_code"] = language  # Sarvam uses language_code parameter
+        
+        # Prepare file for upload
+        files = {
+            "file": (file.filename or "audio.wav", audio_bytes, file.content_type or "audio/wav")
+        }
+        
+        # Make API request to Sarvam
+        async with httpx.AsyncClient(timeout=120.0) as client:
+            response = await client.post(
+                SARVAM_STT_URL,
+                headers=headers,
+                data=data,
+                files=files
+            )
+        
+        # Check response status
+        if response.status_code != 200:
+            error_detail = f"Sarvam STT error: {response.status_code}"
+            try:
+                error_json = response.json()
+                error_detail += f" - {error_json}"
+            except:
+                error_detail += f" - {response.text}"
+            
+            logging.error(error_detail)
+            raise HTTPException(status_code=502, detail=error_detail)
+        
+        # Parse response
+        resp_json = response.json()
+        
+        # Extract transcription (adjust key based on actual Sarvam API response)
+        transcription = (
+            resp_json.get("transcript") or 
+            resp_json.get("text") or 
+            resp_json.get("transcription") or
+            ""
+        )
+        
+        if not transcription:
+            raise HTTPException(
+                status_code=500,
+                detail="Sarvam API returned empty transcription"
+            )
+        
+        return {
+            "engine_used": "sarvam",
+            "transcription": transcription,
+            "language": language or "auto",
+            "raw": resp_json
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Sarvam AI transcription error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Sarvam transcription failed: {str(e)}")
+
+def select_transcription_engine(
+    engine: Optional[str],
+    language: Optional[str]
+) -> str:
+    """
+    Select which transcription engine to use based on engine preference and language
+    
+    Logic:
+    - If engine explicitly set to "openai" or "sarvam", use that
+    - If engine is "auto" or None:
+      - Use Sarvam for Indian languages (hi, mr, bn, ta, te, kn, ml, gu, pa, or, as, ur)
+      - Use OpenAI for English and other languages
+    """
+    engine = (engine or "auto").lower()
+    
+    # Explicit engine selection
+    if engine == "openai":
+        return "openai"
+    elif engine == "sarvam":
+        return "sarvam"
+    
+    # Auto mode - select based on language
+    lang = (language or "").lower()
+    
+    if lang in INDIC_LANGS:
+        # Use Sarvam for Indian languages
+        return "sarvam"
+    else:
+        # Use OpenAI for English and other languages
+        return "openai"
 
 @api_router.post("/transcribe-audio")
 async def transcribe_audio(
@@ -2061,21 +2194,78 @@ async def transcribe_audio(
     current_user: UserResponse = Depends(get_current_user)
 ):
     """
-    Transcribe audio using OpenAI Whisper API via emergentintegrations
-    Supports continuous recording for medical dictation
+    Transcribe audio using OpenAI Whisper (legacy endpoint)
+    For dual-engine support, use /ai/voice-to-text instead
     """
-    return await transcribe_audio_internal(audio, current_user)
+    result = await transcribe_with_openai_whisper(audio, "en")
+    return {
+        "success": True,
+        "transcription": result["transcription"]
+    }
 
 @api_router.post("/ai/voice-to-text")
-async def voice_to_text(
+async def dual_engine_voice_to_text(
     file: UploadFile = File(...),
+    engine: Optional[str] = Form("auto"),
+    language: Optional[str] = Form(None),
     current_user: UserResponse = Depends(get_current_user)
 ):
     """
-    Voice to text transcription endpoint (Alias for transcribe-audio)
-    Transcribes audio files to text using OpenAI Whisper
+    Dual-engine voice transcription endpoint
+    
+    Supports both OpenAI Whisper and Sarvam AI STT
+    
+    Parameters:
+    - file: Audio file (m4a, webm, wav, mp3, etc.)
+    - engine: "openai" | "sarvam" | "auto" (default: "auto")
+        - "openai": Force use OpenAI Whisper
+        - "sarvam": Force use Sarvam AI
+        - "auto": Automatically select based on language
+    - language: ISO language code (e.g., "en", "hi", "ta", "ml")
+        - For OpenAI: en, es, fr, de, etc.
+        - For Sarvam: hi, mr, bn, ta, te, kn, ml, gu, pa, or, as, ur
+    
+    Returns:
+    {
+        "success": true,
+        "engine_used": "openai" | "sarvam",
+        "language": "en",
+        "transcription": "Patient presents with...",
+        "raw": {...}  // Engine-specific response details
+    }
     """
-    return await transcribe_audio_internal(file, current_user)
+    try:
+        # Select which engine to use
+        selected_engine = select_transcription_engine(engine, language)
+        
+        logging.info(f"Transcription request: engine={engine}, language={language}, selected={selected_engine}")
+        
+        # Transcribe using selected engine
+        if selected_engine == "sarvam":
+            if not SARVAM_API_KEY:
+                logging.warning("Sarvam API key not configured, falling back to OpenAI")
+                result = await transcribe_with_openai_whisper(file, language)
+            else:
+                result = await transcribe_with_sarvam(file, language)
+        else:
+            result = await transcribe_with_openai_whisper(file, language)
+        
+        return {
+            "success": True,
+            "engine_used": result["engine_used"],
+            "language": result.get("language", language),
+            "transcription": result["transcription"],
+            "raw": result.get("raw", {})
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.exception("Dual-engine transcription error")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Voice transcription failed: {str(e)}"
+        )
 
 class ExtractTriageDataRequest(BaseModel):
     text: str
