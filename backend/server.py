@@ -1570,6 +1570,129 @@ async def get_all_triage(current_user: UserResponse = Depends(get_current_user))
     
     return triages
 
+
+# ============================================
+# NEW TRIAGE ENDPOINTS (MOBILE + WEB UNIFIED)
+# ============================================
+
+@api_router.post("/triage/analyze")
+async def analyze_triage(
+    payload: TriageAnalyzeRequest,
+    current_user: UserResponse = Depends(get_current_user),
+):
+    """
+    Simple vitals-based triage analysis.
+    Used by mobile TriageScreen - returns priority + comment.
+    """
+    age_group = decide_age_group(payload.age, payload.age_unit)
+
+    vitals = TriageVitals(
+        hr=payload.hr,
+        rr=payload.rr,
+        bp_systolic=payload.bp_systolic,
+        bp_diastolic=payload.bp_diastolic,
+        spo2=payload.spo2,
+        temperature=payload.temperature,
+        gcs_e=payload.gcs_e,
+        gcs_v=payload.gcs_v,
+        gcs_m=payload.gcs_m,
+        capillary_refill=payload.capillary_refill,
+    )
+
+    result = analyze_vitals_to_priority(vitals, age_group)
+
+    priority_str = {
+        1: "RED",
+        2: "ORANGE",
+        3: "YELLOW",
+        4: "GREEN",
+        5: "BLUE",
+    }.get(result["priority_level"], "GREEN")
+
+    comment = "; ".join(result["triage_reason"]) if result["triage_reason"] else ""
+
+    return {
+        "age_group": age_group,
+        "priority": priority_str,
+        "priority_color": result["priority_color"],
+        "priority_level": result["priority_level"],
+        "priority_name": result["priority_name"],
+        "time_to_see": result["time_to_see"],
+        "comment": comment,
+        "vitals": vitals.model_dump(),
+    }
+
+
+@api_router.post("/triage/create", response_model=TriageAssessment)
+async def create_triage_full(
+    triage_data: TriageCreate,
+    current_user: UserResponse = Depends(get_current_user),
+):
+    """
+    Create a full triage assessment record.
+    Used by web UI or future mobile flows.
+    """
+    # Use the vitals-based analysis
+    triage_result = analyze_vitals_to_priority(triage_data.vitals, triage_data.age_group)
+
+    assessment = TriageAssessment(
+        age_group=triage_data.age_group,
+        vitals=triage_data.vitals,
+        symptoms=triage_data.symptoms,
+        mechanism=triage_data.mechanism,
+        triaged_by=triage_data.triaged_by or current_user.email,
+        priority_level=triage_result["priority_level"],
+        priority_color=triage_result["priority_color"],
+        priority_name=triage_result["priority_name"],
+        time_to_see=triage_result["time_to_see"],
+        triage_reason=triage_result["triage_reason"],
+    )
+
+    doc = assessment.model_dump()
+    doc["triaged_at"] = doc["triaged_at"].isoformat()
+
+    await db.triage_assessments.insert_one(doc)
+
+    return assessment
+
+
+@api_router.post("/extract-triage-data")
+async def extract_triage_data_from_text(
+    req: TriageTextRequest,
+    current_user: UserResponse = Depends(get_current_user),
+):
+    """
+    Extract vitals + symptoms from free text.
+    Used after voice transcription to auto-fill triage form.
+    """
+    extracted = extract_triage_from_text(req.text)
+
+    vitals: TriageVitals = extracted["vitals"]
+    symptoms: TriageSymptoms = extracted["symptoms"]
+    age = extracted["age"]
+    age_unit = extracted["age_unit"]
+
+    # Also calculate priority based on extracted vitals
+    age_group = decide_age_group(age, age_unit) if age else "adult"
+    priority_result = analyze_vitals_to_priority(vitals, age_group)
+
+    return {
+        "success": True,
+        "age": age,
+        "age_unit": age_unit,
+        "age_group": age_group,
+        "vitals": vitals.model_dump(),
+        "symptoms": symptoms.model_dump(),
+        "suggested_priority": {
+            "level": priority_result["priority_level"],
+            "color": priority_result["priority_color"],
+            "name": priority_result["priority_name"],
+            "reasons": priority_result["triage_reason"],
+        },
+        "raw_text": req.text,
+    }
+
+
 # Case Sheet endpoints
 @api_router.post("/cases", response_model=CaseSheet)
 async def create_case(case_data: CaseSheetCreate, current_user: UserResponse = Depends(get_current_user)):
