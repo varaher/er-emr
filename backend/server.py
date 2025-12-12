@@ -647,6 +647,247 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     except jwt.JWTError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
 
+# ============================================
+# TRIAGE HELPER FUNCTIONS
+# ============================================
+
+def decide_age_group(age: float, age_unit: str) -> str:
+    """Very simple: <14 years OR age in months -> pediatric"""
+    if age_unit == "months":
+        return "pediatric"
+    if age < 14:
+        return "pediatric"
+    return "adult"
+
+
+def analyze_vitals_to_priority(v: TriageVitals, age_group: str) -> Dict[str, Any]:
+    """Analyze vitals and return priority assessment"""
+    reasons = []
+    level = 4
+    color = "green"
+    name = "SEMI-URGENT"
+    time_to_see = "60 min"
+
+    # calculate total GCS if available
+    gcs_total = None
+    if v.gcs_e is not None and v.gcs_v is not None and v.gcs_m is not None:
+        gcs_total = v.gcs_e + v.gcs_v + v.gcs_m
+
+    # RED – life-threatening
+    if (
+        (v.spo2 is not None and v.spo2 < 90)
+        or (v.bp_systolic is not None and v.bp_systolic < 80)
+        or (gcs_total is not None and gcs_total <= 8)
+        or (v.rr is not None and (v.rr < 8 or v.rr > 35))
+    ):
+        level = 1
+        color = "red"
+        name = "IMMEDIATE"
+        time_to_see = "0 min"
+        if v.spo2 is not None and v.spo2 < 90:
+            reasons.append(f"SpO₂ {v.spo2}% (severe hypoxia)")
+        if v.bp_systolic is not None and v.bp_systolic < 80:
+            reasons.append(f"Systolic BP {v.bp_systolic} (shock range)")
+        if gcs_total is not None and gcs_total <= 8:
+            reasons.append(f"GCS {gcs_total} (coma)")
+        if v.rr is not None and (v.rr < 8 or v.rr > 35):
+            reasons.append(f"RR {v.rr}/min (critical)")
+        return {
+            "priority_level": level,
+            "priority_color": color,
+            "priority_name": name,
+            "time_to_see": time_to_see,
+            "triage_reason": reasons,
+        }
+
+    # ORANGE – very urgent
+    if (
+        (v.spo2 is not None and 90 <= v.spo2 < 92)
+        or (v.bp_systolic is not None and 80 <= v.bp_systolic < 90)
+        or (gcs_total is not None and 9 <= gcs_total <= 10)
+        or (v.rr is not None and (v.rr > 30 or v.rr < 10))
+        or (v.hr is not None and (v.hr > 130 or v.hr < 50))
+    ):
+        level = 2
+        color = "orange"
+        name = "VERY URGENT"
+        time_to_see = "5 min"
+        if v.spo2 is not None and 90 <= v.spo2 < 92:
+            reasons.append(f"SpO₂ {v.spo2}% (moderate hypoxia)")
+        if v.bp_systolic is not None and 80 <= v.bp_systolic < 90:
+            reasons.append(f"Systolic BP {v.bp_systolic} (low)")
+        if gcs_total is not None and 9 <= gcs_total <= 10:
+            reasons.append(f"GCS {gcs_total} (severely reduced)")
+        if v.rr is not None and (v.rr > 30 or v.rr < 10):
+            reasons.append(f"RR {v.rr}/min (very abnormal)")
+        if v.hr is not None and (v.hr > 130 or v.hr < 50):
+            reasons.append(f"HR {v.hr}/min (critical range)")
+        return {
+            "priority_level": level,
+            "priority_color": color,
+            "priority_name": name,
+            "time_to_see": time_to_see,
+            "triage_reason": reasons,
+        }
+
+    # YELLOW – urgent but not crashing
+    if (
+        (v.spo2 is not None and 92 <= v.spo2 < 94)
+        or (v.bp_systolic is not None and 90 <= v.bp_systolic < 100)
+        or (gcs_total is not None and 11 <= gcs_total <= 12)
+        or (v.rr is not None and (10 <= v.rr < 12 or 25 <= v.rr <= 30))
+        or (v.hr is not None and (v.hr > 110 or v.hr < 55))
+    ):
+        level = 3
+        color = "yellow"
+        name = "URGENT"
+        time_to_see = "30 min"
+        if v.spo2 is not None and 92 <= v.spo2 < 94:
+            reasons.append(f"SpO₂ {v.spo2}% (mild hypoxia)")
+        if v.bp_systolic is not None and 90 <= v.bp_systolic < 100:
+            reasons.append(f"Systolic BP {v.bp_systolic} (borderline)")
+        if gcs_total is not None and 11 <= gcs_total <= 12:
+            reasons.append(f"GCS {gcs_total} (reduced sensorium)")
+        if v.rr is not None and (10 <= v.rr < 12 or 25 <= v.rr <= 30):
+            reasons.append(f"RR {v.rr}/min (abnormal)")
+        if v.hr is not None and (v.hr > 110 or v.hr < 55):
+            reasons.append(f"HR {v.hr}/min (abnormal)")
+        return {
+            "priority_level": level,
+            "priority_color": color,
+            "priority_name": name,
+            "time_to_see": time_to_see,
+            "triage_reason": reasons,
+        }
+
+    # GREEN – mild / stable
+    reasons.append("Vitals within acceptable limits for age")
+    return {
+        "priority_level": level,
+        "priority_color": color,
+        "priority_name": name,
+        "time_to_see": time_to_see,
+        "triage_reason": reasons,
+    }
+
+
+# ============================================
+# TEXT → TRIAGE EXTRACTION (for voice auto-fill)
+# ============================================
+
+def extract_number(pattern: str, text: str) -> Optional[float]:
+    """Extract a number from text using regex pattern"""
+    m = re.search(pattern, text)
+    if not m:
+        return None
+    try:
+        return float(m.group(1))
+    except ValueError:
+        return None
+
+
+def extract_triage_from_text(text: str) -> Dict[str, Any]:
+    """
+    Regex-based extractor for triage data from free text.
+    Input: free text like '45 year old male with chest pain, BP 90/60, HR 120, SpO2 88%'
+    Output: vitals + symptom flags
+    """
+    lower = text.lower()
+
+    # Age
+    age = extract_number(r"(\d+)\s*(year|yr|years)", lower)
+    if age is None:
+        # try 'months'
+        months = extract_number(r"(\d+)\s*(month|mo|months)", lower)
+        if months is not None:
+            age = months
+            age_unit = "months"
+        else:
+            age = None
+            age_unit = "years"
+    else:
+        age_unit = "years"
+
+    # HR
+    hr = extract_number(r"(?:hr|heart rate|pulse)[:\s]*([0-9]{2,3})", lower)
+    if hr is None:
+        hr = extract_number(r"([0-9]{2,3})\s*(?:bpm|/min)\s*(?:hr|heart rate)?", lower)
+
+    # RR
+    rr = extract_number(r"(?:rr|resp(?:iratory)? rate)[:\s]*([0-9]{1,2})", lower)
+    if rr is None:
+        rr = extract_number(r"([0-9]{1,2})\s*/min\s*(?:rr|resp)", lower)
+
+    # BP 120/80
+    bp_match = re.search(r"bp[:\s]*([0-9]{2,3})\s*/\s*([0-9]{2,3})", lower)
+    bp_sys = bp_dia = None
+    if bp_match:
+        try:
+            bp_sys = float(bp_match.group(1))
+            bp_dia = float(bp_match.group(2))
+        except ValueError:
+            pass
+
+    # SpO2
+    spo2 = extract_number(r"(?:spo2|spo₂|saturation|sat)[:\s]*([0-9]{2,3})", lower)
+    if spo2 is None:
+        spo2 = extract_number(r"([0-9]{2,3})\s*%", lower)
+
+    # Temp
+    temp = extract_number(r"(?:temp|temperature)[:\s]*([0-9]{2,3}\.?[0-9]*)", lower)
+
+    # GCS components
+    gcs_e = extract_number(r"(?:gcs[:\s]*)?e[:\s]*([0-9])", lower)
+    gcs_v = extract_number(r"(?:gcs[:\s]*)?v[:\s]*([0-9])", lower)
+    gcs_m = extract_number(r"(?:gcs[:\s]*)?m[:\s]*([0-9])", lower)
+
+    # Symptoms
+    symptoms = TriageSymptoms()
+    if "chest pain" in lower:
+        symptoms.chest_pain = True
+    if "shortness of breath" in lower or "difficulty breathing" in lower or "breathless" in lower or "sob" in lower:
+        symptoms.severe_respiratory_distress = True
+    if "fever" in lower or "febrile" in lower:
+        symptoms.fever = True
+    if "sepsis" in lower or "septic" in lower:
+        symptoms.sepsis = True
+    if "stroke" in lower or "one side weak" in lower or "facial droop" in lower or "slurred speech" in lower:
+        symptoms.suspected_stroke = True
+    if "unconscious" in lower or "not responding" in lower or "unresponsive" in lower:
+        symptoms.lethargic_unconscious = True
+    if "hypotension" in lower or (bp_sys is not None and bp_sys < 90):
+        symptoms.shock = True
+    if "seizure" in lower or "convulsion" in lower or "fitting" in lower:
+        symptoms.seizure_ongoing = True
+    if "trauma" in lower or "accident" in lower or "injury" in lower or "fall" in lower:
+        symptoms.moderate_trauma = True
+    if "bleeding" in lower or "blood loss" in lower:
+        symptoms.severe_bleeding = True
+    if "abdominal pain" in lower or "stomach pain" in lower:
+        symptoms.abdominal_pain_moderate = True
+    if "vomiting" in lower or "diarrhea" in lower or "dehydrated" in lower:
+        symptoms.moderate_dehydration = True
+
+    vitals = TriageVitals(
+        hr=hr,
+        rr=rr,
+        bp_systolic=bp_sys,
+        bp_diastolic=bp_dia,
+        spo2=spo2,
+        temperature=temp,
+        gcs_e=int(gcs_e) if gcs_e else None,
+        gcs_v=int(gcs_v) if gcs_v else None,
+        gcs_m=int(gcs_m) if gcs_m else None,
+    )
+
+    return {
+        "age": age,
+        "age_unit": age_unit,
+        "vitals": vitals,
+        "symptoms": symptoms,
+    }
+
+
 # Auth endpoints
 # ============================================
 # AUTHENTICATION ENDPOINTS
