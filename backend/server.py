@@ -274,6 +274,28 @@ class TriageCreate(BaseModel):
     mechanism: str = ""
     triaged_by: str
 
+
+# For mobile simple analyze endpoint
+class TriageAnalyzeRequest(BaseModel):
+    age: float
+    age_unit: str = "years"  # "years" | "months"
+    hr: Optional[float] = None
+    rr: Optional[float] = None
+    bp_systolic: Optional[float] = None
+    bp_diastolic: Optional[float] = None
+    spo2: Optional[float] = None
+    temperature: Optional[float] = None
+    gcs_e: Optional[int] = None
+    gcs_v: Optional[int] = None
+    gcs_m: Optional[int] = None
+    capillary_refill: Optional[float] = None
+
+
+# For text-based triage extraction
+class TriageTextRequest(BaseModel):
+    text: str
+
+
 class PatientInfo(BaseModel):
     uhid: Optional[str] = None
     name: str
