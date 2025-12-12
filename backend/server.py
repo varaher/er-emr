@@ -2658,8 +2658,8 @@ async def dual_engine_voice_to_text(
 class ExtractTriageDataRequest(BaseModel):
     text: str
 
-@api_router.post("/extract-triage-data")
-async def extract_triage_data(
+@api_router.post("/ai/extract-triage-data")
+async def extract_triage_data_ai(
     request: ExtractTriageDataRequest,
     current_user: UserResponse = Depends(get_current_user)
 ):
