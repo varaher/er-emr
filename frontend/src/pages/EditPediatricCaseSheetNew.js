@@ -12,6 +12,7 @@ import { ArrowLeft, Save, Sparkles, Baby } from 'lucide-react';
 import ContinuousVoiceRecorder from '@/components/ContinuousVoiceRecorder';
 
 const initialFormData = {
+  // PATIENT INFORMATION
   patient: {
     uhid: '',
     name: '',
@@ -21,81 +22,247 @@ const initialFormData = {
     phone: '',
     address: '',
     arrival_datetime: new Date().toISOString().slice(0, 16),
+    incident_datetime: '',
+    place_of_incident: '',
+    nature_of_incident: '',
+    mechanism_of_injury: '',
     mode_of_arrival: 'Walk-in',
     brought_by: 'Parent',
+    informant: '',
+    informant_reliability: 'Reliable',
+    identification_mark: '',
+    mlc: false,
   },
+  // GROWTH PARAMETERS
   growth_parameters: {
     weight: '',
     height: '',
     head_circumference: '',
     bmi: '',
   },
-  pat: {
-    // Pediatric Assessment Triangle
-    appearance: 'Normal', // Normal, Abnormal
-    work_of_breathing: 'Normal', // Normal, Increased
-    circulation_to_skin: 'Normal', // Normal, Abnormal
-    overall_impression: 'Stable', // Stable, Sick, Critical
-  },
-  vitals_at_arrival: {
-    hr: '',
-    bp_systolic: '',
-    bp_diastolic: '',
-    rr: '',
-    spo2: '',
-    temperature: '',
-    gcs_e: '',
-    gcs_v: '',
-    gcs_m: '',
-    capillary_refill: '',
-    pain_score: '',
-  },
+  // PRESENTING COMPLAINT
   presenting_complaint: {
     text: '',
     duration: '',
-    onset_type: 'Sudden',
+    onset_type: 'Sudden', // Sudden, Gradual
+    course: 'Progressive', // Progressive, Static, Improving
   },
+  // PRIMARY ASSESSMENT - PAT (Pediatric Assessment Triangle)
+  pat: {
+    // Appearance
+    tone: 'Normal', // Normal, Hypotonic, Hypertonic
+    interactivity: 'Normal', // Normal, Decreased, Absent
+    consolability: 'Consolable', // Consolable, Inconsolable
+    look_gaze: 'Normal', // Normal, Abnormal
+    speech_cry: 'Normal', // Normal, Weak, Absent
+    overall_appearance: 'Normal', // Normal, Abnormal
+    
+    // Work of Breathing
+    work_of_breathing: 'Normal', // Normal, Increased
+    
+    // Circulation to Skin
+    circulation_to_skin: 'Normal', // Normal, Abnormal (Pale/Mottled/Cyanotic)
+    
+    // Overall Impression
+    overall_impression: 'Stable', // Stable, Sick, Critical
+  },
+  // PRIMARY ASSESSMENT - ABCDE
   primary_assessment: {
-    // Pediatric ABCDE
-    airway_status: 'Patent',
-    airway_additional_notes: '',
-    breathing_status: 'Normal',
-    breathing_additional_notes: '',
-    circulation_status: 'Normal',
-    circulation_additional_notes: '',
-    disability_status: 'Alert',
-    disability_additional_notes: '',
-    exposure_status: 'Normal',
-    exposure_additional_notes: '',
+    // AIRWAY
+    airway_cry: 'Good', // Good, Weak, No Cry
+    airway_status: 'Patent', // Patent, Threatened, Compromised
+    airway_intervention: '',
+    airway_notes: '',
+    
+    // BREATHING
+    breathing_rr: '',
+    breathing_spo2: '',
+    breathing_wob: 'Normal', // Normal, Increased (nasal flaring, retractions, grunting, wheezing, stridor, snoring, gurgling)
+    breathing_wob_signs: [], // Array of signs
+    breathing_abnormal_positioning: false,
+    breathing_positioning_type: '', // Tripod, Sniffing, Prefers seated
+    breathing_air_entry: 'Normal', // Normal, Abnormal
+    breathing_subcutaneous_emphysema: false,
+    breathing_intervention: '',
+    breathing_notes: '',
+    
+    // CIRCULATION
+    circulation_crt: 'Normal', // Normal (<2s), Delayed (>2s)
+    circulation_hr: '',
+    circulation_bp_systolic: '',
+    circulation_bp_diastolic: '',
+    circulation_skin_color: 'Pink', // Pink, Pale, Cyanosed, Mottled
+    circulation_skin_temperature: 'Warm', // Warm, Cold
+    circulation_distended_neck_veins: false,
+    circulation_intervention: '',
+    circulation_notes: '',
+    
+    // DISABILITY
+    disability_avpu: 'Alert', // Alert, Verbal, Pain, Unresponsive
+    disability_gcs_e: '',
+    disability_gcs_v: '',
+    disability_gcs_m: '',
+    disability_pupils_size: 'Equal', // Equal, Unequal
+    disability_pupils_reaction: 'Reactive', // Reactive, Non-reactive, Sluggish
+    disability_pupils_abnormal: '', // Pinpoint, Dilated, Unilaterally dilated
+    disability_grbs: '',
+    disability_notes: '',
+    
+    // EXPOSURE
+    exposure_temperature: '',
+    exposure_trauma_signs: false,
+    exposure_logroll_done: false,
+    exposure_rashes: false,
+    exposure_rash_type: '', // Petechiae, Ecchymosis, Bruises, Burns
+    exposure_infection_signs: false,
+    exposure_petechiae_purpura: false,
+    exposure_long_bone_deformity: false,
+    exposure_deformity_details: '',
+    exposure_extremities_findings: '',
+    exposure_immobilization_done: false,
+    exposure_notes: '',
+    
+    // ADJUNCT: EFAST (if trauma suspected)
+    efast_done: false,
+    efast_pericardial_effusion: false,
+    efast_abdominal_free_fluid: false,
+    efast_pleural_effusion: false,
+    efast_pneumothorax: false,
+    efast_pelvic_injury: false,
+    efast_notes: '',
   },
+  // HISTORY
   history: {
+    // History of presenting illness
+    hpi: '',
+    
+    // Signs and Symptoms (SAMPLE format)
     signs_and_symptoms: '',
-    birth_history: '',
-    immunization_status: '',
-    developmental_milestones: '',
-    past_medical: [],
+    breathing_difficulty: false,
+    fever: false,
+    headache: false,
+    fatigue: false,
+    abdominal_pain: false,
+    vomiting: false,
+    diarrhea: false,
+    bleeding: false,
+    agitation: false,
+    decreased_oral_intake: false,
+    irritability: false,
+    symptom_onset: 'Sudden', // Sudden, Gradual
+    symptom_course: '',
+    
+    // Allergies
     allergies: [],
-    drug_history: '',
+    allergy_details: '', // medications, foods, latex, etc.
+    
+    // Medications
+    current_medications: '',
+    last_medication_dose: '',
+    last_medication_time: '',
+    medications_in_environment: '',
+    
+    // Past Medical History
+    past_medical: [],
+    birth_history: '', // premature birth, significant illnesses, hospitalizations
+    underlying_conditions: '', // asthma, diabetes, heart disease, etc.
     past_surgical: '',
+    immunization_status: '',
+    developmental_milestones: 'Normal', // Normal, Delayed
+    
+    // Last Meal
+    last_meal_time: '',
+    last_meal_type: '', // liquid/food
+    
+    // Events
+    events_leading: '',
+    treatment_before_arrival: '',
+    
+    // Family History
     family_history: '',
     feeding_history: '',
   },
+  // FOCUSED PHYSICAL EXAMINATION
   examination: {
-    general_notes: '',
+    // HEENT
+    heent_head: '',
+    heent_eyes: '',
+    heent_ears: '',
+    heent_nose: '',
+    heent_throat: '',
+    heent_thyroid: '',
+    heent_lymphnodes: '',
+    heent_notes: '',
+    
+    // Respiratory System
+    respiratory_chest: '',
+    respiratory_breath_sounds: '', // stridor, wheezing, crackles
+    respiratory_nasal_obstruction: false,
+    respiratory_retractions: false,
+    respiratory_abnormal_chest_movement: false,
+    respiratory_notes: '',
+    
+    // Cardiovascular
+    cvs_heart_sounds: '',
+    cvs_gallop_rhythm: false,
+    cvs_crackles: false,
+    cvs_peripheral_edema: false,
+    cvs_cyanosis: false,
+    cvs_feeble_pulse: false,
+    cvs_cold_extremities: false,
+    cvs_flushed_skin: false,
+    cvs_notes: '',
+    
+    // Abdomen
+    abdomen_tenderness: false,
+    abdomen_distension: false,
+    abdomen_injury_signs: false,
+    abdomen_hepatomegaly: false,
+    abdomen_notes: '',
+    
+    // Back
+    back_spine_injury: false,
+    back_vertebral_injury: false,
+    back_notes: '',
+    
+    // Extremities
+    extremities_fractures: false,
+    extremities_swelling: false,
+    extremities_bruising: false,
+    extremities_deformities: false,
+    extremities_notes: '',
+    
+    // General
     general_pallor: false,
     general_icterus: false,
     general_cyanosis: false,
     general_dehydration: 'None', // None, Mild, Moderate, Severe
-    cvs_additional_notes: '',
-    respiratory_additional_notes: '',
-    abdomen_additional_notes: '',
-    cns_additional_notes: '',
-    musculoskeletal_notes: '',
-    skin_notes: '',
+    general_notes: '',
   },
+  // COURSE IN HOSPITAL & TREATMENT
   treatment: {
+    course_in_hospital: '',
+    treatment_given: '',
     intervention_notes: '',
+    interventions: [],
   },
+  // DIAGNOSIS & DISPOSITION
+  diagnosis: {
+    provisional_diagnosis: '',
+    differential_diagnoses: [],
+    condition_at_shift: 'Stable', // Stable, Unstable
+  },
+  disposition: {
+    type: '', // ICU, Room, Ward, Referral, DAMA, Discharge
+    destination: '',
+    advice: '',
+    discharge_vitals: null,
+    condition_at_discharge: 'Stable',
+  },
+  // DOCTORS
+  em_resident: '',
+  em_consultant: '',
+  // TRIAGE
   triage: {
     priority: null,
     priority_color: '',
