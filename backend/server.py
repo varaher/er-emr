@@ -2141,6 +2141,118 @@ async def get_discharge_summary(case_sheet_id: str, current_user: UserResponse =
     
     return summary
 
+
+# Discharge Data Update Model (for mobile app)
+class DischargeDataUpdate(BaseModel):
+    discharge_medications: Optional[str] = None
+    disposition_type: Optional[str] = None
+    condition_at_discharge: Optional[str] = None
+    discharge_vitals: Optional[Dict[str, str]] = None
+    follow_up_advice: Optional[str] = None
+    ed_resident: Optional[str] = None
+    ed_consultant: Optional[str] = None
+
+
+@api_router.put("/discharge/{case_id}")
+async def update_discharge_data(
+    case_id: str,
+    discharge_data: DischargeDataUpdate,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """
+    Update discharge-specific data for a case.
+    Used by mobile DischargeSummaryScreen to save editable fields.
+    """
+    # Check if case exists
+    case = await db.cases.find_one({"id": case_id}, {"_id": 0})
+    if not case:
+        raise HTTPException(status_code=404, detail="Case not found")
+    
+    # Build update data
+    update_fields = {}
+    
+    if discharge_data.discharge_medications is not None:
+        update_fields["treatment.medications"] = discharge_data.discharge_medications
+    
+    if discharge_data.disposition_type is not None:
+        # Map disposition type to internal format
+        type_map = {
+            "Normal Discharge": "discharged",
+            "Discharge at Request": "discharged",
+            "Discharge Against Medical Advice": "dama",
+            "Referred": "referred",
+        }
+        update_fields["disposition.type"] = type_map.get(discharge_data.disposition_type, "discharged")
+    
+    if discharge_data.condition_at_discharge is not None:
+        update_fields["disposition.condition_at_discharge"] = discharge_data.condition_at_discharge.lower()
+    
+    if discharge_data.discharge_vitals is not None:
+        update_fields["disposition.discharge_vitals"] = discharge_data.discharge_vitals
+    
+    if discharge_data.follow_up_advice is not None:
+        update_fields["disposition.advice"] = discharge_data.follow_up_advice
+    
+    if discharge_data.ed_resident is not None:
+        update_fields["em_resident"] = discharge_data.ed_resident
+    
+    if discharge_data.ed_consultant is not None:
+        update_fields["em_consultant"] = discharge_data.ed_consultant
+    
+    # Add update timestamp
+    update_fields["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    # Update the case
+    await db.cases.update_one(
+        {"id": case_id},
+        {"$set": update_fields}
+    )
+    
+    logging.info(f"Discharge data updated for case {case_id} by user {current_user.email}")
+    
+    return {
+        "success": True,
+        "message": "Discharge data saved successfully",
+        "case_id": case_id,
+        "updated_fields": list(update_fields.keys())
+    }
+
+
+@api_router.get("/discharge/{case_id}")
+async def get_discharge_data(
+    case_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """
+    Get discharge-specific data for a case.
+    Returns the editable discharge fields for mobile app.
+    """
+    case = await db.cases.find_one({"id": case_id}, {"_id": 0})
+    if not case:
+        raise HTTPException(status_code=404, detail="Case not found")
+    
+    treatment = case.get("treatment", {})
+    disposition = case.get("disposition", {})
+    
+    # Map internal disposition type to display format
+    type_map = {
+        "discharged": "Normal Discharge",
+        "dama": "Discharge Against Medical Advice",
+        "referred": "Referred",
+    }
+    
+    return {
+        "case_id": case_id,
+        "discharge_medications": treatment.get("medications", ""),
+        "disposition_type": type_map.get(disposition.get("type", ""), "Normal Discharge"),
+        "condition_at_discharge": (disposition.get("condition_at_discharge", "stable") or "stable").upper(),
+        "discharge_vitals": disposition.get("discharge_vitals", {}),
+        "follow_up_advice": disposition.get("advice", ""),
+        "ed_resident": case.get("em_resident", ""),
+        "ed_consultant": case.get("em_consultant", ""),
+    }
+
+
 # Transcript Parsing for Auto-population
 class TranscriptParseRequest(BaseModel):
     case_sheet_id: str
