@@ -13,45 +13,74 @@ The user wants to build a full-stack application named **ER-EMR** for Emergency 
 5.  **Full Pediatric Case Sheet:** Create a comprehensive pediatric case sheet with all necessary pediatric-specific sections.
 6.  **Cloud Deployment:** The application backend must be configured for successful deployment on the Render platform.
 7.  **Mobile App Sync:** The user's React Native mobile app must be fully integrated with the web app and backend, sharing the same data and authentication.
+8.  **Patient Dashboard:** The mobile app's home screen should be a dashboard showing a list of recent patients. For institutional users, this list should show all cases from the last 24 hours.
 
 ### **User's preferred language**:
 English
 
 ### **what currently exists?**
-A full-stack ER-EMR application with a React frontend and a FastAPI backend, successfully deployed on Render.
-*   **Authentication:** A working enterprise authentication system.
-*   **Backend:** A FastAPI server with endpoints for auth, AI-powered case sheets (adult & pediatric), dual-engine voice transcription, and a comprehensive, newly refactored Triage system.
-*   **Deployment:** The backend is live and accessible on Render, with the previous  configuration issue now resolved.
-*   **Mobile App Code:** The agent has generated a complete suite of React Native screens (, , , , ) that are designed to be compatible with the Render backend API.
+A full-stack ER-EMR application with a React frontend and a FastAPI backend deployed on Render. The current session focused heavily on updating and debugging the user's React Native mobile app.
+
+*   **Backend:** The FastAPI server is live on Render. New endpoints () were added to support saving discharge summary details.
+*   **Mobile App:** The agent has provided rewritten or new code for several screens to fix bugs and add features.
+    *   **New/Rewritten Screens:** , ,  (now a dashboard),  (new case list view), .
+    *   **Issues Fixed:** Typing lag in , incorrect auto-population, and a crashing bug in .
+    *   **New Feature:** A  dashboard that lists recent patients, with a 24-hour shared view for institutional users.
+*   **Documentation:** A new file  was created to document the mobile app's structure.
 
 ### **Last working item**:
-*   **Last item agent was working:** Providing the user with a complete, updated  for their React Native mobile application. This was the final screen in a series of updates to align the mobile app with the web app's functionality and the backend API, following the user's request for unified screens that handle both adult and pediatric cases.
+*   **Last item agent was working:** The agent was in a feedback loop with the user, who was providing screenshots of the mobile app. The agent analyzed the first 10 screenshots, confirmed most features were working, but identified a critical navigation error on the . The agent has created a summary of the work done so far and is awaiting the remaining screenshots and the user's  file to provide a definitive fix for the navigation bug.
 *   **Status:** USER VERIFICATION PENDING
 *   **Agent Testing Done:** N/A
-*   **Which testing method agent to use?** NA(if testing is already done). The user must integrate the provided code into their React Native project and test it on their mobile device. The agent cannot test mobile code.
-*   **User Testing Done:** N
+*   **Which testing method agent to use?** NA(if testing is already done). The user is performing manual testing on their device. The agent's role is to analyze feedback (screenshots, error messages) and provide code fixes.
+*   **User Testing Done:** IN PROGRESS
 
 ### **All Pending/In progress Issue list**:
+*   **Issue 1: Navigation error in  (P0)**
+*   **Issue 2: Incorrect API URL in  (P1)**
+*   **Issue 3: Pending verification for  fixes (P2)**
 
-*   **Issue 1: User to Implement and Verify Mobile App Screens (P0)**
-    *   **Description:** The agent has provided complete, updated React Native code for , , , , and . The user needs to integrate these files into their project and test the end-to-end flow. The previous mobile code was incompatible with the backend API.
-    *   **Attempted fixes:** Agent provided full code snippets for each screen, ensuring they use the correct Render API endpoints, handle authentication tokens, and pass data between screens correctly.
+**Issues Detail:**
+*   **Issue 1: Navigation error in **
+    *   **Description:** When the user clicks the Go to Dashboard button after completing a case, the app throws a navigation error (). This is because the navigation call is likely , which fails in a nested navigation structure.
+    *   **Attempted fixes:** The agent has identified the likely incorrect code and proposed a fix (e.g.,  or ), but is waiting for the user's navigation file () to provide the exact correct code.
     *   **Next debug checklist:**
-        1.  Confirm with the user if they have integrated the new mobile screen code.
-        2.  If they encounter errors, request the specific error message and the relevant code from their mobile app.
-        3.  Guide them to check for common React Native issues: correct API URL (), proper use of  for tokens, and correct navigation parameter passing.
-    *   **Why fix this issue and what will be achieved with the fix?** The user's goal is to have their mobile app work seamlessly with the deployed backend. This is the final step to achieve that cross-platform functionality.
+        1.  Request the user's , , and  files.
+        2.  Analyze the navigation structure to determine the correct path to the Home screen.
+        3.  Provide the corrected code snippet for the  handler in .
+    *   **Why fix this issue and what will be achieved with the fix?** This bug breaks the core user flow after completing a case. Fixing it will allow users to return to the dashboard seamlessly.
+    *   **Status:** BLOCKED (Waiting for user to provide navigation files).
+    *   **Is recurring issue?** N
+    *   **Should Test frontend/backend/both after fix?** Frontend (user's mobile app).
+
+*   **Issue 2: Incorrect API URL in **
+    *   **Description:** The  file provided by the user contains a hardcoded local API URL () instead of the production Render URL.
+    *   **Attempted fixes:** The agent identified the issue and informed the user, providing the corrected code snippet.
+    *   **Next debug checklist:**
+        1.  Confirm with the user that they have updated the URL in their  file.
+        2.  If the issue persists, ask the user to verify the  constant is correctly set to .
+    *   **Why fix this issue and what will be achieved with the fix?** The screen cannot communicate with the backend without the correct API URL, breaking voice parsing and data saving for that step.
     *   **Status:** USER VERIFICATION PENDING
     *   **Is recurring issue?** N
     *   **Should Test frontend/backend/both after fix?** Frontend (user's mobile app).
 
-### **In progress Task List**:
-
-*   **Task 1: Align Mobile App with Web App and Backend API (P0)**
-    *   **Where to resume:** Awaiting user feedback on the provided mobile screen code. The agent has delivered all requested code updates for the mobile app.
-    *   **What will be achieved with this?** A fully functional mobile application that mirrors the web app's capabilities, uses the same Render backend, and provides a seamless user experience across devices.
+*   **Issue 3: Pending verification for  fixes**
+    *   **Description:** The user reported significant usability issues in , including severe typing lag and non-functional auto-population.
+    *   **Attempted fixes:** The agent rewrote the component to use a single state object,  for text inputs instead of , and optimized update handlers with . This should resolve the lag. The  function was also fixed to match the backend API response structure.
+    *   **Next debug checklist:**
+        1.  Await user feedback or screenshots related to the  after they have implemented the new code.
+        2.  Specifically ask if the typing lag is gone and if voice auto-population now works as expected.
+    *   **Why fix this issue and what will be achieved with the fix?** The case sheet is a central part of the app. These fixes are critical for basic usability and the core voice-to-form feature.
     *   **Status:** USER VERIFICATION PENDING
-    *   **Blocked on something:** User action is required to implement and test the provided code.
+    *   **Is recurring issue?** Y
+    *   **Should Test frontend/backend/both after fix?** Frontend (user's mobile app).
+
+### **In progress Task List**:
+*   **Task 1: Finalize and Stabilize Mobile App Screens (P0)**
+    *   **Where to resume:** Awaiting user's  file to fix the primary navigation bug. Then, continue analyzing the remaining screenshots provided by the user to identify and fix any other bugs.
+    *   **What will be achieved with this?** A fully functional and stable mobile application that meets all user requirements and works seamlessly with the deployed backend.
+    *   **Status:** IN PROGRESS
+    *   **Blocked on something:** User providing navigation files and completing their testing/feedback cycle.
 
 ### **Upcoming and Future Tasks**
 **Upcoming Tasks:**
@@ -66,83 +95,86 @@ A full-stack ER-EMR application with a React frontend and a FastAPI backend, suc
 *   **P7: Auto-generate Referral Letters**.
 
 ### **Completed work in this session**
-- **Resolved Render Deployment Issues:** Diagnosed and fixed the user's Render deployment failures by identifying the incorrect  () and guiding the user to update it with their MongoDB Atlas connection string. Verified all endpoints (, , , ) are working on the user's live deployment.
-- **Refactored Triage Backend:** Implemented a comprehensive update to , including new unified Triage models, helper functions for triage logic, and new endpoints (, , ).
-- **Created Full Mobile App Screen Suite:** Provided complete, updated, and unified React Native code for , , , , and . This code aligns the mobile app with the new backend APIs and web app functionality.
-- **Enhanced Pediatric Case Sheet Data Model:** Updated the  in  to match the user's detailed pediatric case record document.
+- **Rewrote **: Re-implemented the screen to match the web app, including all clinical sections, editable fields, and PDF export functionality (, ).
+- **Added Backend Discharge Endpoint**: Added a  endpoint to  to save discharge summary data.
+- **Fixed **: Resolved critical usability issues, including typing lag and broken voice auto-population.
+- **Rewrote **: Transformed the home screen into a full patient dashboard with a recent cases list, quick actions, and a shared 24-hour view for institutional users.
+- **Created **: A new screen providing a complete, searchable, and filterable list of all patient cases.
+- **Fixed **: Corrected a crashing bug by adding the missing  import.
+- **Identified Critical Bug**: Found and reported an incorrect hardcoded API URL in .
+- **Documented Mobile Architecture**: Created  to persist the user's mobile app structure and technical details.
+- **Analyzed User Feedback**: Reviewed 10 screenshots from the user, identified a navigation bug, and prepared for the next set of fixes.
 
 ### **Earlier issues found/mentioned but not fixed**
 *   None.
 
 ### **Known issue recurrence from previous fork**
 - **Issue recurrence in previous fork:** User's Render deployment was failing with 404 and 500 errors.
-- **Recurrence count:** High. This was the main blocker from the previous fork.
-- **Status:** **RESOLVED**. The root cause was an incorrect  pointing to  in the Render environment variables. The agent successfully guided the user to replace it with their MongoDB Atlas connection string, which fixed the issue.
+- **Recurrence count:** High.
+- **Status:** **RESOLVED**. The issue was fixed in the previous fork and has not recurred.
 
 ### **Code Architecture**
 
 
 ### **Key Technical Concepts**
-*   **Backend:** FastAPI,  (Async MongoDB), Pydantic.
-*   **Frontend:** React, React Router, Tailwind CSS, Shadcn UI.
-*   **Deployment:** The backend is successfully deployed and running on Render.
-*   **API Integration:** The agent guided the user on how to connect their React Native mobile app to the Render backend, emphasizing the use of a shared API and database.
-*   **Backend Triage Refactor:** The triage logic in  was completely overhauled with new Pydantic models and dedicated endpoints to support both web and mobile clients.
+*   **React Native Development:** Heavy focus on debugging and enhancing React Native components. Key concepts include state management (), side effects (, ), navigation (), and performance optimization (,  vs. ).
+*   **API Integration:** Connecting the mobile app to a live Render backend, handling auth tokens with .
+*   **PDF Generation (Mobile):** Using  to generate HTML-based PDFs and  to share them.
+*   **Backend Modification:** Adding new  endpoints to a FastAPI server to extend existing data models.
 
 ### **key DB schema**
-*   No new changes to the DB schema in this session.
+The  collection was implicitly updated. The  endpoint adds/updates the following nested objects and fields:
+*    (string)
+*    (array of strings)
+*    (object)
+*    (string)
+*    (string)
+*    (string)
 
 ### **changes in tech stack**
-*   No changes in the tech stack.
+*   **New Mobile Dependencies:** , .
 
 ### **All files of reference**
-*   **/app/backend/server.py**: **Heavily Modified.** Refactored with new Triage models, helper functions, and API endpoints.
-*   **/app/mobile-screens/** (NEW): A new directory created by the agent to store the generated React Native screen components provided to the user. This includes:
-    *    (User Provided, Agent Updated)
-    *   
-    *   
-    *   
-    *   
-    *   
-    *   
-*   **/app/frontend/src/pages/EditPediatricCaseSheetNew.js**: The  state was updated to align with the user's detailed document.
+*   **/app/mobile-screens/DischargeSummaryScreen.js**: Rewritten with new features and PDF export.
+*   **/app/mobile-screens/CaseSheetScreen.js**: Rewritten to fix major performance and functionality bugs.
+*   **/app/mobile-screens/HomeScreen.js**: Rewritten to function as a patient dashboard.
+*   **/app/mobile-screens/LogsScreen.js**: New file for a comprehensive case list.
+*   **/app/mobile-screens/ProfileScreen.js**: Rewritten to fix a crashing bug.
+*   **/app/backend/server.py**: Modified to add  endpoint.
+*   **/app/MOBILE_APP_ARCHITECTURE.md**: New documentation file containing the user's mobile app structure.
+*   User-provided files for context: , , , , .
 
 ### **Areas that need refactoring**:
-*   **Backend Monolith:**  is very large. It should be broken down into a standard FastAPI structure (e.g., , , ).
+*    remains a large monolithic file and could be broken down into a standard FastAPI project structure (, , etc.).
 
 ### **key api endpoints**
-*    (POST): User login.
-*    (POST): User registration.
-*    (POST): Dual-engine voice transcription.
-*    (POST): Parses transcript to populate case sheets.
-*    (POST): **New** endpoint for mobile triage analysis.
-*    (POST): **New** endpoint to create a full triage record.
-*    (POST): **New** endpoint for regex-based data extraction from text.
+*   : **(NEW)** Saves discharge summary details, diagnosis, and final case status.
+*   : Fetches all cases for the dashboard/logs screen.
+*   : Fetches full data for a single case.
+*   : The main endpoint used to update a case incrementally (e.g., adding investigations, treatment).
+*   : Used for voice dictation.
+*   : Used to auto-populate forms from a transcript.
 
 ### **Critical Info for New Agent**
-*   The user's Render deployment is **fixed and working**. The main blocker is resolved. Do not attempt to debug the deployment further unless the user reports a new, specific server error.
-*   The current focus is entirely on the user's **React Native mobile app**. You are a guide. The agent has provided a full suite of updated screen components. Your primary task is to help the user integrate and debug this new code in their mobile environment.
-*   The mobile screens are designed to be **unified** (handling both adult and pediatric cases with conditional logic) as per the user's request. Maintain this unified approach.
-*   Before assuming a backend bug, always ask the user to test the endpoint with  to verify. The backend has proven to be stable.
+*   The entire focus is on debugging the user's **React Native mobile app**. You are a guide and debugger.
+*   The most urgent bug is a **navigation error** in . You must get the user's navigation files (, , etc.) to provide the correct fix. The likely solution is changing  to a nested navigator call like .
+*   The user is testing and providing feedback via **screenshots**. Analyze them carefully.
+*   The user prefers to receive **full, separate code for each file** for easy copy-pasting. Avoid sending diffs or partial snippets unless specifically asked.
+*   Confirm with the user if they have fixed the incorrect API URL in . This is a blocking issue for that screen.
 
 ### **documents created in this job**
-*   /app/mobile-screens/AppNavigation.js
-*   /app/mobile-screens/CaseSheetScreen.js
-*   /app/mobile-screens/InvestigationsScreen.js
-*   /app/mobile-screens/DispositionScreen.js
-*   /app/mobile-screens/DischargeSummaryScreen.js
+*   /app/MOBILE_APP_ARCHITECTURE.md
 
 ### **Last 10 User Messages and any pending user messages**
-1.  **User**: Shared  and asked for updates to make it auto-populate everything and integrate with other screens. - **Status: Completed**.
-2.  **User**: Shared their mobile app architecture, confirming unified screens are preferred. - **Status: Acknowledged**.
-3.  **User**: Provided their  and asked for an update to match the web app. - **Status: Completed**.
-4.  **User**: Provided their  and asked for an update. - **Status: Completed**.
-5.  **User**: Provided their  and asked for an update. - **Status: Completed**.
-6.  **User**: Provided their  and asked for an update. - **Status: Completed**.
-7.  All pending user messages have been addressed by the agent providing the corresponding updated mobile screen code. The next step is waiting for the user to implement and test these files.
+1.  **User**: Shared  and other files, asking for fixes and a dashboard. - **Status: Completed**.
+2.  **User**: Clarified confusion about  vs. . - **Status: Completed**.
+3.  **User**: Requested the agent to provide each screen's code separately. - **Status: Acknowledged**.
+4.  **User**: Provided 10 screenshots showing app progress and a navigation error. - **Status: Partially Addressed**. Agent analyzed them and is waiting for more info.
+5.  **User**: Asked the agent to remember the progress as more screenshots are coming. - **Status: Acknowledged**.
+*   **Pending User Action:** User needs to provide the remaining screenshots and their navigation files (, etc.).
 
 ### **Project Health Check:**
-*   **Broken:** None. The critical Render deployment issue is resolved.
+*   **Broken:** The mobile app navigation flow is broken on the .  is likely broken due to an incorrect API URL.
 *   **Mocked:** None.
 
 ### **3rd Party Integrations**
@@ -150,18 +182,19 @@ A full-stack ER-EMR application with a React frontend and a FastAPI backend, suc
     *   Speech-to-text (Whisper).
     *   Text Generation & Extraction (gpt-4o-mini).
 *   **Sarvam AI (via httpx)** — requires User API Key for:
-    *   Speech-to-text for Indian languages. The user has previously provided the key.
+    *   Speech-to-text for Indian languages.
+*   **Expo Print** - For PDF generation on mobile.
+*   **Expo Sharing** - For sharing generated PDFs on mobile.
 
 ### **Testing status**
 *   **Testing agent used after significant changes:** NO
 *   **Troubleshoot agent used after agent stuck in loop:** NO
-*   **Test files created:** None in this session. The agent used  commands and a test script to validate the new backend endpoints and the user's Render deployment.
-*   **Known regressions:** None.
+*   **Test files created:** None.
+*   **Known regressions:** A navigation error was introduced or surfaced in .
 
 ### **Credentials to test flow:**
-Registration is open. A test user was created during the session:
 *   **Email:** 
 *   **Password:** 
 
 ### **What agent forgot to execute**
-*   The agent correctly prioritized the user's immediate requests (fixing the deployment, then updating the mobile app code) over the Upcoming Tasks from the original plan. Nothing was forgotten; priorities were shifted based on user input.</analysis>
+*   The agent correctly followed the user's lead, prioritizing mobile app bug fixes and feature requests. No planned tasks were forgotten; they were superseded by the user's immediate needs.</analysis>
