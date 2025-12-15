@@ -1,5 +1,7 @@
 # ER-EMR Mobile App Architecture (ERmateApp)
 
+**Last Updated**: December 2025
+
 ## Project Structure
 
 ```
@@ -11,21 +13,45 @@ EREMR/
         │   ├── BottomTabs.js        # Bottom tab navigation
         │   └── MainTabs.js          # Main tab configuration
         │
+        ├── services/
+        │   └── api.js               # Axios instance with base URL
+        │
         └── screens/
-            ├── CaseSheetScreen.js        # Full case sheet (adult & pediatric)
+            ├── CaseSheetScreen.js        # Full case sheet (adult & pediatric) with voice
             ├── DischargeSummaryScreen.js # Discharge summary with PDF export
             ├── DispositionScreen.js      # Patient disposition/outcome
             ├── EditProfileScreen.js      # Edit user profile
-            ├── HomeScreen.js             # Dashboard/Home
+            ├── HomeScreen.js             # Dashboard with patient list
             ├── InvestigationsScreen.js   # Lab tests & investigations
             ├── LoginScreen.js            # User login
-            ├── LogsScreen.js             # Activity/case logs
+            ├── LogsScreen.js             # All cases with search & filter
             ├── PhysicalExamScreen.js     # Physical examination
             ├── ProfileScreen.js          # View user profile
             ├── RegisterScreen.js         # User registration
             ├── SettingsScreen.js         # App settings
             ├── TreatmentScreen.js        # Treatment & medications
             └── TriageScreen.js           # Triage assessment
+```
+
+## API Service (api.js)
+
+```javascript
+import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+const api = axios.create({
+  baseURL: "https://er-emr-backend.onrender.com/api",
+});
+
+api.interceptors.request.use(async (config) => {
+  const token = await AsyncStorage.getItem("token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+export default api;
 ```
 
 ## Backend API
