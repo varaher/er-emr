@@ -1,0 +1,3426 @@
+=== ALL MOBILE SCREENS FOR COPY-PASTE ===
+
+========================================
+📄 1. CaseSheetScreen.js
+========================================
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TextInput,
+  TouchableOpacity,
+  Alert,
+  ActivityIndicator,
+  Switch,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { Audio } from "expo-av";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect } from "@react-navigation/native";
+
+const API_URL = "https://er-emr-backend.onrender.com/api";
+
+export default function CaseSheetScreen({ route, navigation }) {
+  const { patientType = "adult", vitals = {}, triageData = {}, caseId: existingCaseId } = route.params || {};
+  const isPediatric = patientType === "pediatric";
+
+  /* ===================== LOADING & CASE ID ===================== */
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [caseId, setCaseId] = useState(existingCaseId || null);
+
+  /* ===================== VOICE STATE ===================== */
+  const [recording, setRecording] = useState(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const [transcriptText, setTranscriptText] = useState("");
+
+  /* ===================== FORM DATA (Single State Object) ===================== */
+  const [formData, setFormData] = useState({
+    // Patient Info
+    patient_name: "",
+    patient_age: vitals.age ? String(vitals.age) : "",
+    patient_age_unit: vitals.age_unit || "years",
+    patient_sex: "Male",
+    patient_phone: "",
+    patient_address: "",
+    patient_uhid: "",
+    patient_mode_of_arrival: "Walk-in",
+    patient_brought_by: "Self",
+    patient_mlc: false,
+
+    // Presenting Complaint
+    complaint_text: "",
+    complaint_duration: "",
+    complaint_onset: "Sudden",
+
+    // Vitals
+    vitals_hr: vitals.hr ? String(vitals.hr) : "",
+    vitals_rr: vitals.rr ? String(vitals.rr) : "",
+    vitals_bp_systolic: vitals.bp_systolic ? String(vitals.bp_systolic) : "",
+    vitals_bp_diastolic: vitals.bp_diastolic ? String(vitals.bp_diastolic) : "",
+    vitals_spo2: vitals.spo2 ? String(vitals.spo2) : "",
+    vitals_temperature: vitals.temperature ? String(vitals.temperature) : "",
+    vitals_gcs_e: vitals.gcs_e ? String(vitals.gcs_e) : "",
+    vitals_gcs_v: vitals.gcs_v ? String(vitals.gcs_v) : "",
+    vitals_gcs_m: vitals.gcs_m ? String(vitals.gcs_m) : "",
+    vitals_pain_score: "",
+    vitals_grbs: "",
+    vitals_capillary_refill: vitals.capillary_refill ? String(vitals.capillary_refill) : "",
+
+    // ABCDE
+    airway_status: "Patent",
+    airway_notes: "",
+    breathing_wob: "Normal",
+    breathing_air_entry: "Normal",
+    breathing_notes: "",
+    circulation_crt: "Normal",
+    circulation_skin_color: "Pink",
+    circulation_distended_neck_veins: false,
+    circulation_notes: "",
+    disability_avpu: "Alert",
+    disability_pupils: "Equal, Reactive",
+    disability_grbs: "",
+    exposure_trauma: false,
+    exposure_long_bone_deformity: false,
+    efast_done: false,
+    efast_notes: "",
+
+    // PAT (Pediatric)
+    pat_appearance: "Normal",
+    pat_tone: "Normal",
+    pat_interactivity: "Normal",
+    pat_consolability: "Consolable",
+    pat_work_of_breathing: "Normal",
+    pat_circulation_to_skin: "Normal",
+    pat_overall_impression: "Stable",
+
+    // History
+    history_hpi: "",
+    history_signs_symptoms: "",
+    history_allergies: "",
+    history_medications: "",
+    history_past_medical: "",
+    history_past_surgical: "",
+    history_last_meal: "",
+    history_events: "",
+    history_family: "",
+
+    // Examination
+    exam_general_pallor: false,
+    exam_general_icterus: false,
+    exam_general_cyanosis: false,
+    exam_general_clubbing: false,
+    exam_general_lymphadenopathy: false,
+    exam_general_edema: false,
+    exam_general_notes: "",
+    exam_cvs_status: "Normal",
+    exam_cvs_notes: "",
+    exam_respiratory_status: "Normal",
+    exam_respiratory_notes: "",
+    exam_abdomen_status: "Normal",
+    exam_abdomen_notes: "",
+    exam_cns_status: "Normal",
+    exam_cns_notes: "",
+    exam_extremities_status: "Normal",
+    exam_extremities_notes: "",
+
+    // Treatment
+    treatment_interventions: "",
+    treatment_course: "",
+  });
+
+  /* ===================== TRIAGE INFO ===================== */
+  const triage = {
+    priority: triageData.priority || "",
+    priority_color: triageData.priority_color || "",
+    priority_name: triageData.priority_name || "",
+  };
+
+  /* ===================== OPTIMIZED FIELD UPDATE ===================== */
+  const updateField = useCallback((field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  }, []);
+
+  /* ===================== LOAD EXISTING CASE ===================== */
+  useEffect(() => {
+    if (existingCaseId) {
+      loadExistingCase(existingCaseId);
+    }
+  }, [existingCaseId]);
+
+  const loadExistingCase = async (id) => {
+    setLoading(true);
+    try {
+      const token = await AsyncStorage.getItem("token");
+      const res = await fetch(`${API_URL}/cases/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!res.ok) throw new Error("Failed to load case");
+
+      const data = await res.json();
+      populateFromCaseData(data);
+    } catch (err) {
+      console.error("Load case error:", err);
+    }
+    setLoading(false);
+  };
+
+  const populateFromCaseData = (data) => {
+    const p = data.patient || {};
+    const c = data.presenting_complaint || {};
+    const v = data.vitals_at_arrival || {};
+    const h = data.history || {};
+    const pa = data.primary_assessment || {};
+    const ex = data.examination || {};
+    const tr = data.treatment || {};
+
+    setFormData(prev => ({
+      ...prev,
+      patient_name: p.name || "",
+      patient_age: p.age ? String(p.age) : "",
+      patient_sex: p.sex || "Male",
+      patient_phone: p.phone || "",
+      patient_uhid: p.uhid || "",
+      patient_mode_of_arrival: p.mode_of_arrival || "Walk-in",
+      patient_mlc: p.mlc || false,
+
+      complaint_text: c.text || "",
+      complaint_duration: c.duration || "",
+      complaint_onset: c.onset_type || "Sudden",
+
+      vitals_hr: v.hr ? String(v.hr) : "",
+      vitals_rr: v.rr ? String(v.rr) : "",
+      vitals_bp_systolic: v.bp_systolic ? String(v.bp_systolic) : "",
+      vitals_bp_diastolic: v.bp_diastolic ? String(v.bp_diastolic) : "",
+      vitals_spo2: v.spo2 ? String(v.spo2) : "",
+      vitals_temperature: v.temperature ? String(v.temperature) : "",
+      vitals_gcs_e: v.gcs_e ? String(v.gcs_e) : "",
+      vitals_gcs_v: v.gcs_v ? String(v.gcs_v) : "",
+      vitals_gcs_m: v.gcs_m ? String(v.gcs_m) : "",
+      vitals_pain_score: v.pain_score ? String(v.pain_score) : "",
+      vitals_grbs: v.grbs ? String(v.grbs) : "",
+
+      history_hpi: h.hpi || "",
+      history_allergies: Array.isArray(h.allergies) ? h.allergies.join(", ") : (h.allergies || ""),
+      history_medications: h.drug_history || "",
+      history_past_medical: Array.isArray(h.past_medical) ? h.past_medical.join(", ") : (h.past_medical || ""),
+      history_past_surgical: h.past_surgical || "",
+
+      airway_status: pa.airway_status || "Patent",
+      airway_notes: pa.airway_additional_notes || "",
+      breathing_wob: pa.breathing_work || "Normal",
+      breathing_air_entry: pa.breathing_air_entry?.[0] || "Normal",
+      circulation_crt: pa.circulation_crt ? "Delayed" : "Normal",
+      disability_avpu: pa.disability_avpu || "Alert",
+
+      exam_cvs_status: ex.cvs_status || "Normal",
+      exam_respiratory_status: ex.respiratory_status || "Normal",
+      exam_abdomen_status: ex.abdomen_status || "Normal",
+      exam_cns_status: ex.cns_status || "Normal",
+
+      treatment_interventions: tr.intervention_notes || "",
+      treatment_course: tr.course_in_hospital || "",
+    }));
+  };
+
+  /* =========================================================
+     🎤 VOICE RECORDING
+     ========================================================= */
+
+  const startRecording = async () => {
+    try {
+      const { status } = await Audio.requestPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert("Permission Denied", "Microphone access required");
+        return;
+      }
+
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+      });
+
+      const { recording } = await Audio.Recording.createAsync(
+        Audio.RecordingOptionsPresets.HIGH_QUALITY
+      );
+
+      setRecording(recording);
+      setIsRecording(true);
+    } catch (err) {
+      console.error("Recording error:", err);
+      Alert.alert("Error", "Cannot start recording");
+    }
+  };
+
+  const stopRecording = async () => {
+    try {
+      setIsRecording(false);
+      await recording.stopAndUnloadAsync();
+      const uri = recording.getURI();
+      setRecording(null);
+      uploadAudio(uri);
+    } catch (err) {
+      console.error("Stop recording error:", err);
+      Alert.alert("Error", "Recording failed");
+    }
+  };
+
+  /* =========================================================
+     📤 UPLOAD AUDIO → TRANSCRIBE → AUTO-POPULATE
+     ========================================================= */
+
+  const uploadAudio = async (uri) => {
+    setLoading(true);
+    try {
+      const token = await AsyncStorage.getItem("token");
+      if (!token) {
+        Alert.alert("Auth Error", "Please login again");
+        return;
+      }
+
+      // Step 1: Transcribe
+      const formDataUpload = new FormData();
+      formDataUpload.append("file", {
+        uri,
+        name: "casesheet.m4a",
+        type: "audio/m4a",
+      });
+      formDataUpload.append("engine", "auto");
+      formDataUpload.append("language", "en");
+
+      const transcribeRes = await fetch(`${API_URL}/ai/voice-to-text`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formDataUpload,
+      });
+
+      if (!transcribeRes.ok) throw new Error("Transcription failed");
+
+      const transcribeData = await transcribeRes.json();
+      if (!transcribeData?.transcription) throw new Error("No transcription");
+
+      setTranscriptText(transcribeData.transcription);
+
+      // Step 2: Parse & Auto-populate
+      await parseTranscript(transcribeData.transcription, token);
+    } catch (err) {
+      console.error("Upload error:", err);
+      Alert.alert("Voice Error", err.message || "Unable to process voice");
+    }
+    setLoading(false);
+  };
+
+  const parseTranscript = async (text, token) => {
+    try {
+      const res = await fetch(`${API_URL}/ai/parse-transcript`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          case_sheet_id: caseId || "new",
+          transcript: text,
+          source_language: "en",
+        }),
+      });
+
+      if (!res.ok) throw new Error("Parsing failed");
+
+      const data = await res.json();
+      console.log("Parsed data:", JSON.stringify(data, null, 2));
+
+      // Auto-populate all fields
+      autoPopulate(data);
+
+      Alert.alert("✅ Success", "Case sheet auto-populated from voice!");
+    } catch (err) {
+      console.error("Parse error:", err);
+      Alert.alert("Parse Error", err.message || "Could not structure data");
+    }
+  };
+
+  /* =========================================================
+     🔄 AUTO-POPULATE FROM PARSED DATA (FIXED)
+     ========================================================= */
+
+  const autoPopulate = (data) => {
+    setFormData(prev => {
+      const updated = { ...prev };
+
+      // Patient Info
+      if (data.patient_info) {
+        const pi = data.patient_info;
+        if (pi.name) updated.patient_name = pi.name;
+        if (pi.age) updated.patient_age = String(pi.age);
+        if (pi.gender) updated.patient_sex = pi.gender;
+        if (pi.sex) updated.patient_sex = pi.sex;
+      }
+
+      // Presenting Complaint
+      if (data.presenting_complaint) {
+        const pc = data.presenting_complaint;
+        if (pc.text) updated.complaint_text = pc.text;
+        if (pc.chief_complaint) updated.complaint_text = pc.chief_complaint;
+        if (pc.duration) updated.complaint_duration = pc.duration;
+        if (pc.onset_type) updated.complaint_onset = pc.onset_type;
+      }
+
+      // Vitals
+      if (data.vitals) {
+        const v = data.vitals;
+        if (v.hr) updated.vitals_hr = String(v.hr);
+        if (v.rr) updated.vitals_rr = String(v.rr);
+        if (v.bp_systolic) updated.vitals_bp_systolic = String(v.bp_systolic);
+        if (v.bp_diastolic) updated.vitals_bp_diastolic = String(v.bp_diastolic);
+        if (v.spo2) updated.vitals_spo2 = String(v.spo2);
+        if (v.temperature) updated.vitals_temperature = String(v.temperature);
+        if (v.gcs_e) updated.vitals_gcs_e = String(v.gcs_e);
+        if (v.gcs_v) updated.vitals_gcs_v = String(v.gcs_v);
+        if (v.gcs_m) updated.vitals_gcs_m = String(v.gcs_m);
+        if (v.grbs) updated.vitals_grbs = String(v.grbs);
+      }
+
+      // History (SAMPLE)
+      if (data.history) {
+        const h = data.history;
+        if (h.hpi) updated.history_hpi = h.hpi;
+        if (h.signs_and_symptoms) updated.history_signs_symptoms = h.signs_and_symptoms;
+        if (h.allergies) {
+          updated.history_allergies = Array.isArray(h.allergies) ? h.allergies.join(", ") : h.allergies;
+        }
+        if (h.drug_history) updated.history_medications = h.drug_history;
+        if (h.medications) updated.history_medications = h.medications;
+        if (h.past_medical) {
+          updated.history_past_medical = Array.isArray(h.past_medical) ? h.past_medical.join(", ") : h.past_medical;
+        }
+        if (h.past_surgical) updated.history_past_surgical = h.past_surgical;
+        if (h.events) updated.history_events = h.events;
+        if (h.events_hopi) updated.history_events = h.events_hopi;
+      }
+
+      // Primary Assessment
+      if (data.primary_assessment) {
+        const pa = data.primary_assessment;
+        if (pa.airway_status) updated.airway_status = pa.airway_status;
+        if (pa.airway_additional_notes) updated.airway_notes = pa.airway_additional_notes;
+        if (pa.breathing_additional_notes) updated.breathing_notes = pa.breathing_additional_notes;
+        if (pa.circulation_additional_notes) updated.circulation_notes = pa.circulation_additional_notes;
+        if (pa.disability_avpu) updated.disability_avpu = pa.disability_avpu;
+      }
+
+      // Examination
+      if (data.examination) {
+        const ex = data.examination;
+        if (ex.general_notes) updated.exam_general_notes = ex.general_notes;
+        if (ex.general_pallor !== undefined) updated.exam_general_pallor = ex.general_pallor;
+        if (ex.general_icterus !== undefined) updated.exam_general_icterus = ex.general_icterus;
+        if (ex.cvs_status) updated.exam_cvs_status = ex.cvs_status;
+        if (ex.cvs_additional_notes) updated.exam_cvs_notes = ex.cvs_additional_notes;
+        if (ex.respiratory_status) updated.exam_respiratory_status = ex.respiratory_status;
+        if (ex.respiratory_additional_notes) updated.exam_respiratory_notes = ex.respiratory_additional_notes;
+        if (ex.abdomen_status) updated.exam_abdomen_status = ex.abdomen_status;
+        if (ex.abdomen_additional_notes) updated.exam_abdomen_notes = ex.abdomen_additional_notes;
+        if (ex.cns_status) updated.exam_cns_status = ex.cns_status;
+        if (ex.cns_additional_notes) updated.exam_cns_notes = ex.cns_additional_notes;
+      }
+
+      // Treatment
+      if (data.treatment) {
+        if (data.treatment.intervention_notes) updated.treatment_interventions = data.treatment.intervention_notes;
+        if (data.treatment.interventions) {
+          updated.treatment_interventions = Array.isArray(data.treatment.interventions)
+            ? data.treatment.interventions.join(", ")
+            : data.treatment.interventions;
+        }
+      }
+
+      return updated;
+    });
+  };
+
+  /* =========================================================
+     💾 SAVE CASE SHEET
+     ========================================================= */
+
+  const saveCaseSheet = async () => {
+    setSaving(true);
+    try {
+      const token = await AsyncStorage.getItem("token");
+      const user = JSON.parse(await AsyncStorage.getItem("user") || "{}");
+
+      const payload = {
+        case_type: patientType,
+        patient: {
+          name: formData.patient_name,
+          age: formData.patient_age,
+          age_unit: formData.patient_age_unit,
+          sex: formData.patient_sex,
+          phone: formData.patient_phone,
+          address: formData.patient_address,
+          uhid: formData.patient_uhid,
+          mode_of_arrival: formData.patient_mode_of_arrival,
+          brought_by: formData.patient_brought_by,
+          mlc: formData.patient_mlc,
+          arrival_datetime: new Date().toISOString(),
+          informant_name: "",
+          informant_reliability: "Reliable",
+          identification_mark: "",
+          nature_of_accident: [],
+          mechanism_of_injury: [],
+        },
+        presenting_complaint: {
+          text: formData.complaint_text,
+          duration: formData.complaint_duration,
+          onset_type: formData.complaint_onset,
+          course: "Progressive",
+        },
+        vitals_at_arrival: {
+          hr: formData.vitals_hr ? Number(formData.vitals_hr) : null,
+          rr: formData.vitals_rr ? Number(formData.vitals_rr) : null,
+          bp_systolic: formData.vitals_bp_systolic ? Number(formData.vitals_bp_systolic) : null,
+          bp_diastolic: formData.vitals_bp_diastolic ? Number(formData.vitals_bp_diastolic) : null,
+          spo2: formData.vitals_spo2 ? Number(formData.vitals_spo2) : null,
+          temperature: formData.vitals_temperature ? Number(formData.vitals_temperature) : null,
+          gcs_e: formData.vitals_gcs_e ? Number(formData.vitals_gcs_e) : null,
+          gcs_v: formData.vitals_gcs_v ? Number(formData.vitals_gcs_v) : null,
+          gcs_m: formData.vitals_gcs_m ? Number(formData.vitals_gcs_m) : null,
+          pain_score: formData.vitals_pain_score ? Number(formData.vitals_pain_score) : null,
+          grbs: formData.vitals_grbs ? Number(formData.vitals_grbs) : null,
+        },
+        primary_assessment: {
+          airway_status: formData.airway_status,
+          airway_additional_notes: formData.airway_notes,
+          breathing_work: formData.breathing_wob,
+          breathing_air_entry: [formData.breathing_air_entry],
+          breathing_additional_notes: formData.breathing_notes,
+          circulation_crt: formData.circulation_crt === "Delayed" ? 3 : 2,
+          circulation_additional_notes: formData.circulation_notes,
+          disability_avpu: formData.disability_avpu,
+          disability_pupils_size: formData.disability_pupils,
+          disability_grbs: formData.disability_grbs ? Number(formData.disability_grbs) : null,
+          exposure_temperature: formData.vitals_temperature ? Number(formData.vitals_temperature) : null,
+        },
+        pat: isPediatric ? {
+          appearance_tone: formData.pat_appearance,
+          work_of_breathing: formData.pat_work_of_breathing,
+          circulation_to_skin: formData.pat_circulation_to_skin,
+        } : null,
+        history: {
+          hpi: formData.history_hpi,
+          signs_and_symptoms: formData.history_signs_symptoms,
+          allergies: formData.history_allergies.split(",").map(s => s.trim()).filter(Boolean),
+          drug_history: formData.history_medications,
+          past_medical: formData.history_past_medical.split(",").map(s => s.trim()).filter(Boolean),
+          past_surgical: formData.history_past_surgical,
+          last_meal_lmp: formData.history_last_meal,
+          events_hopi: formData.history_events,
+          family_gyn_additional_notes: formData.history_family,
+        },
+        examination: {
+          general_pallor: formData.exam_general_pallor,
+          general_icterus: formData.exam_general_icterus,
+          general_cyanosis: formData.exam_general_cyanosis,
+          general_clubbing: formData.exam_general_clubbing,
+          general_lymphadenopathy: formData.exam_general_lymphadenopathy,
+          general_additional_notes: formData.exam_general_notes,
+          cvs_status: formData.exam_cvs_status,
+          cvs_additional_notes: formData.exam_cvs_notes,
+          respiratory_status: formData.exam_respiratory_status,
+          respiratory_additional_notes: formData.exam_respiratory_notes,
+          abdomen_status: formData.exam_abdomen_status,
+          abdomen_additional_notes: formData.exam_abdomen_notes,
+          cns_status: formData.exam_cns_status,
+          cns_additional_notes: formData.exam_cns_notes,
+          extremities_status: formData.exam_extremities_status,
+          extremities_additional_notes: formData.exam_extremities_notes,
+        },
+        treatment: {
+          intervention_notes: formData.treatment_interventions,
+          course_in_hospital: formData.treatment_course,
+          interventions: formData.treatment_interventions.split(",").map(s => s.trim()).filter(Boolean),
+        },
+        triage_priority: triage.priority ? getPriorityLevel(triage.priority) : null,
+        triage_color: triage.priority_color || null,
+        em_resident: user.name || "",
+        em_consultant: "",
+      };
+
+      let response;
+      if (caseId) {
+        response = await fetch(`${API_URL}/cases/${caseId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        });
+      } else {
+        response = await fetch(`${API_URL}/cases`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        });
+      }
+
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.detail || "Failed to save case");
+      }
+
+      const savedCase = await response.json();
+      setCaseId(savedCase.id);
+      Alert.alert("✅ Saved", "Case sheet saved successfully!");
+      return savedCase.id;
+    } catch (err) {
+      console.error("Save error:", err);
+      Alert.alert("Error", err.message || "Failed to save");
+      return null;
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  /* =========================================================
+     ➡️ PROCEED TO NEXT SCREEN (No mandatory save)
+     ========================================================= */
+
+  const proceedToInvestigations = async () => {
+    let id = caseId;
+
+    // Auto-save if patient name is filled
+    if (formData.patient_name && !caseId) {
+      id = await saveCaseSheet();
+    }
+
+    navigation.navigate("Investigations", {
+      caseId: id,
+      patientType,
+      patientName: formData.patient_name,
+      triageData: triage,
+    });
+  };
+
+  /* =========================================================
+     🧱 UI COMPONENTS (OPTIMIZED)
+     ========================================================= */
+
+  const SectionTitle = ({ icon, title }) => (
+    <View style={styles.sectionHeader}>
+      <Ionicons name={icon} size={20} color="#1e40af" />
+      <Text style={styles.sectionTitle}>{title}</Text>
+    </View>
+  );
+
+  // Optimized Input - uses onEndEditing for better performance
+  const InputField = ({ label, field, placeholder, multiline, keyboardType }) => (
+    <View style={styles.inputGroup}>
+      <Text style={styles.label}>{label}</Text>
+      <TextInput
+        style={[styles.input, multiline && styles.textArea]}
+        defaultValue={formData[field]}
+        onChangeText={(text) => updateField(field, text)}
+        placeholder={placeholder}
+        placeholderTextColor="#9ca3af"
+        multiline={multiline}
+        keyboardType={keyboardType || "default"}
+      />
+    </View>
+  );
+
+  const SelectButtons = ({ label, options, field }) => (
+    <View style={styles.inputGroup}>
+      <Text style={styles.label}>{label}</Text>
+      <View style={styles.selectRow}>
+        {options.map((opt) => (
+          <TouchableOpacity
+            key={opt}
+            style={[styles.selectBtn, formData[field] === opt && styles.selectBtnActive]}
+            onPress={() => updateField(field, opt)}
+          >
+            <Text style={[styles.selectBtnText, formData[field] === opt && styles.selectBtnTextActive]}>
+              {opt}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    </View>
+  );
+
+  const SwitchRow = ({ label, field }) => (
+    <View style={styles.switchRow}>
+      <Text style={styles.switchLabel}>{label}</Text>
+      <Switch
+        value={formData[field]}
+        onValueChange={(v) => updateField(field, v)}
+        trackColor={{ false: "#d1d5db", true: "#86efac" }}
+        thumbColor={formData[field] ? "#22c55e" : "#f4f3f4"}
+      />
+    </View>
+  );
+
+  const VitalInput = ({ label, field, placeholder }) => (
+    <View style={styles.vitalItem}>
+      <Text style={styles.vitalLabel}>{label}</Text>
+      <TextInput
+        style={styles.vitalInput}
+        defaultValue={formData[field]}
+        onChangeText={(text) => updateField(field, text)}
+        placeholder={placeholder}
+        placeholderTextColor="#9ca3af"
+        keyboardType="numeric"
+      />
+    </View>
+  );
+
+  /* =========================================================
+     🧱 MAIN UI
+     ========================================================= */
+
+  return (
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
+      <ScrollView style={styles.container} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={24} color="#1e293b" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>
+            {isPediatric ? "👶 Pediatric" : "🏥 Adult"} Case Sheet
+          </Text>
+          {triage.priority && (
+            <View style={[styles.priorityBadge, { backgroundColor: getPriorityColor(triage.priority) }]}>
+              <Text style={styles.priorityText}>{triage.priority}</Text>
+            </View>
+          )}
+        </View>
+
+        {/* Voice Recording */}
+        <TouchableOpacity
+          style={[styles.voiceBtn, isRecording && styles.voiceBtnRecording]}
+          onPress={isRecording ? stopRecording : startRecording}
+          disabled={loading}
+        >
+          <Ionicons name={isRecording ? "stop-circle" : "mic"} size={24} color="#fff" />
+          <Text style={styles.voiceText}>
+            {isRecording ? "Stop Recording" : "🎤 Dictate Full Case (Auto-Populate)"}
+          </Text>
+        </TouchableOpacity>
+
+        {transcriptText ? (
+          <View style={styles.transcriptBox}>
+            <Text style={styles.transcriptLabel}>📝 Transcript:</Text>
+            <Text style={styles.transcriptText}>{transcriptText}</Text>
+          </View>
+        ) : null}
+
+        {loading && (
+          <View style={styles.loadingBox}>
+            <ActivityIndicator size="large" color="#1976d2" />
+            <Text style={styles.loadingText}>Processing voice...</Text>
+          </View>
+        )}
+
+        {/* ==================== PATIENT INFO ==================== */}
+        <SectionTitle icon="person" title="Patient Information" />
+        <View style={styles.card}>
+          <View style={styles.row}>
+            <View style={{ flex: 2 }}>
+              <InputField label="Name" field="patient_name" placeholder="Patient name" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <InputField label="UHID" field="patient_uhid" placeholder="ID" />
+            </View>
+          </View>
+
+          <View style={styles.row}>
+            <View style={{ flex: 1 }}>
+              <InputField label="Age" field="patient_age" placeholder="Age" keyboardType="numeric" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <SelectButtons label="Sex" options={["Male", "Female"]} field="patient_sex" />
+            </View>
+          </View>
+
+          <InputField label="Phone" field="patient_phone" placeholder="Contact number" keyboardType="phone-pad" />
+
+          <SelectButtons
+            label="Mode of Arrival"
+            options={["Walk-in", "Ambulance", "Referred"]}
+            field="patient_mode_of_arrival"
+          />
+
+          <SwitchRow label="MLC (Medico-Legal Case)" field="patient_mlc" />
+        </View>
+
+        {/* ==================== PRESENTING COMPLAINT ==================== */}
+        <SectionTitle icon="alert-circle" title="Presenting Complaint" />
+        <View style={styles.card}>
+          <InputField label="Chief Complaint" field="complaint_text" placeholder="Main complaint..." multiline />
+          <View style={styles.row}>
+            <View style={{ flex: 1 }}>
+              <InputField label="Duration" field="complaint_duration" placeholder="e.g., 2 hours" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <SelectButtons label="Onset" options={["Sudden", "Gradual"]} field="complaint_onset" />
+            </View>
+          </View>
+        </View>
+
+        {/* ==================== VITALS ==================== */}
+        <SectionTitle icon="heart" title="Vitals at Arrival" />
+        <View style={styles.card}>
+          <View style={styles.vitalsGrid}>
+            <VitalInput label="HR" field="vitals_hr" placeholder="bpm" />
+            <VitalInput label="RR" field="vitals_rr" placeholder="/min" />
+            <VitalInput label="SpO₂" field="vitals_spo2" placeholder="%" />
+            <VitalInput label="Temp" field="vitals_temperature" placeholder="°C" />
+            <VitalInput label="BP Sys" field="vitals_bp_systolic" placeholder="mmHg" />
+            <VitalInput label="BP Dia" field="vitals_bp_diastolic" placeholder="mmHg" />
+          </View>
+
+          <Text style={styles.subSection}>GCS</Text>
+          <View style={styles.vitalsGrid}>
+            <VitalInput label="E" field="vitals_gcs_e" placeholder="1-4" />
+            <VitalInput label="V" field="vitals_gcs_v" placeholder="1-5" />
+            <VitalInput label="M" field="vitals_gcs_m" placeholder="1-6" />
+            <VitalInput label="Pain" field="vitals_pain_score" placeholder="0-10" />
+            <VitalInput label="GRBS" field="vitals_grbs" placeholder="mg/dL" />
+            <VitalInput label="CRT" field="vitals_capillary_refill" placeholder="sec" />
+          </View>
+        </View>
+
+        {/* ==================== PAT (Pediatric Only) ==================== */}
+        {isPediatric && (
+          <>
+            <SectionTitle icon="happy" title="PAT (Pediatric Assessment Triangle)" />
+            <View style={styles.card}>
+              <SelectButtons label="Appearance" options={["Normal", "Abnormal"]} field="pat_appearance" />
+              <SelectButtons label="Tone" options={["Normal", "Hypotonic", "Hypertonic"]} field="pat_tone" />
+              <SelectButtons label="Interactivity" options={["Normal", "Decreased", "Absent"]} field="pat_interactivity" />
+              <SelectButtons label="Consolability" options={["Consolable", "Inconsolable"]} field="pat_consolability" />
+              <SelectButtons label="Work of Breathing" options={["Normal", "Increased"]} field="pat_work_of_breathing" />
+              <SelectButtons label="Circulation to Skin" options={["Normal", "Pale", "Mottled", "Cyanotic"]} field="pat_circulation_to_skin" />
+              <SelectButtons label="Overall Impression" options={["Stable", "Sick", "Critical"]} field="pat_overall_impression" />
+            </View>
+          </>
+        )}
+
+        {/* ==================== PRIMARY ASSESSMENT (ABCDE) ==================== */}
+        <SectionTitle icon="fitness" title="Primary Assessment (ABCDE)" />
+        <View style={styles.card}>
+          <Text style={styles.subSection}>A - Airway</Text>
+          <SelectButtons label="Status" options={["Patent", "Threatened", "Compromised"]} field="airway_status" />
+          <InputField label="Notes" field="airway_notes" placeholder="Airway findings..." />
+
+          <Text style={styles.subSection}>B - Breathing</Text>
+          <SelectButtons label="Work of Breathing" options={["Normal", "Increased"]} field="breathing_wob" />
+          <SelectButtons label="Air Entry" options={["Normal", "Decreased", "Absent"]} field="breathing_air_entry" />
+          <InputField label="Notes" field="breathing_notes" placeholder="Breathing findings..." />
+
+          <Text style={styles.subSection}>C - Circulation</Text>
+          <SelectButtons label="CRT" options={["Normal", "Delayed"]} field="circulation_crt" />
+          <SelectButtons label="Skin Color" options={["Pink", "Pale", "Mottled", "Cyanosed"]} field="circulation_skin_color" />
+          <SwitchRow label="Distended Neck Veins" field="circulation_distended_neck_veins" />
+          <InputField label="Notes" field="circulation_notes" placeholder="Circulation findings..." />
+
+          <Text style={styles.subSection}>D - Disability</Text>
+          <SelectButtons label="AVPU" options={["Alert", "Verbal", "Pain", "Unresponsive"]} field="disability_avpu" />
+          <SelectButtons label="Pupils" options={["Equal, Reactive", "Unequal", "Fixed"]} field="disability_pupils" />
+          <InputField label="GRBS" field="disability_grbs" placeholder="mg/dL" keyboardType="numeric" />
+
+          <Text style={styles.subSection}>E - Exposure</Text>
+          <SwitchRow label="Trauma Signs" field="exposure_trauma" />
+          <SwitchRow label="Long Bone Deformity" field="exposure_long_bone_deformity" />
+          <SwitchRow label="EFAST Done" field="efast_done" />
+          {formData.efast_done && (
+            <InputField label="EFAST Findings" field="efast_notes" placeholder="EFAST results..." />
+          )}
+        </View>
+
+        {/* ==================== HISTORY (SAMPLE) ==================== */}
+        <SectionTitle icon="document-text" title="History (SAMPLE)" />
+        <View style={styles.card}>
+          <InputField label="History of Present Illness" field="history_hpi" placeholder="Detailed history..." multiline />
+          <InputField label="Signs & Symptoms" field="history_signs_symptoms" placeholder="Associated symptoms..." />
+          <InputField label="Allergies" field="history_allergies" placeholder="NKDA or list allergies" />
+          <InputField label="Medications" field="history_medications" placeholder="Current medications..." />
+          <InputField label="Past Medical History" field="history_past_medical" placeholder="DM, HTN, Asthma..." />
+          <InputField label="Past Surgical History" field="history_past_surgical" placeholder="Previous surgeries..." />
+          <InputField label="Last Meal / LMP" field="history_last_meal" placeholder="Time of last meal" />
+          <InputField label="Events" field="history_events" placeholder="Events leading to presentation..." multiline />
+        </View>
+
+        {/* ==================== TREATMENT ==================== */}
+        <SectionTitle icon="medkit" title="Treatment / Interventions" />
+        <View style={styles.card}>
+          <InputField label="Interventions Done" field="treatment_interventions" placeholder="IV access, medications, procedures..." multiline />
+        </View>
+
+        {/* ==================== ACTION BUTTONS ==================== */}
+        <View style={styles.actionRow}>
+          <TouchableOpacity
+            style={[styles.saveBtn, saving && styles.btnDisabled]}
+            onPress={saveCaseSheet}
+            disabled={saving}
+          >
+            {saving ? <ActivityIndicator color="#fff" /> : (
+              <>
+                <Ionicons name="save" size={20} color="#fff" />
+                <Text style={styles.btnText}>Save</Text>
+              </>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.nextBtn, loading && styles.btnDisabled]}
+            onPress={proceedToInvestigations}
+            disabled={loading}
+          >
+            <Text style={styles.btnText}>Investigations</Text>
+            <Ionicons name="arrow-forward" size={20} color="#fff" />
+          </TouchableOpacity>
+        </View>
+
+        <View style={{ height: 40 }} />
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+}
+
+/* =========================================================
+   🎨 HELPERS
+   ========================================================= */
+
+const getPriorityColor = (priority) => {
+  switch (priority) {
+    case "RED": return "#ef4444";
+    case "ORANGE": return "#f97316";
+    case "YELLOW": return "#eab308";
+    case "GREEN": return "#22c55e";
+    case "BLUE": return "#3b82f6";
+    default: return "#6b7280";
+  }
+};
+
+const getPriorityLevel = (priority) => {
+  switch (priority) {
+    case "RED": return 1;
+    case "ORANGE": return 2;
+    case "YELLOW": return 3;
+    case "GREEN": return 4;
+    case "BLUE": return 5;
+    default: return 4;
+  }
+};
+
+/* =========================================================
+   🎨 STYLES
+   ========================================================= */
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#f8fafc",
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 16,
+    backgroundColor: "#fff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e2e8f0",
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#1e293b",
+  },
+  priorityBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  priorityText: {
+    color: "#fff",
+    fontWeight: "700",
+    fontSize: 11,
+  },
+  voiceBtn: {
+    backgroundColor: "#1976d2",
+    margin: 16,
+    padding: 16,
+    borderRadius: 12,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 10,
+  },
+  voiceBtnRecording: {
+    backgroundColor: "#dc2626",
+  },
+  voiceText: {
+    color: "#fff",
+    fontWeight: "700",
+    fontSize: 15,
+  },
+  transcriptBox: {
+    backgroundColor: "#f0f9ff",
+    marginHorizontal: 16,
+    padding: 12,
+    borderRadius: 10,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#bae6fd",
+  },
+  transcriptLabel: {
+    fontWeight: "700",
+    color: "#0369a1",
+    marginBottom: 4,
+  },
+  transcriptText: {
+    color: "#0c4a6e",
+    fontSize: 13,
+  },
+  loadingBox: {
+    alignItems: "center",
+    padding: 16,
+  },
+  loadingText: {
+    marginTop: 8,
+    color: "#64748b",
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 8,
+  },
+  sectionTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#1e40af",
+  },
+  subSection: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#475569",
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  card: {
+    backgroundColor: "#fff",
+    marginHorizontal: 16,
+    marginBottom: 8,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+  },
+  row: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  inputGroup: {
+    marginBottom: 12,
+  },
+  label: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#475569",
+    marginBottom: 6,
+  },
+  input: {
+    backgroundColor: "#f8fafc",
+    padding: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    fontSize: 14,
+    color: "#1e293b",
+  },
+  textArea: {
+    minHeight: 80,
+    textAlignVertical: "top",
+  },
+  selectRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  selectBtn: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    backgroundColor: "#f1f5f9",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+  },
+  selectBtnActive: {
+    backgroundColor: "#2563eb",
+    borderColor: "#2563eb",
+  },
+  selectBtnText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#475569",
+  },
+  selectBtnTextActive: {
+    color: "#fff",
+  },
+  switchRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 8,
+  },
+  switchLabel: {
+    fontSize: 13,
+    color: "#475569",
+  },
+  vitalsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+  },
+  vitalItem: {
+    width: "30%",
+  },
+  vitalLabel: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "#64748b",
+    marginBottom: 4,
+    textAlign: "center",
+  },
+  vitalInput: {
+    backgroundColor: "#f8fafc",
+    padding: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    textAlign: "center",
+    fontSize: 15,
+    fontWeight: "600",
+  },
+  actionRow: {
+    flexDirection: "row",
+    gap: 12,
+    padding: 16,
+  },
+  saveBtn: {
+    flex: 1,
+    backgroundColor: "#64748b",
+    padding: 16,
+    borderRadius: 12,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 8,
+  },
+  nextBtn: {
+    flex: 2,
+    backgroundColor: "#16a34a",
+    padding: 16,
+    borderRadius: 12,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 8,
+  },
+  btnDisabled: {
+    opacity: 0.6,
+  },
+  btnText: {
+    color: "#fff",
+    fontWeight: "700",
+    fontSize: 15,
+  },
+});
+
+
+========================================
+📄 2. HomeScreen.js
+========================================
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  RefreshControl,
+  ActivityIndicator,
+  Alert,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect } from "@react-navigation/native";
+
+const API_URL = "https://er-emr-backend.onrender.com/api";
+
+export default function HomeScreen({ navigation }) {
+  const [user, setUser] = useState(null);
+  const [recentCases, setRecentCases] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Load user and cases when screen focuses
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [])
+  );
+
+  const loadData = async () => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      const userData = await AsyncStorage.getItem("user");
+
+      if (!token) {
+        navigation.replace("Login");
+        return;
+      }
+
+      if (userData) {
+        setUser(JSON.parse(userData));
+      }
+
+      // Fetch recent cases
+      await fetchRecentCases(token);
+    } catch (err) {
+      console.error("Load data error:", err);
+    }
+    setLoading(false);
+  };
+
+  const fetchRecentCases = async (token) => {
+    try {
+      const res = await fetch(`${API_URL}/cases`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!res.ok) throw new Error("Failed to fetch cases");
+
+      const data = await res.json();
+
+      // Sort by created_at descending and take last 24 hours for institutional
+      const now = new Date();
+      const twentyFourHoursAgo = new Date(now - 24 * 60 * 60 * 1000);
+
+      let filteredCases = data;
+
+      // For institutional users, show all cases from last 24 hours
+      // For individual users, show their own cases
+      if (user?.user_type === "institutional" && user?.hospital_id) {
+        filteredCases = data.filter((c) => {
+          const createdAt = new Date(c.created_at);
+          return createdAt >= twentyFourHoursAgo;
+        });
+      }
+
+      // Sort by most recent first
+      filteredCases.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+      setRecentCases(filteredCases.slice(0, 20)); // Show last 20 cases
+    } catch (err) {
+      console.error("Fetch cases error:", err);
+    }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    const token = await AsyncStorage.getItem("token");
+    await fetchRecentCases(token);
+    setRefreshing(false);
+  };
+
+  const openCase = (caseItem) => {
+    navigation.navigate("CaseSheet", {
+      caseId: caseItem.id,
+      patientType: caseItem.case_type || "adult",
+    });
+  };
+
+  const getPriorityColor = (level) => {
+    switch (level) {
+      case 1: return "#ef4444"; // RED
+      case 2: return "#f97316"; // ORANGE
+      case 3: return "#eab308"; // YELLOW
+      case 4: return "#22c55e"; // GREEN
+      case 5: return "#3b82f6"; // BLUE
+      default: return "#6b7280";
+    }
+  };
+
+  const getPriorityName = (level) => {
+    switch (level) {
+      case 1: return "RED";
+      case 2: return "ORANGE";
+      case 3: return "YELLOW";
+      case 4: return "GREEN";
+      case 5: return "BLUE";
+      default: return "N/A";
+    }
+  };
+
+  const formatTime = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    return date.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#007AFF" />
+        <Text style={styles.loadingText}>Loading...</Text>
+      </View>
+    );
+  }
+
+  return (
+    <ScrollView
+      style={styles.container}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+    >
+      {/* Header */}
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.greeting}>Welcome back,</Text>
+          <Text style={styles.userName}>Dr. {user?.name || "User"}</Text>
+        </View>
+        <TouchableOpacity onPress={() => navigation.navigate("Profile")}>
+          <View style={styles.avatarCircle}>
+            <Ionicons name="person" size={24} color="#007AFF" />
+          </View>
+        </TouchableOpacity>
+      </View>
+
+      {/* Institutional Badge */}
+      {user?.user_type === "institutional" && (
+        <View style={styles.institutionalBadge}>
+          <Ionicons name="business" size={16} color="#0369a1" />
+          <Text style={styles.institutionalText}>
+            {user?.hospital_name || "Institution"} • Shared Dashboard (24h)
+          </Text>
+        </View>
+      )}
+
+      {/* Quick Actions */}
+      <Text style={styles.sectionTitle}>Quick Actions</Text>
+      <View style={styles.quickActions}>
+        <TouchableOpacity
+          style={[styles.actionCard, { backgroundColor: "#fee2e2" }]}
+          onPress={() => navigation.navigate("Triage")}
+        >
+          <Ionicons name="pulse" size={32} color="#dc2626" />
+          <Text style={styles.actionTitle}>🚑 New Triage</Text>
+          <Text style={styles.actionSubtitle}>Start patient assessment</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.actionCard, { backgroundColor: "#dbeafe" }]}
+          onPress={() => navigation.navigate("CaseSheet", { patientType: "adult" })}
+        >
+          <Ionicons name="document-text" size={32} color="#2563eb" />
+          <Text style={styles.actionTitle}>📄 New Case</Text>
+          <Text style={styles.actionSubtitle}>Direct case entry</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.quickActions}>
+        <TouchableOpacity
+          style={[styles.actionCard, { backgroundColor: "#fef3c7" }]}
+          onPress={() => navigation.navigate("CaseSheet", { patientType: "pediatric" })}
+        >
+          <Ionicons name="happy" size={32} color="#d97706" />
+          <Text style={styles.actionTitle}>👶 Pediatric</Text>
+          <Text style={styles.actionSubtitle}>Child case sheet</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.actionCard, { backgroundColor: "#d1fae5" }]}
+          onPress={() => navigation.navigate("Logs")}
+        >
+          <Ionicons name="list" size={32} color="#059669" />
+          <Text style={styles.actionTitle}>📝 All Cases</Text>
+          <Text style={styles.actionSubtitle}>View history</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Recent Patients */}
+      <View style={styles.recentHeader}>
+        <Text style={styles.sectionTitle}>Recent Patients</Text>
+        <TouchableOpacity onPress={() => navigation.navigate("Logs")}>
+          <Text style={styles.seeAll}>See All →</Text>
+        </TouchableOpacity>
+      </View>
+
+      {recentCases.length === 0 ? (
+        <View style={styles.emptyState}>
+          <Ionicons name="folder-open-outline" size={48} color="#cbd5e1" />
+          <Text style={styles.emptyText}>No cases yet</Text>
+          <Text style={styles.emptySubtext}>Start a new triage to see patients here</Text>
+        </View>
+      ) : (
+        recentCases.map((item) => (
+          <TouchableOpacity
+            key={item.id}
+            style={styles.patientCard}
+            onPress={() => openCase(item)}
+          >
+            <View style={styles.patientLeft}>
+              <View
+                style={[
+                  styles.priorityDot,
+                  { backgroundColor: getPriorityColor(item.triage_priority) },
+                ]}
+              />
+              <View>
+                <Text style={styles.patientName}>
+                  {item.patient?.name || "Unknown Patient"}
+                </Text>
+                <Text style={styles.patientInfo}>
+                  {item.patient?.age || "?"} {item.patient?.sex?.[0] || ""} •{" "}
+                  {item.presenting_complaint?.text?.substring(0, 30) || "No complaint"}
+                  {item.presenting_complaint?.text?.length > 30 ? "..." : ""}
+                </Text>
+                <Text style={styles.patientMeta}>
+                  {item.case_type === "pediatric" ? "👶 Pediatric" : "🏥 Adult"} •{" "}
+                  {formatTime(item.created_at)}
+                </Text>
+              </View>
+            </View>
+            <View style={styles.patientRight}>
+              <View
+                style={[
+                  styles.priorityBadge,
+                  { backgroundColor: getPriorityColor(item.triage_priority) },
+                ]}
+              >
+                <Text style={styles.priorityText}>
+                  {getPriorityName(item.triage_priority)}
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#94a3b8" />
+            </View>
+          </TouchableOpacity>
+        ))
+      )}
+
+      {/* Stats Row */}
+      <View style={styles.statsRow}>
+        <View style={styles.statCard}>
+          <Text style={styles.statNumber}>{recentCases.length}</Text>
+          <Text style={styles.statLabel}>Total Cases</Text>
+        </View>
+        <View style={styles.statCard}>
+          <Text style={styles.statNumber}>
+            {recentCases.filter((c) => c.triage_priority === 1 || c.triage_priority === 2).length}
+          </Text>
+          <Text style={styles.statLabel}>Critical</Text>
+        </View>
+        <View style={styles.statCard}>
+          <Text style={styles.statNumber}>
+            {recentCases.filter((c) => c.status === "completed" || c.status === "discharged").length}
+          </Text>
+          <Text style={styles.statLabel}>Discharged</Text>
+        </View>
+      </View>
+
+      <View style={{ height: 30 }} />
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#f8fafc",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#f8fafc",
+  },
+  loadingText: {
+    marginTop: 12,
+    color: "#64748b",
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 20,
+    paddingTop: 50,
+    backgroundColor: "#fff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e2e8f0",
+  },
+  greeting: {
+    fontSize: 14,
+    color: "#64748b",
+  },
+  userName: {
+    fontSize: 22,
+    fontWeight: "800",
+    color: "#1e293b",
+  },
+  avatarCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "#eff6ff",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "#007AFF",
+  },
+  institutionalBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#e0f2fe",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    gap: 8,
+  },
+  institutionalText: {
+    color: "#0369a1",
+    fontWeight: "600",
+    fontSize: 13,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1e293b",
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 12,
+  },
+  quickActions: {
+    flexDirection: "row",
+    paddingHorizontal: 16,
+    gap: 12,
+  },
+  actionCard: {
+    flex: 1,
+    padding: 16,
+    borderRadius: 16,
+    marginBottom: 12,
+  },
+  actionTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#1e293b",
+    marginTop: 8,
+  },
+  actionSubtitle: {
+    fontSize: 12,
+    color: "#64748b",
+    marginTop: 2,
+  },
+  recentHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingRight: 20,
+  },
+  seeAll: {
+    color: "#007AFF",
+    fontWeight: "600",
+    fontSize: 14,
+  },
+  emptyState: {
+    alignItems: "center",
+    padding: 40,
+  },
+  emptyText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#94a3b8",
+    marginTop: 12,
+  },
+  emptySubtext: {
+    fontSize: 13,
+    color: "#cbd5e1",
+    marginTop: 4,
+  },
+  patientCard: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    marginHorizontal: 16,
+    marginBottom: 10,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+  },
+  patientLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  priorityDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginRight: 12,
+  },
+  patientName: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#1e293b",
+  },
+  patientInfo: {
+    fontSize: 13,
+    color: "#64748b",
+    marginTop: 2,
+  },
+  patientMeta: {
+    fontSize: 11,
+    color: "#94a3b8",
+    marginTop: 4,
+  },
+  patientRight: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  priorityBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  priorityText: {
+    color: "#fff",
+    fontWeight: "700",
+    fontSize: 10,
+  },
+  statsRow: {
+    flexDirection: "row",
+    paddingHorizontal: 16,
+    gap: 12,
+    marginTop: 8,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: "#fff",
+    padding: 16,
+    borderRadius: 12,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+  },
+  statNumber: {
+    fontSize: 24,
+    fontWeight: "800",
+    color: "#1e293b",
+  },
+  statLabel: {
+    fontSize: 12,
+    color: "#64748b",
+    marginTop: 4,
+  },
+});
+
+
+========================================
+📄 3. ProfileScreen.js
+========================================
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  ActivityIndicator,
+  Alert,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+const API_URL = "https://er-emr-backend.onrender.com/api";
+
+export default function ProfileScreen({ navigation }) {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch user profile
+  const getProfile = async () => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      if (!token) {
+        navigation.replace("Login");
+        return;
+      }
+
+      const res = await fetch(`${API_URL}/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to fetch profile");
+      }
+
+      const data = await res.json();
+      setUser(data);
+    } catch (err) {
+      console.log("PROFILE ERROR:", err);
+      Alert.alert("Error", "Failed to load profile");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    getProfile();
+  }, []);
+
+  const handleLogout = async () => {
+    Alert.alert(
+      "Logout",
+      "Are you sure you want to logout?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Logout",
+          style: "destructive",
+          onPress: async () => {
+            await AsyncStorage.removeItem("token");
+            await AsyncStorage.removeItem("user");
+            navigation.replace("Login");
+          },
+        },
+      ]
+    );
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color="#007AFF" />
+      </View>
+    );
+  }
+
+  if (!user) {
+    return (
+      <View style={styles.center}>
+        <Text style={styles.errorText}>Unable to load profile</Text>
+        <TouchableOpacity style={styles.retryBtn} onPress={getProfile}>
+          <Text style={styles.retryBtnText}>Retry</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  return (
+    <ScrollView contentContainerStyle={styles.container}>
+      {/* Profile Card */}
+      <View style={styles.card}>
+        <Ionicons name="person-circle-outline" size={80} color="#007AFF" />
+        <Text style={styles.name}>{user.name}</Text>
+        <Text style={styles.email}>{user.email}</Text>
+        <View style={styles.badgeRow}>
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{(user.subscription_tier || "FREE").toUpperCase()}</Text>
+          </View>
+          <View style={[styles.badge, { backgroundColor: "#22c55e" }]}>
+            <Text style={styles.badgeText}>{(user.role || "Resident").toUpperCase()}</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Professional Details */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Professional Details</Text>
+        <DetailRow icon="call-outline" label="Mobile" value={user.mobile || "Not added"} />
+        <DetailRow icon="briefcase-outline" label="Specialization" value={user.specialization || "Not added"} />
+        <DetailRow icon="medkit-outline" label="License No" value={user.medical_license_number || "Not added"} />
+        <DetailRow icon="id-card-outline" label="User Type" value={(user.user_type || "Individual").toUpperCase()} />
+      </View>
+
+      {/* Hospital Details */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Hospital / Institution</Text>
+        <DetailRow icon="business-outline" label="Hospital" value={user.hospital_name || "Not linked"} />
+        {user.hospital_id && (
+          <DetailRow icon="key-outline" label="Hospital ID" value={user.hospital_id.substring(0, 8) + "..."} />
+        )}
+      </View>
+
+      {/* Subscription Status */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Subscription</Text>
+        <DetailRow icon="card-outline" label="Plan" value={(user.subscription_tier || "Free").toUpperCase()} />
+        <DetailRow
+          icon="checkmark-circle-outline"
+          label="Status"
+          value={(user.subscription_status || "Active").toUpperCase()}
+        />
+      </View>
+
+      {/* Buttons */}
+      <TouchableOpacity
+        style={styles.btn}
+        onPress={() => navigation.navigate("EditProfile")}
+      >
+        <Ionicons name="create-outline" size={20} color="#fff" />
+        <Text style={styles.btnText}>Edit Profile</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.btn}
+        onPress={() => navigation.navigate("Settings")}
+      >
+        <Ionicons name="settings-outline" size={20} color="#fff" />
+        <Text style={styles.btnText}>Settings</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[styles.btn, styles.logoutBtn]}
+        onPress={handleLogout}
+      >
+        <Ionicons name="log-out-outline" size={20} color="#fff" />
+        <Text style={styles.btnText}>Logout</Text>
+      </TouchableOpacity>
+
+      <View style={{ height: 30 }} />
+    </ScrollView>
+  );
+}
+
+// Helper component
+function DetailRow({ icon, label, value }) {
+  return (
+    <View style={styles.row}>
+      <Ionicons name={icon} size={22} color="#007AFF" />
+      <Text style={styles.rowLabel}>{label}</Text>
+      <Text style={styles.rowValue}>{value}</Text>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 20,
+    paddingBottom: 40,
+    backgroundColor: "#f8fafc",
+  },
+  center: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#f8fafc",
+  },
+  errorText: {
+    fontSize: 16,
+    color: "#ef4444",
+    marginBottom: 16,
+  },
+  retryBtn: {
+    backgroundColor: "#007AFF",
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  retryBtnText: {
+    color: "#fff",
+    fontWeight: "600",
+  },
+  card: {
+    backgroundColor: "#fff",
+    padding: 25,
+    borderRadius: 20,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 5,
+    marginBottom: 25,
+  },
+  name: {
+    fontSize: 24,
+    fontWeight: "700",
+    marginTop: 10,
+    color: "#1e293b",
+  },
+  email: {
+    fontSize: 15,
+    color: "#64748b",
+  },
+  badgeRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 12,
+  },
+  badge: {
+    backgroundColor: "#007AFF",
+    paddingHorizontal: 15,
+    paddingVertical: 5,
+    borderRadius: 10,
+  },
+  badgeText: {
+    color: "white",
+    fontWeight: "700",
+    fontSize: 12,
+  },
+  section: {
+    marginBottom: 20,
+    backgroundColor: "#fff",
+    padding: 15,
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    marginBottom: 12,
+    color: "#1e293b",
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f1f5f9",
+  },
+  rowLabel: {
+    flex: 1,
+    marginLeft: 10,
+    fontWeight: "600",
+    color: "#475569",
+  },
+  rowValue: {
+    flex: 1,
+    textAlign: "right",
+    color: "#1e293b",
+  },
+  btn: {
+    backgroundColor: "#007AFF",
+    padding: 16,
+    borderRadius: 12,
+    marginTop: 12,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 8,
+  },
+  logoutBtn: {
+    backgroundColor: "#ef4444",
+  },
+  btnText: {
+    color: "white",
+    fontWeight: "700",
+    fontSize: 16,
+  },
+});
+
+
+========================================
+📄 4. LogsScreen.js
+========================================
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  RefreshControl,
+  ActivityIndicator,
+  TextInput,
+  Alert,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect } from "@react-navigation/native";
+
+const API_URL = "https://er-emr-backend.onrender.com/api";
+
+export default function LogsScreen({ navigation }) {
+  const [cases, setCases] = useState([]);
+  const [filteredCases, setFilteredCases] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterPriority, setFilterPriority] = useState("all");
+  const [user, setUser] = useState(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadCases();
+    }, [])
+  );
+
+  const loadCases = async () => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      const userData = await AsyncStorage.getItem("user");
+
+      if (!token) {
+        navigation.replace("Login");
+        return;
+      }
+
+      if (userData) {
+        setUser(JSON.parse(userData));
+      }
+
+      const res = await fetch(`${API_URL}/cases`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!res.ok) throw new Error("Failed to fetch cases");
+
+      const data = await res.json();
+
+      // Sort by most recent first
+      data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+      setCases(data);
+      setFilteredCases(data);
+    } catch (err) {
+      console.error("Load cases error:", err);
+      Alert.alert("Error", "Failed to load cases");
+    }
+    setLoading(false);
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadCases();
+    setRefreshing(false);
+  };
+
+  // Filter cases based on search and priority
+  useEffect(() => {
+    let result = cases;
+
+    // Filter by priority
+    if (filterPriority !== "all") {
+      const priorityMap = { red: 1, orange: 2, yellow: 3, green: 4, blue: 5 };
+      result = result.filter((c) => c.triage_priority === priorityMap[filterPriority]);
+    }
+
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(
+        (c) =>
+          c.patient?.name?.toLowerCase().includes(query) ||
+          c.patient?.uhid?.toLowerCase().includes(query) ||
+          c.presenting_complaint?.text?.toLowerCase().includes(query)
+      );
+    }
+
+    setFilteredCases(result);
+  }, [searchQuery, filterPriority, cases]);
+
+  const openCase = (caseItem) => {
+    navigation.navigate("CaseSheet", {
+      caseId: caseItem.id,
+      patientType: caseItem.case_type || "adult",
+    });
+  };
+
+  const goToDischarge = (caseItem) => {
+    navigation.navigate("DischargeSummary", {
+      caseId: caseItem.id,
+    });
+  };
+
+  const getPriorityColor = (level) => {
+    switch (level) {
+      case 1: return "#ef4444";
+      case 2: return "#f97316";
+      case 3: return "#eab308";
+      case 4: return "#22c55e";
+      case 5: return "#3b82f6";
+      default: return "#6b7280";
+    }
+  };
+
+  const getPriorityName = (level) => {
+    switch (level) {
+      case 1: return "RED";
+      case 2: return "ORANGE";
+      case 3: return "YELLOW";
+      case 4: return "GREEN";
+      case 5: return "BLUE";
+      default: return "N/A";
+    }
+  };
+
+  const formatDateTime = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return date.toLocaleString("en-IN", {
+      day: "numeric",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#007AFF" />
+        <Text style={styles.loadingText}>Loading cases...</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={24} color="#1e293b" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Case Logs</Text>
+        <TouchableOpacity onPress={onRefresh}>
+          <Ionicons name="refresh" size={24} color="#007AFF" />
+        </TouchableOpacity>
+      </View>
+
+      {/* Institutional Badge */}
+      {user?.user_type === "institutional" && (
+        <View style={styles.institutionalBadge}>
+          <Ionicons name="business" size={16} color="#0369a1" />
+          <Text style={styles.institutionalText}>
+            Showing all cases from {user?.hospital_name || "your institution"}
+          </Text>
+        </View>
+      )}
+
+      {/* Search Bar */}
+      <View style={styles.searchContainer}>
+        <Ionicons name="search" size={20} color="#94a3b8" />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search by name, UHID, or complaint..."
+          placeholderTextColor="#94a3b8"
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+        {searchQuery.length > 0 && (
+          <TouchableOpacity onPress={() => setSearchQuery("")}>
+            <Ionicons name="close-circle" size={20} color="#94a3b8" />
+          </TouchableOpacity>
+        )}
+      </View>
+
+      {/* Priority Filters */}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterRow}>
+        {["all", "red", "orange", "yellow", "green", "blue"].map((priority) => (
+          <TouchableOpacity
+            key={priority}
+            style={[
+              styles.filterChip,
+              filterPriority === priority && styles.filterChipActive,
+              priority !== "all" && { borderColor: getPriorityColor(["red", "orange", "yellow", "green", "blue"].indexOf(priority) + 1) },
+            ]}
+            onPress={() => setFilterPriority(priority)}
+          >
+            <Text
+              style={[
+                styles.filterChipText,
+                filterPriority === priority && styles.filterChipTextActive,
+              ]}
+            >
+              {priority === "all" ? "All" : priority.toUpperCase()}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+
+      {/* Stats */}
+      <View style={styles.statsBar}>
+        <Text style={styles.statsText}>
+          Showing {filteredCases.length} of {cases.length} cases
+        </Text>
+      </View>
+
+      {/* Cases List */}
+      <ScrollView
+        style={styles.listContainer}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      >
+        {filteredCases.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Ionicons name="folder-open-outline" size={48} color="#cbd5e1" />
+            <Text style={styles.emptyText}>No cases found</Text>
+            <Text style={styles.emptySubtext}>Try adjusting your filters</Text>
+          </View>
+        ) : (
+          filteredCases.map((item) => (
+            <TouchableOpacity
+              key={item.id}
+              style={styles.caseCard}
+              onPress={() => openCase(item)}
+            >
+              <View style={styles.caseHeader}>
+                <View style={styles.caseLeft}>
+                  <View
+                    style={[
+                      styles.priorityBar,
+                      { backgroundColor: getPriorityColor(item.triage_priority) },
+                    ]}
+                  />
+                  <View style={styles.caseInfo}>
+                    <Text style={styles.patientName}>
+                      {item.patient?.name || "Unknown Patient"}
+                    </Text>
+                    <Text style={styles.patientDetails}>
+                      {item.patient?.age || "?"} • {item.patient?.sex || "?"} •{" "}
+                      {item.patient?.uhid || "No UHID"}
+                    </Text>
+                  </View>
+                </View>
+                <View
+                  style={[
+                    styles.priorityBadge,
+                    { backgroundColor: getPriorityColor(item.triage_priority) },
+                  ]}
+                >
+                  <Text style={styles.priorityText}>
+                    {getPriorityName(item.triage_priority)}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.caseBody}>
+                <Text style={styles.complaintLabel}>Chief Complaint:</Text>
+                <Text style={styles.complaintText} numberOfLines={2}>
+                  {item.presenting_complaint?.text || "No complaint recorded"}
+                </Text>
+              </View>
+
+              <View style={styles.caseFooter}>
+                <View style={styles.metaRow}>
+                  <Ionicons name="time-outline" size={14} color="#94a3b8" />
+                  <Text style={styles.metaText}>{formatDateTime(item.created_at)}</Text>
+                </View>
+                <View style={styles.metaRow}>
+                  <Ionicons
+                    name={item.case_type === "pediatric" ? "happy-outline" : "person-outline"}
+                    size={14}
+                    color="#94a3b8"
+                  />
+                  <Text style={styles.metaText}>
+                    {item.case_type === "pediatric" ? "Pediatric" : "Adult"}
+                  </Text>
+                </View>
+                <View style={styles.metaRow}>
+                  <View
+                    style={[
+                      styles.statusDot,
+                      {
+                        backgroundColor:
+                          item.status === "completed" || item.status === "discharged"
+                            ? "#22c55e"
+                            : "#f59e0b",
+                      },
+                    ]}
+                  />
+                  <Text style={styles.metaText}>
+                    {item.status === "completed" || item.status === "discharged"
+                      ? "Completed"
+                      : "In Progress"}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Quick Actions */}
+              <View style={styles.quickActions}>
+                <TouchableOpacity
+                  style={styles.quickBtn}
+                  onPress={() => openCase(item)}
+                >
+                  <Ionicons name="document-text-outline" size={16} color="#007AFF" />
+                  <Text style={styles.quickBtnText}>View Case</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.quickBtn}
+                  onPress={() => goToDischarge(item)}
+                >
+                  <Ionicons name="exit-outline" size={16} color="#16a34a" />
+                  <Text style={[styles.quickBtnText, { color: "#16a34a" }]}>Discharge</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+          ))
+        )}
+
+        <View style={{ height: 30 }} />
+      </ScrollView>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#f8fafc",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#f8fafc",
+  },
+  loadingText: {
+    marginTop: 12,
+    color: "#64748b",
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 16,
+    paddingTop: 50,
+    backgroundColor: "#fff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e2e8f0",
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#1e293b",
+  },
+  institutionalBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#e0f2fe",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    gap: 8,
+  },
+  institutionalText: {
+    color: "#0369a1",
+    fontWeight: "600",
+    fontSize: 13,
+  },
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    marginHorizontal: 16,
+    marginTop: 16,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+  },
+  searchInput: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    fontSize: 14,
+    color: "#1e293b",
+  },
+  filterRow: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  filterChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: "#fff",
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+  },
+  filterChipActive: {
+    backgroundColor: "#1e293b",
+    borderColor: "#1e293b",
+  },
+  filterChipText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#64748b",
+  },
+  filterChipTextActive: {
+    color: "#fff",
+  },
+  statsBar: {
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+  },
+  statsText: {
+    fontSize: 12,
+    color: "#94a3b8",
+  },
+  listContainer: {
+    flex: 1,
+    paddingHorizontal: 16,
+  },
+  emptyState: {
+    alignItems: "center",
+    paddingVertical: 60,
+  },
+  emptyText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#94a3b8",
+    marginTop: 12,
+  },
+  emptySubtext: {
+    fontSize: 13,
+    color: "#cbd5e1",
+    marginTop: 4,
+  },
+  caseCard: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    overflow: "hidden",
+  },
+  caseHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f1f5f9",
+  },
+  caseLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  priorityBar: {
+    width: 4,
+    height: 40,
+    borderRadius: 2,
+    marginRight: 12,
+  },
+  caseInfo: {
+    flex: 1,
+  },
+  patientName: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#1e293b",
+  },
+  patientDetails: {
+    fontSize: 12,
+    color: "#64748b",
+    marginTop: 2,
+  },
+  priorityBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  priorityText: {
+    color: "#fff",
+    fontWeight: "700",
+    fontSize: 10,
+  },
+  caseBody: {
+    padding: 12,
+  },
+  complaintLabel: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "#94a3b8",
+    marginBottom: 4,
+  },
+  complaintText: {
+    fontSize: 13,
+    color: "#475569",
+    lineHeight: 18,
+  },
+  caseFooter: {
+    flexDirection: "row",
+    paddingHorizontal: 12,
+    paddingBottom: 8,
+    gap: 16,
+  },
+  metaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  metaText: {
+    fontSize: 11,
+    color: "#94a3b8",
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  quickActions: {
+    flexDirection: "row",
+    borderTopWidth: 1,
+    borderTopColor: "#f1f5f9",
+  },
+  quickBtn: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 12,
+    gap: 6,
+  },
+  quickBtnText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#007AFF",
+  },
+});
+
+
+========================================
+📄 5. DischargeSummaryScreen.js
+========================================
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
+  TextInput,
+  Alert,
+  Share,
+  Platform,
+} from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Print from "expo-print";
+import * as Sharing from "expo-sharing";
+
+const API_URL = "https://er-emr-backend.onrender.com/api";
+
+export default function DischargeSummaryScreen({ route, navigation }) {
+  const { caseId } = route.params;
+
+  const [caseData, setCaseData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  
+  // Editable discharge-specific fields
+  const [dischargeData, setDischargeData] = useState({
+    discharge_medications: "",
+    disposition_type: "Normal Discharge",
+    condition_at_discharge: "STABLE",
+    discharge_vitals: { hr: "", bp: "", rr: "", spo2: "", gcs: "", pain_score: "", grbs: "", temp: "" },
+    follow_up_advice: "",
+    ed_resident: "",
+    ed_consultant: "",
+  });
+
+  useEffect(() => {
+    loadCaseData();
+  }, []);
+
+  const loadCaseData = async () => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+
+      // Fetch full case data
+      const res = await fetch(`${API_URL}/cases/${caseId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to fetch case data");
+      }
+
+      const data = await res.json();
+      setCaseData(data);
+
+      // Pre-fill editable fields from case data
+      setDischargeData((prev) => ({
+        ...prev,
+        ed_resident: data.em_resident || "",
+        ed_consultant: data.em_consultant || "",
+        discharge_medications: data.treatment?.medications || "",
+        follow_up_advice: data.disposition?.advice || "",
+        condition_at_discharge: data.disposition?.condition_at_discharge || "STABLE",
+        disposition_type: mapDispositionType(data.disposition?.type),
+      }));
+    } catch (err) {
+      console.log("DISCHARGE ERROR:", err);
+      Alert.alert("Error", "Unable to load case data");
+    }
+    setLoading(false);
+  };
+
+  const mapDispositionType = (type) => {
+    const map = {
+      discharged: "Normal Discharge",
+      dama: "Discharge Against Medical Advice",
+      referred: "Referred",
+    };
+    return map[type] || "Normal Discharge";
+  };
+
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+      const token = await AsyncStorage.getItem("token");
+
+      const res = await fetch(`${API_URL}/discharge/${caseId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(dischargeData),
+      });
+
+      if (res.ok) {
+        Alert.alert("Success", "Discharge summary saved");
+      } else {
+        Alert.alert("Error", "Failed to save discharge summary");
+      }
+    } catch (err) {
+      console.log("SAVE ERROR:", err);
+      Alert.alert("Error", "Unable to save discharge summary");
+    }
+    setSaving(false);
+  };
+
+  const generatePDF = async () => {
+    if (!caseData) return;
+
+    const html = buildPrintableHTML(caseData, dischargeData);
+
+    try {
+      const { uri } = await Print.printToFileAsync({ html });
+      
+      if (Platform.OS === "ios") {
+        await Sharing.shareAsync(uri);
+      } else {
+        Alert.alert("PDF Generated", `File saved at: ${uri}`, [
+          { text: "Share", onPress: () => Sharing.shareAsync(uri) },
+          { text: "OK" },
+        ]);
+      }
+    } catch (err) {
+      console.log("PDF ERROR:", err);
+      Alert.alert("Error", "Unable to generate PDF");
+    }
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#007AFF" />
+        <Text style={styles.loadingText}>Loading discharge summary...</Text>
+      </View>
+    );
+  }
+
+  if (!caseData) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>Unable to load case data</Text>
+        <TouchableOpacity style={styles.retryBtn} onPress={loadCaseData}>
+          <Text style={styles.retryBtnText}>Retry</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  const patient = caseData.patient || {};
+  const vitalsAtArrival = caseData.vitals_at_arrival || {};
+  const history = caseData.history || {};
+  const examination = caseData.examination || {};
+  const treatment = caseData.treatment || {};
+  const investigations = caseData.investigations || {};
+  const primaryAssessment = caseData.primary_assessment || {};
+  const isPediatric = caseData.case_type === "pediatric";
+
+  // Calculate GCS total
+  const gcsTotal =
+    (vitalsAtArrival.gcs_e || 0) +
+    (vitalsAtArrival.gcs_v || 0) +
+    (vitalsAtArrival.gcs_m || 0);
+
+  return (
+    <ScrollView style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>DISCHARGE SUMMARY</Text>
+        <Text style={styles.headerSubtitle}>
+          {patient.name || "N/A"} - {patient.uhid || "N/A"}
+        </Text>
+      </View>
+
+      {/* Patient Info */}
+      <Section title="Patient Details">
+        <Row label="UHID" value={patient.uhid || "N/A"} />
+        <Row label="Name" value={patient.name || "N/A"} />
+        <Row label="Age/Sex" value={`${patient.age || "N/A"} / ${patient.sex || "N/A"}`} />
+        <Row
+          label="Admission Date"
+          value={
+            patient.arrival_datetime
+              ? new Date(patient.arrival_datetime).toLocaleDateString("en-IN")
+              : "N/A"
+          }
+        />
+        <Row label="MLC" value={patient.mlc ? "Yes" : "No"} />
+        <Row
+          label="Allergy"
+          value={
+            history.allergies?.length > 0
+              ? history.allergies.join(", ")
+              : "NKDA"
+          }
+        />
+      </Section>
+
+      {/* Vitals at Arrival */}
+      <Section title="Vitals at Arrival">
+        <Text style={styles.vitalsText}>
+          HR: {vitalsAtArrival.hr || "-"}, BP:{" "}
+          {vitalsAtArrival.bp_systolic || "-"}/{vitalsAtArrival.bp_diastolic || "-"}, RR:{" "}
+          {vitalsAtArrival.rr || "-"}, SpO2: {vitalsAtArrival.spo2 || "-"}%, GCS:{" "}
+          {gcsTotal || "-"}, Pain: {vitalsAtArrival.pain_score || "-"}, GRBS:{" "}
+          {vitalsAtArrival.grbs || "-"}, Temp: {vitalsAtArrival.temperature || "-"}°C
+        </Text>
+      </Section>
+
+      {/* Presenting Complaints */}
+      <Section title="Presenting Complaints">
+        <Text style={styles.text}>
+          {caseData.presenting_complaint?.text || "N/A"}
+        </Text>
+      </Section>
+
+      {/* History of Present Illness */}
+      <Section title="History of Present Illness">
+        <Text style={styles.text}>{history.hpi || "N/A"}</Text>
+      </Section>
+
+      {/* Past Medical/Surgical History */}
+      <Section title="Past Medical/Surgical History">
+        <Text style={styles.text}>
+          Medical: {history.past_medical?.join(", ") || "None"}
+        </Text>
+        <Text style={styles.text}>
+          Surgical: {history.past_surgical || "None"}
+        </Text>
+      </Section>
+
+      {/* Family / Gynae History */}
+      <Section title="Family / Gynae History">
+        <Text style={styles.text}>
+          {history.family_gyn_additional_notes || history.family_history || "Not significant"}
+        </Text>
+        <Text style={styles.text}>LMP: {history.lmp || "N/A"}</Text>
+      </Section>
+
+      {/* Primary Assessment (ABCDE) */}
+      <Section title="Primary Assessment">
+        <Text style={styles.text}>{buildPrimaryAssessmentText(primaryAssessment)}</Text>
+      </Section>
+
+      {/* Secondary Assessment / Examination */}
+      <Section title="Systemic Examination">
+        <Text style={styles.text}>{buildExaminationText(examination, isPediatric)}</Text>
+      </Section>
+
+      {/* Course in Hospital */}
+      <Section title="Course in Hospital">
+        <Text style={styles.text}>
+          {treatment.course_in_hospital || treatment.intervention_notes || "N/A"}
+        </Text>
+      </Section>
+
+      {/* Investigations */}
+      <Section title="Investigations">
+        <Text style={styles.text}>
+          {investigations.results_notes ||
+            (investigations.panels_selected?.length > 0
+              ? `Ordered: ${investigations.panels_selected.join(", ")}`
+              : "Pending")}
+        </Text>
+      </Section>
+
+      {/* Diagnosis */}
+      <Section title="Diagnosis at Discharge">
+        <Text style={styles.text}>
+          {treatment.differential_diagnoses?.join(", ") ||
+            treatment.provisional_diagnoses?.join(", ") ||
+            "N/A"}
+        </Text>
+      </Section>
+
+      {/* ========== EDITABLE SECTIONS ========== */}
+
+      {/* Discharge Medications */}
+      <Section title="Discharge Medications *">
+        <TextInput
+          style={styles.textArea}
+          multiline
+          numberOfLines={4}
+          placeholder="List all discharge medications with dosages and duration..."
+          value={dischargeData.discharge_medications}
+          onChangeText={(text) =>
+            setDischargeData({ ...dischargeData, discharge_medications: text })
+          }
+        />
+      </Section>
+
+      {/* Disposition Type */}
+      <Section title="Disposition *">
+        <View style={styles.radioGroup}>
+          {[
+            "Normal Discharge",
+            "Discharge at Request",
+            "Discharge Against Medical Advice",
+            "Referred",
+          ].map((type) => (
+            <TouchableOpacity
+              key={type}
+              style={styles.radioOption}
+              onPress={() =>
+                setDischargeData({ ...dischargeData, disposition_type: type })
+              }
+            >
+              <View
+                style={[
+                  styles.radio,
+                  dischargeData.disposition_type === type && styles.radioSelected,
+                ]}
+              />
+              <Text style={styles.radioLabel}>{type}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </Section>
+
+      {/* Condition at Discharge */}
+      <Section title="Condition at Discharge *">
+        <View style={styles.radioGroup}>
+          {["STABLE", "UNSTABLE"].map((cond) => (
+            <TouchableOpacity
+              key={cond}
+              style={styles.radioOption}
+              onPress={() =>
+                setDischargeData({ ...dischargeData, condition_at_discharge: cond })
+              }
+            >
+              <View
+                style={[
+                  styles.radio,
+                  dischargeData.condition_at_discharge === cond && styles.radioSelected,
+                ]}
+              />
+              <Text style={styles.radioLabel}>{cond}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </Section>
+
+      {/* Vitals at Discharge */}
+      <Section title="Vitals at Discharge *">
+        <View style={styles.vitalsGrid}>
+          {["hr", "bp", "rr", "spo2", "gcs", "pain_score", "grbs", "temp"].map(
+            (vital) => (
+              <View key={vital} style={styles.vitalInput}>
+                <Text style={styles.vitalLabel}>{vital.toUpperCase().replace("_", " ")}</Text>
+                <TextInput
+                  style={styles.vitalField}
+                  placeholder="-"
+                  keyboardType="numeric"
+                  value={dischargeData.discharge_vitals[vital]}
+                  onChangeText={(text) =>
+                    setDischargeData({
+                      ...dischargeData,
+                      discharge_vitals: {
+                        ...dischargeData.discharge_vitals,
+                        [vital]: text,
+                      },
+                    })
+                  }
+                />
+              </View>
+            )
+          )}
+        </View>
+      </Section>
+
+      {/* Follow-Up Advice */}
+      <Section title="Follow-Up Advice *">
+        <TextInput
+          style={styles.textArea}
+          multiline
+          numberOfLines={3}
+          placeholder="Follow-up instructions, red flags to watch for, when to return to ER..."
+          value={dischargeData.follow_up_advice}
+          onChangeText={(text) =>
+            setDischargeData({ ...dischargeData, follow_up_advice: text })
+          }
+        />
+      </Section>
+
+      {/* Signatures */}
+      <Section title="Signatures">
+        <Text style={styles.label}>ED Resident *</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Name"
+          value={dischargeData.ed_resident}
+          onChangeText={(text) =>
+            setDischargeData({ ...dischargeData, ed_resident: text })
+          }
+        />
+        <Text style={[styles.label, { marginTop: 12 }]}>ED Consultant *</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Name"
+          value={dischargeData.ed_consultant}
+          onChangeText={(text) =>
+            setDischargeData({ ...dischargeData, ed_consultant: text })
+          }
+        />
+      </Section>
+
+      {/* General Instructions */}
+      <Section title="General Instructions">
+        <Text style={styles.instructionsText}>
+          This discharge summary provides clinical information to facilitate
+          continuity of patient care.
+        </Text>
+        <Text style={styles.instructionsText}>
+          • Keep all medications as prescribed{"\n"}
+          • Return to emergency department if symptoms worsen{"\n"}
+          • Follow up with your doctor as advised
+        </Text>
+        <Text style={[styles.instructionsText, { fontWeight: "600", textAlign: "center" }]}>
+          In case of emergency, contact your nearest hospital emergency department.
+        </Text>
+      </Section>
+
+      {/* Action Buttons */}
+      <View style={styles.buttonRow}>
+        <TouchableOpacity
+          style={[styles.btn, styles.btnOutline]}
+          onPress={generatePDF}
+        >
+          <Text style={styles.btnOutlineText}>Export PDF</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.btn, styles.btnPrimary]}
+          onPress={handleSave}
+          disabled={saving}
+        >
+          <Text style={styles.btnPrimaryText}>
+            {saving ? "Saving..." : "Save"}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Spacing at bottom */}
+      <View style={{ height: 40 }} />
+    </ScrollView>
+  );
+}
+
+/* ========== Helper Components ========== */
+
+function Section({ title, children }) {
+  return (
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>{title}</Text>
+      {children}
+    </View>
+  );
+}
+
+function Row({ label, value }) {
+  return (
+    <View style={styles.row}>
+      <Text style={styles.rowLabel}>{label}:</Text>
+      <Text style={styles.rowValue}>{value}</Text>
+    </View>
+  );
+}
+
+/* ========== Helper Functions ========== */
+
+function buildPrimaryAssessmentText(primary) {
+  let text = "";
+  text += `Airway: ${primary.airway_status || "Patent"}`;
+  if (primary.airway_interventions?.length > 0) {
+    text += ` (Intervention: ${primary.airway_interventions.join(", ")})`;
+  }
+  text += `\nBreathing: RR - ${primary.breathing_rr || "-"}, SpO2 - ${primary.breathing_spo2 || "-"}%, WOB - ${primary.breathing_work || "Normal"}`;
+  text += `\nCirculation: HR - ${primary.circulation_hr || "-"}, BP - ${primary.circulation_bp_systolic || "-"}/${primary.circulation_bp_diastolic || "-"}, CRT - ${primary.circulation_crt || "-"}s`;
+  text += `\nDisability: ${primary.disability_avpu || "Alert"}, Pupils - ${primary.disability_pupils_size || "Normal"} ${primary.disability_pupils_reaction || ""}`;
+  text += `\nExposure: Temp - ${primary.exposure_temperature || "-"}°C`;
+  return text;
+}
+
+function buildExaminationText(exam, isPediatric) {
+  let text = "";
+
+  // General examination
+  const general = [];
+  if (exam.general_pallor) general.push("Pallor");
+  if (exam.general_icterus) general.push("Icterus");
+  if (exam.general_clubbing) general.push("Clubbing");
+  if (exam.general_lymphadenopathy) general.push("Lymphadenopathy");
+  if (general.length > 0) {
+    text += `General: ${general.join(", ")}\n`;
+  } else {
+    text += "General: No abnormality detected\n";
+  }
+
+  text += `CVS: ${exam.cvs_status || "Normal"}`;
+  if (exam.cvs_status === "Abnormal" && exam.cvs_additional_notes) {
+    text += ` - ${exam.cvs_additional_notes}`;
+  }
+
+  text += `\nRespiratory: ${exam.respiratory_status || "Normal"}`;
+  if (exam.respiratory_status === "Abnormal" && exam.respiratory_additional_notes) {
+    text += ` - ${exam.respiratory_additional_notes}`;
+  }
+
+  text += `\nAbdomen: ${exam.abdomen_status || "Normal"}`;
+  if (exam.abdomen_status === "Abnormal" && exam.abdomen_additional_notes) {
+    text += ` - ${exam.abdomen_additional_notes}`;
+  }
+
+  if (!isPediatric) {
+    text += `\nCNS: ${exam.cns_status || "Normal"}`;
+    if (exam.cns_status === "Abnormal" && exam.cns_additional_notes) {
+      text += ` - ${exam.cns_additional_notes}`;
+    }
+  }
+
+  text += `\nExtremities: ${exam.extremities_status || "Normal"}`;
+  if (exam.extremities_status === "Abnormal" && exam.extremities_findings) {
+    text += ` - ${exam.extremities_findings}`;
+  }
+
+  return text;
+}
+
+function buildPrintableHTML(caseData, dischargeData) {
+  const patient = caseData.patient || {};
+  const vitalsAtArrival = caseData.vitals_at_arrival || {};
+  const history = caseData.history || {};
+  const treatment = caseData.treatment || {};
+  const investigations = caseData.investigations || {};
+  const primaryAssessment = caseData.primary_assessment || {};
+  const examination = caseData.examination || {};
+  const isPediatric = caseData.case_type === "pediatric";
+
+  const gcsTotal =
+    (vitalsAtArrival.gcs_e || 0) +
+    (vitalsAtArrival.gcs_v || 0) +
+    (vitalsAtArrival.gcs_m || 0);
+
+  const dischargeVitals = dischargeData.discharge_vitals;
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>Discharge Summary</title>
+      <style>
+        body { font-family: Arial, sans-serif; font-size: 12px; line-height: 1.5; padding: 20px; }
+        h1 { text-align: center; font-size: 18px; margin-bottom: 20px; }
+        .section { margin-bottom: 15px; }
+        .section-title { font-weight: bold; font-size: 13px; margin-bottom: 5px; border-bottom: 1px solid #ccc; }
+        .row { display: flex; margin-bottom: 3px; }
+        .row-label { font-weight: bold; width: 150px; }
+        .row-value { flex: 1; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+        .vitals-line { margin-bottom: 5px; }
+        .footer { margin-top: 30px; font-size: 11px; color: #555; border-top: 1px solid #ccc; padding-top: 10px; }
+        .signatures { display: flex; justify-content: space-between; margin-top: 40px; }
+        .signature-box { text-align: center; width: 45%; }
+        .signature-line { border-top: 1px solid #000; margin-top: 50px; padding-top: 5px; }
+      </style>
+    </head>
+    <body>
+      <h1>DISCHARGE SUMMARY</h1>
+
+      <div class="section">
+        <div class="grid">
+          <div class="row"><span class="row-label">UHID:</span><span class="row-value">${patient.uhid || "N/A"}</span></div>
+          <div class="row"><span class="row-label">Name:</span><span class="row-value">${patient.name || "N/A"}</span></div>
+          <div class="row"><span class="row-label">Age/Sex:</span><span class="row-value">${patient.age || "N/A"} / ${patient.sex || "N/A"}</span></div>
+          <div class="row"><span class="row-label">Admission Date:</span><span class="row-value">${patient.arrival_datetime ? new Date(patient.arrival_datetime).toLocaleDateString("en-IN") : "N/A"}</span></div>
+          <div class="row"><span class="row-label">MLC:</span><span class="row-value">${patient.mlc ? "Yes" : "No"}</span></div>
+          <div class="row"><span class="row-label">Allergy:</span><span class="row-value">${history.allergies?.length > 0 ? history.allergies.join(", ") : "NKDA"}</span></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Vitals at Arrival</div>
+        <div class="vitals-line">
+          HR: ${vitalsAtArrival.hr || "-"}, BP: ${vitalsAtArrival.bp_systolic || "-"}/${vitalsAtArrival.bp_diastolic || "-"}, 
+          RR: ${vitalsAtArrival.rr || "-"}, SpO2: ${vitalsAtArrival.spo2 || "-"}%, GCS: ${gcsTotal || "-"}, 
+          Pain: ${vitalsAtArrival.pain_score || "-"}, GRBS: ${vitalsAtArrival.grbs || "-"}, Temp: ${vitalsAtArrival.temperature || "-"}°C
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Presenting Complaints</div>
+        <p>${caseData.presenting_complaint?.text || "N/A"}</p>
+      </div>
+
+      <div class="section">
+        <div class="section-title">History of Present Illness</div>
+        <p>${history.hpi || "N/A"}</p>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Past Medical/Surgical History</div>
+        <p>Medical: ${history.past_medical?.join(", ") || "None"}</p>
+        <p>Surgical: ${history.past_surgical || "None"}</p>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Primary Assessment</div>
+        <p>${buildPrimaryAssessmentText(primaryAssessment).replace(/\n/g, "<br>")}</p>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Systemic Examination</div>
+        <p>${buildExaminationText(examination, isPediatric).replace(/\n/g, "<br>")}</p>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Course in Hospital</div>
+        <p>${treatment.course_in_hospital || treatment.intervention_notes || "N/A"}</p>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Investigations</div>
+        <p>${investigations.results_notes || (investigations.panels_selected?.length > 0 ? `Ordered: ${investigations.panels_selected.join(", ")}` : "Pending")}</p>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Diagnosis at Discharge</div>
+        <p>${treatment.differential_diagnoses?.join(", ") || treatment.provisional_diagnoses?.join(", ") || "N/A"}</p>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Discharge Medications</div>
+        <p>${dischargeData.discharge_medications || "N/A"}</p>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Disposition</div>
+        <p>${dischargeData.disposition_type}</p>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Condition at Discharge</div>
+        <p><strong>${dischargeData.condition_at_discharge}</strong></p>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Vitals at Discharge</div>
+        <div class="vitals-line">
+          HR: ${dischargeVitals.hr || "-"}, BP: ${dischargeVitals.bp || "-"}, RR: ${dischargeVitals.rr || "-"}, 
+          SpO2: ${dischargeVitals.spo2 || "-"}, GCS: ${dischargeVitals.gcs || "-"}, 
+          Pain: ${dischargeVitals.pain_score || "-"}, GRBS: ${dischargeVitals.grbs || "-"}, Temp: ${dischargeVitals.temp || "-"}
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Follow-Up Advice</div>
+        <p>${dischargeData.follow_up_advice || "N/A"}</p>
+      </div>
+
+      <div class="signatures">
+        <div class="signature-box">
+          <div class="signature-line">
+            <strong>ED Resident:</strong> ${dischargeData.ed_resident || "_______________"}
+          </div>
+        </div>
+        <div class="signature-box">
+          <div class="signature-line">
+            <strong>ED Consultant:</strong> ${dischargeData.ed_consultant || "_______________"}
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <p><strong>General Instructions:</strong></p>
+        <p>This discharge summary provides clinical information to facilitate continuity of patient care.</p>
+        <ul>
+          <li>Keep all medications as prescribed</li>
+          <li>Return to emergency department if symptoms worsen</li>
+          <li>Follow up with your doctor as advised</li>
+        </ul>
+        <p style="text-align: center; margin-top: 15px;">
+          <strong>In case of emergency, contact your nearest hospital emergency department.</strong>
+        </p>
+        <p style="text-align: center; margin-top: 10px; font-size: 10px;">
+          Generated on: ${new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })}
+        </p>
+      </div>
+    </body>
+    </html>
+  `;
+}
+
+/* ========== Styles ========== */
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#f8fafc",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#f8fafc",
+  },
+  loadingText: {
+    marginTop: 12,
+    color: "#64748b",
+    fontSize: 14,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+    backgroundColor: "#f8fafc",
+  },
+  errorText: {
+    fontSize: 16,
+    color: "#ef4444",
+    marginBottom: 16,
+  },
+  retryBtn: {
+    backgroundColor: "#007AFF",
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  retryBtnText: {
+    color: "#fff",
+    fontWeight: "600",
+  },
+  header: {
+    backgroundColor: "#fff",
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e2e8f0",
+  },
+  headerTitle: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#1e293b",
+    textAlign: "center",
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    color: "#64748b",
+    textAlign: "center",
+    marginTop: 4,
+  },
+  section: {
+    backgroundColor: "#fff",
+    marginHorizontal: 12,
+    marginTop: 12,
+    padding: 16,
+    borderRadius: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#334155",
+    marginBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e2e8f0",
+    paddingBottom: 6,
+  },
+  row: {
+    flexDirection: "row",
+    marginBottom: 4,
+  },
+  rowLabel: {
+    width: 110,
+    fontWeight: "600",
+    color: "#475569",
+    fontSize: 13,
+  },
+  rowValue: {
+    flex: 1,
+    color: "#1e293b",
+    fontSize: 13,
+  },
+  text: {
+    fontSize: 13,
+    color: "#334155",
+    lineHeight: 20,
+  },
+  vitalsText: {
+    fontSize: 13,
+    color: "#334155",
+    lineHeight: 20,
+  },
+  label: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#475569",
+    marginBottom: 6,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#cbd5e1",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+    backgroundColor: "#fff",
+    color: "#1e293b",
+  },
+  textArea: {
+    borderWidth: 1,
+    borderColor: "#cbd5e1",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+    backgroundColor: "#fff",
+    color: "#1e293b",
+    textAlignVertical: "top",
+    minHeight: 80,
+  },
+  radioGroup: {
+    marginTop: 4,
+  },
+  radioOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  radio: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: "#94a3b8",
+    marginRight: 10,
+  },
+  radioSelected: {
+    borderColor: "#007AFF",
+    backgroundColor: "#007AFF",
+  },
+  radioLabel: {
+    fontSize: 14,
+    color: "#334155",
+  },
+  vitalsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  vitalInput: {
+    width: "23%",
+    minWidth: 70,
+  },
+  vitalLabel: {
+    fontSize: 10,
+    fontWeight: "600",
+    color: "#64748b",
+    marginBottom: 4,
+    textTransform: "uppercase",
+  },
+  vitalField: {
+    borderWidth: 1,
+    borderColor: "#cbd5e1",
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 8,
+    fontSize: 14,
+    backgroundColor: "#fff",
+    textAlign: "center",
+  },
+  instructionsText: {
+    fontSize: 12,
+    color: "#64748b",
+    lineHeight: 18,
+    marginBottom: 8,
+  },
+  buttonRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 12,
+    marginTop: 20,
+    gap: 12,
+  },
+  btn: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  btnPrimary: {
+    backgroundColor: "#007AFF",
+  },
+  btnPrimaryText: {
+    color: "#fff",
+    fontWeight: "700",
+    fontSize: 15,
+  },
+  btnOutline: {
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#007AFF",
+  },
+  btnOutlineText: {
+    color: "#007AFF",
+    fontWeight: "700",
+    fontSize: 15,
+  },
+});
