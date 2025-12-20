@@ -272,10 +272,16 @@ export default function DashboardScreen({ navigation }) {
         ) : (
           todayCases.map((item) => {
             const statusBadge = getStatusBadge(item);
+            const timeInER = calculateTimeInER(item.created_at);
+            const isOverTime = timeInER.exceeds4Hours && statusBadge.text !== "Discharged";
+            
             return (
               <TouchableOpacity
                 key={item.id}
-                style={styles.patientCard}
+                style={[
+                  styles.patientCard,
+                  isOverTime && styles.patientCardOverTime,
+                ]}
                 onPress={() => openCase(item)}
               >
                 {/* Priority Bar */}
@@ -287,6 +293,16 @@ export default function DashboardScreen({ navigation }) {
                 />
 
                 <View style={styles.cardContent}>
+                  {/* 4+ Hour Warning Banner */}
+                  {isOverTime && (
+                    <View style={styles.overTimeBanner}>
+                      <Ionicons name="warning" size={14} color="#dc2626" />
+                      <Text style={styles.overTimeText}>
+                        Exceeded 4hr target • Needs disposition plan
+                      </Text>
+                    </View>
+                  )}
+
                   {/* Top Row: Name & Status */}
                   <View style={styles.cardTopRow}>
                     <View style={styles.patientInfo}>
@@ -323,10 +339,20 @@ export default function DashboardScreen({ navigation }) {
                           {getPriorityName(item.triage_priority)}
                         </Text>
                       </View>
-                      <View style={styles.timeInfo}>
-                        <Ionicons name="time-outline" size={14} color="#94a3b8" />
-                        <Text style={styles.timeText}>
-                          {formatTime(item.created_at)} • {calculateTimeInER(item.created_at)}
+                      <View style={[
+                        styles.timeInfo,
+                        isOverTime && styles.timeInfoOverTime,
+                      ]}>
+                        <Ionicons 
+                          name={isOverTime ? "alert-circle" : "time-outline"} 
+                          size={14} 
+                          color={isOverTime ? "#dc2626" : "#94a3b8"} 
+                        />
+                        <Text style={[
+                          styles.timeText,
+                          isOverTime && styles.timeTextOverTime,
+                        ]}>
+                          {formatTime(item.created_at)} • {timeInER.display}
                         </Text>
                       </View>
                     </View>
