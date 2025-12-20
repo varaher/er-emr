@@ -94,22 +94,20 @@ export default function TreatmentScreen({ route, navigation }) {
 
   const loadAIUsageCount = async () => {
     try {
-      const count = await AsyncStorage.getItem("ai_usage_count");
-      if (count) {
-        setAiUsageCount(parseInt(count, 10));
+      const token = await AsyncStorage.getItem("token");
+      if (!token) return;
+
+      // Fetch from backend API
+      const res = await fetch(`${API_URL}/ai/usage`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setAiUsageCount(data.count || 0);
       }
     } catch (err) {
       console.log("Error loading AI usage count:", err);
-    }
-  };
-
-  const incrementAIUsage = async () => {
-    try {
-      const newCount = aiUsageCount + 1;
-      await AsyncStorage.setItem("ai_usage_count", newCount.toString());
-      setAiUsageCount(newCount);
-    } catch (err) {
-      console.log("Error saving AI usage count:", err);
     }
   };
 
