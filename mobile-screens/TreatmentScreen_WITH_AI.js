@@ -203,17 +203,30 @@ export default function TreatmentScreen({ route, navigation }) {
       setAiResponse(data.response);
       setShowAIModal(true);
 
-      // Increment usage count
-      await incrementAIUsage();
+      // Reload AI usage from backend (backend already incremented)
+      await loadAIUsageCount();
 
       // Show remaining uses
       const remaining = AI_FREE_LIMIT - (aiUsageCount + 1);
       if (remaining > 0 && remaining <= 2) {
-        Alert.alert("AI Credits", `You have ${remaining} free AI consultations remaining.`);
+        Alert.alert("AI Credits", `You have ${remaining} free AI consultations remaining today.`);
       }
     } catch (err) {
       console.error("AI error:", err);
-      Alert.alert("AI Error", err.message || "Failed to get AI suggestions");
+      
+      // Handle rate limit error specifically
+      if (err.message?.includes("Daily AI limit")) {
+        Alert.alert(
+          "Daily Limit Reached",
+          "You've used all 5 free AI consultations for today. Upgrade to premium for unlimited AI access.",
+          [
+            { text: "OK", style: "cancel" },
+            { text: "View Plans", onPress: () => Alert.alert("Coming Soon", "Subscription plans will be available soon!") },
+          ]
+        );
+      } else {
+        Alert.alert("AI Error", err.message || "Failed to get AI suggestions");
+      }
     } finally {
       setAiLoading(false);
     }
