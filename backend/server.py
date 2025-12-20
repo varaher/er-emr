@@ -1882,8 +1882,68 @@ async def delete_pediatric_case(case_id: str, current_user: UserResponse = Depen
     return {"message": "Pediatric case deleted successfully"}
 
 # AI endpoints
+
+# Daily AI usage limit for free tier
+DAILY_AI_FREE_LIMIT = 5
+
+async def check_daily_ai_usage(user_id: str) -> dict:
+    """Check and return the user's daily AI usage stats"""
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    
+    # Get or create daily usage record
+    usage = await db.ai_usage.find_one(
+        {"user_id": user_id, "date": today},
+        {"_id": 0}
+    )
+    
+    if not usage:
+        return {"count": 0, "remaining": DAILY_AI_FREE_LIMIT, "limit": DAILY_AI_FREE_LIMIT}
+    
+    return {
+        "count": usage.get("count", 0),
+        "remaining": max(0, DAILY_AI_FREE_LIMIT - usage.get("count", 0)),
+        "limit": DAILY_AI_FREE_LIMIT
+    }
+
+async def increment_daily_ai_usage(user_id: str) -> dict:
+    """Increment the user's daily AI usage and return updated stats"""
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    
+    # Upsert: increment count or create new record
+    result = await db.ai_usage.find_one_and_update(
+        {"user_id": user_id, "date": today},
+        {
+            "$inc": {"count": 1},
+            "$setOnInsert": {"user_id": user_id, "date": today, "created_at": datetime.now(timezone.utc).isoformat()}
+        },
+        upsert=True,
+        return_document=True
+    )
+    
+    count = result.get("count", 1) if result else 1
+    return {
+        "count": count,
+        "remaining": max(0, DAILY_AI_FREE_LIMIT - count),
+        "limit": DAILY_AI_FREE_LIMIT
+    }
+
+@api_router.get("/ai/usage")
+async def get_ai_usage(current_user: UserResponse = Depends(get_current_user)):
+    """Get current user's daily AI usage stats"""
+    usage = await check_daily_ai_usage(current_user.id)
+    return usage
+
 @api_router.post("/ai/generate", response_model=AIResponse)
 async def generate_ai_response(request: AIGenerateRequest, current_user: UserResponse = Depends(get_current_user)):
+    # Check daily AI usage limit for free tier users
+    if current_user.subscription_tier == "free":
+        usage = await check_daily_ai_usage(current_user.id)
+        if usage["remaining"] <= 0:
+            raise HTTPException(
+                status_code=429, 
+                detail=f"Daily AI limit reached ({DAILY_AI_FREE_LIMIT}/day). Upgrade to premium for unlimited AI access."
+            )
+    
     case = await db.cases.find_one({"id": request.case_sheet_id}, {"_id": 0})
     if not case:
         raise HTTPException(status_code=404, detail="Case not found")
