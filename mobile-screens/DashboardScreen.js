@@ -539,6 +539,25 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#e2e8f0",
   },
+  patientCardOverTime: {
+    borderColor: "#fca5a5",
+    backgroundColor: "#fef2f2",
+  },
+  overTimeBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fee2e2",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    marginBottom: 8,
+    gap: 6,
+  },
+  overTimeText: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "#dc2626",
+  },
   priorityBar: {
     width: 5,
   },
