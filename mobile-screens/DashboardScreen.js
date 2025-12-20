@@ -174,10 +174,12 @@ export default function DashboardScreen({ navigation }) {
     const hours = Math.floor(diffMins / 60);
     const mins = diffMins % 60;
 
-    if (hours > 0) {
-      return `${hours}h ${mins}m`;
-    }
-    return `${mins}m`;
+    return {
+      hours,
+      mins,
+      display: hours > 0 ? `${hours}h ${mins}m` : `${mins}m`,
+      exceeds4Hours: hours >= 4,
+    };
   };
 
   const formatTime = (dateString) => {
