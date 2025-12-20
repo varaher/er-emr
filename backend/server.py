@@ -2167,6 +2167,10 @@ Be specific, practical, and help the ER doctor think through the case systematic
                 )
             ]
         
+        # Increment AI usage for free tier users after successful generation
+        if current_user.subscription_tier == "free":
+            await increment_daily_ai_usage(current_user.id)
+        
         return AIResponse(response=response, case_sheet_id=request.case_sheet_id, sources=sources)
     except Exception as e:
         logging.error(f"AI generation error: {str(e)}")
