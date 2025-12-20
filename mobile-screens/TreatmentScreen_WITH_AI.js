@@ -516,7 +516,7 @@ export default function TreatmentScreen({ route, navigation }) {
         <View style={styles.aiCard}>
           <View style={styles.aiInfo}>
             <Text style={styles.aiInfoText}>
-              🎁 Free: {Math.max(0, AI_FREE_LIMIT - aiUsageCount)} of {AI_FREE_LIMIT} AI consultations remaining
+              🎁 Free: {Math.max(0, AI_FREE_LIMIT - aiUsageCount)} of {AI_FREE_LIMIT} AI consultations remaining today
             </Text>
           </View>
 
