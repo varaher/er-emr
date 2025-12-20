@@ -623,9 +623,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 4,
   },
+  timeInfoOverTime: {
+    backgroundColor: "#fee2e2",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
   timeText: {
     fontSize: 11,
     color: "#94a3b8",
+  },
+  timeTextOverTime: {
+    color: "#dc2626",
+    fontWeight: "600",
   },
   quickActions: {
     flexDirection: "row",
