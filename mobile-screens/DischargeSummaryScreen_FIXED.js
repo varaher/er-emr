@@ -249,9 +249,9 @@ export default function DischargeSummaryScreen({ route, navigation }) {
         </Text>
       </Section>
 
-      {/* History of Present Illness */}
-      <Section title="History of Present Illness">
-        <Text style={styles.text}>{history.hpi || "N/A"}</Text>
+      {/* History of Present Illness / Events */}
+      <Section title="Events / HOPI">
+        <Text style={styles.text}>{history.hpi || history.events_hopi || "N/A"}</Text>
       </Section>
 
       {/* Past Medical/Surgical History */}
