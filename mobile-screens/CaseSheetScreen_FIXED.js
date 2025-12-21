@@ -830,14 +830,13 @@ export default function CaseSheetScreen({ route, navigation }) {
         {/* ==================== HISTORY (SAMPLE) ==================== */}
         <SectionTitle icon="document-text" title="History (SAMPLE)" />
         <View style={styles.card}>
-          <InputField label="History of Present Illness" field="history_hpi" placeholder="Detailed history..." multiline />
+          <InputField label="Events / HOPI (History of Present Illness)" field="history_hpi" placeholder="Events leading to presentation and detailed history..." multiline />
           <InputField label="Signs & Symptoms" field="history_signs_symptoms" placeholder="Associated symptoms..." />
           <InputField label="Allergies" field="history_allergies" placeholder="NKDA or list allergies" />
           <InputField label="Medications" field="history_medications" placeholder="Current medications..." />
           <InputField label="Past Medical History" field="history_past_medical" placeholder="DM, HTN, Asthma..." />
           <InputField label="Past Surgical History" field="history_past_surgical" placeholder="Previous surgeries..." />
           <InputField label="Last Meal / LMP" field="history_last_meal" placeholder="Time of last meal" />
-          <InputField label="Events" field="history_events" placeholder="Events leading to presentation..." multiline />
         </View>
 
         {/* ==================== TREATMENT ==================== */}
