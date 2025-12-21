@@ -85,9 +85,11 @@ export default function DashboardScreen({ navigation }) {
       });
     } catch (err) {
       console.error("Load data error:", err);
-      Alert.alert("Error", "Failed to load data");
+      // Show more detailed error for debugging
+      Alert.alert("Error", err.message || "Failed to load data");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const onRefresh = async () => {
