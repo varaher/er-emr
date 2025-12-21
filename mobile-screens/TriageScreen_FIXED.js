@@ -429,6 +429,70 @@ export default function TriageScreen({ route, navigation }) {
           />
         </View>
 
+        {/* ===================== NORMAL VITALS REFERENCE ===================== */}
+        <View style={styles.normalVitalsCard}>
+          <View style={styles.normalVitalsHeader}>
+            <Ionicons name="information-circle" size={18} color="#0369a1" />
+            <Text style={styles.normalVitalsTitle}>
+              Normal Vitals Reference ({patientType === "pediatric" ? "Pediatric" : "Adult"})
+            </Text>
+          </View>
+          {patientType === "adult" ? (
+            <View style={styles.normalVitalsGrid}>
+              <View style={styles.normalVitalItem}>
+                <Text style={styles.normalVitalLabel}>HR</Text>
+                <Text style={styles.normalVitalValue}>60-100</Text>
+              </View>
+              <View style={styles.normalVitalItem}>
+                <Text style={styles.normalVitalLabel}>BP</Text>
+                <Text style={styles.normalVitalValue}>90-120/60-80</Text>
+              </View>
+              <View style={styles.normalVitalItem}>
+                <Text style={styles.normalVitalLabel}>RR</Text>
+                <Text style={styles.normalVitalValue}>12-20</Text>
+              </View>
+              <View style={styles.normalVitalItem}>
+                <Text style={styles.normalVitalLabel}>SpO2</Text>
+                <Text style={styles.normalVitalValue}>&gt;95%</Text>
+              </View>
+              <View style={styles.normalVitalItem}>
+                <Text style={styles.normalVitalLabel}>Temp</Text>
+                <Text style={styles.normalVitalValue}>36.1-37.2°C</Text>
+              </View>
+              <View style={styles.normalVitalItem}>
+                <Text style={styles.normalVitalLabel}>GCS</Text>
+                <Text style={styles.normalVitalValue}>15</Text>
+              </View>
+            </View>
+          ) : (
+            <View>
+              <Text style={styles.pediatricNote}>Age-dependent ranges:</Text>
+              <View style={styles.normalVitalsGrid}>
+                <View style={styles.normalVitalItem}>
+                  <Text style={styles.normalVitalLabel}>HR</Text>
+                  <Text style={styles.normalVitalValue}>Infant: 100-160{"\n"}Child: 70-120</Text>
+                </View>
+                <View style={styles.normalVitalItem}>
+                  <Text style={styles.normalVitalLabel}>RR</Text>
+                  <Text style={styles.normalVitalValue}>Infant: 30-60{"\n"}Child: 20-30</Text>
+                </View>
+                <View style={styles.normalVitalItem}>
+                  <Text style={styles.normalVitalLabel}>BP (Sys)</Text>
+                  <Text style={styles.normalVitalValue}>Infant: 70-90{"\n"}Child: 80-110</Text>
+                </View>
+                <View style={styles.normalVitalItem}>
+                  <Text style={styles.normalVitalLabel}>SpO2</Text>
+                  <Text style={styles.normalVitalValue}>&gt;95%</Text>
+                </View>
+                <View style={styles.normalVitalItem}>
+                  <Text style={styles.normalVitalLabel}>Temp</Text>
+                  <Text style={styles.normalVitalValue}>36.5-37.5°C</Text>
+                </View>
+              </View>
+            </View>
+          )}
+        </View>
+
         {/* Vitals */}
         <SectionTitle icon="pulse" title="Vitals" />
         <View style={styles.card}>
