@@ -924,6 +924,60 @@ const styles = StyleSheet.create({
   mlcTextActive: {
     color: "#dc2626",
   },
+  // Normal Vitals Reference styles
+  normalVitalsCard: {
+    backgroundColor: "#f0f9ff",
+    marginHorizontal: 16,
+    marginBottom: 8,
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#bae6fd",
+  },
+  normalVitalsHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginBottom: 10,
+  },
+  normalVitalsTitle: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#0369a1",
+  },
+  normalVitalsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  normalVitalItem: {
+    backgroundColor: "#fff",
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#e0f2fe",
+    minWidth: 70,
+    alignItems: "center",
+  },
+  normalVitalLabel: {
+    fontSize: 10,
+    fontWeight: "700",
+    color: "#0284c7",
+    marginBottom: 2,
+  },
+  normalVitalValue: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "#0c4a6e",
+    textAlign: "center",
+  },
+  pediatricNote: {
+    fontSize: 11,
+    color: "#0369a1",
+    fontStyle: "italic",
+    marginBottom: 8,
+  },
   vitalsGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
