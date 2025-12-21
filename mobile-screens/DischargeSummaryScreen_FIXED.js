@@ -592,8 +592,8 @@ function buildPrintableHTML(caseData, dischargeData) {
       </div>
 
       <div class="section">
-        <div class="section-title">History of Present Illness</div>
-        <p>${history.hpi || "N/A"}</p>
+        <div class="section-title">Events / HOPI</div>
+        <p>${history.hpi || history.events_hopi || "N/A"}</p>
       </div>
 
       <div class="section">
