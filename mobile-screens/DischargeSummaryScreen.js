@@ -1016,4 +1016,90 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontSize: 15,
   },
+  // Export Section Styles
+  exportSection: {
+    backgroundColor: "#fff",
+    marginHorizontal: 16,
+    marginVertical: 16,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+  },
+  exportTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#1e293b",
+    marginBottom: 12,
+  },
+  exportBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 14,
+    borderRadius: 10,
+    marginBottom: 10,
+    borderWidth: 1,
+  },
+  exportBtnPdf: {
+    backgroundColor: "#f0fdf4",
+    borderColor: "#22c55e",
+  },
+  exportBtnWord: {
+    backgroundColor: "#eff6ff",
+    borderColor: "#3b82f6",
+  },
+  exportBtnContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  exportBtnIcon: {
+    fontSize: 24,
+  },
+  exportBtnInfo: {
+    flex: 1,
+  },
+  exportBtnTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#1e293b",
+  },
+  exportBtnSubtitle: {
+    fontSize: 12,
+    color: "#64748b",
+  },
+  exportBtnBadge: {
+    backgroundColor: "#dcfce7",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#166534",
+  },
+  premiumBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fef3c7",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    gap: 4,
+  },
+  premiumBadgeIcon: {
+    fontSize: 12,
+  },
+  premiumBadgeText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#92400e",
+  },
+  exportNote: {
+    fontSize: 11,
+    color: "#64748b",
+    textAlign: "center",
+    marginTop: 8,
+    fontStyle: "italic",
+  },
 });
