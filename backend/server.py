@@ -2005,11 +2005,311 @@ async def increment_daily_ai_usage(user_id: str) -> dict:
         "limit": DAILY_AI_FREE_LIMIT
     }
 
+# ============================================
+# SUBSCRIPTION & ACCESS CONTROL SYSTEM
+# ============================================
+
+async def get_user_subscription_status(user_id: str) -> dict:
+    """Get comprehensive subscription status for a user"""
+    user = await db.users.find_one({"id": user_id}, {"_id": 0})
+    if not user:
+        return {"error": "User not found"}
+    
+    tier = user.get("subscription_tier", "free")
+    plan = SUBSCRIPTION_PLANS.get(tier, SUBSCRIPTION_PLANS["free"])
+    
+    # Get patient count
+    patient_count = await db.cases.count_documents({"created_by": user_id})
+    
+    # Get AI credits
+    ai_credits = user.get("ai_credits", 0)
+    
+    # Get monthly AI usage
+    current_month = datetime.now(timezone.utc).strftime("%Y-%m")
+    monthly_ai_usage = await db.ai_usage.count_documents({
+        "user_id": user_id,
+        "date": {"$regex": f"^{current_month}"}
+    })
+    
+    # Check subscription expiry
+    subscription_end = user.get("subscription_end")
+    is_expired = False
+    days_remaining = None
+    
+    if subscription_end:
+        if isinstance(subscription_end, str):
+            subscription_end = datetime.fromisoformat(subscription_end.replace("Z", "+00:00"))
+        is_expired = subscription_end < datetime.now(timezone.utc)
+        days_remaining = (subscription_end - datetime.now(timezone.utc)).days if not is_expired else 0
+    
+    # Calculate access status
+    max_patients = plan["max_patients"]
+    patients_remaining = max_patients - patient_count if max_patients > 0 else -1
+    app_locked = max_patients > 0 and patient_count >= max_patients and tier == "free"
+    
+    return {
+        "user_id": user_id,
+        "tier": tier,
+        "plan_name": plan["name"],
+        "subscription_status": "expired" if is_expired else user.get("subscription_status", "active"),
+        "subscription_end": subscription_end.isoformat() if subscription_end else None,
+        "days_remaining": days_remaining,
+        "is_expired": is_expired,
+        
+        # Patient limits
+        "max_patients": max_patients,
+        "patient_count": patient_count,
+        "patients_remaining": patients_remaining,
+        "app_locked": app_locked,
+        
+        # AI limits
+        "ai_credits": ai_credits,
+        "ai_credits_included": plan["ai_credits_included"],
+        "monthly_ai_usage": monthly_ai_usage,
+        "advanced_ai_included": plan["advanced_ai_included"],
+        
+        # Features
+        "features": plan["features"],
+        "analytics_enabled": plan["analytics_enabled"],
+        "max_users": plan["max_users"],
+        
+        # Pricing (for upgrade prompts)
+        "price_monthly": plan["price_monthly"],
+        "price_yearly": plan["price_yearly"]
+    }
+
+async def check_app_access(user_id: str) -> dict:
+    """Check if user can access the app (patient limit check)"""
+    status = await get_user_subscription_status(user_id)
+    
+    if status.get("error"):
+        return {"allowed": False, "reason": "user_not_found"}
+    
+    if status["is_expired"]:
+        return {
+            "allowed": False,
+            "reason": "subscription_expired",
+            "message": "Your subscription has expired. Please renew to continue."
+        }
+    
+    if status["app_locked"]:
+        return {
+            "allowed": False,
+            "reason": "patient_limit_reached",
+            "message": f"Free trial limit reached ({status['max_patients']} patients). Upgrade to ERmate PRO for unlimited access.",
+            "patient_count": status["patient_count"],
+            "max_patients": status["max_patients"]
+        }
+    
+    return {
+        "allowed": True,
+        "tier": status["tier"],
+        "patients_remaining": status["patients_remaining"]
+    }
+
+async def check_ai_access(user_id: str, ai_type: str = "basic") -> dict:
+    """
+    Check if user can use AI features
+    ai_type: "basic" (voice, red flags) or "advanced" (VBG interpretation, differential diagnosis)
+    """
+    status = await get_user_subscription_status(user_id)
+    
+    if status.get("error"):
+        return {"allowed": False, "reason": "user_not_found"}
+    
+    tier = status["tier"]
+    ai_credits = status["ai_credits"]
+    plan = SUBSCRIPTION_PLANS.get(tier, SUBSCRIPTION_PLANS["free"])
+    
+    # Free tier: Check if within 5 AI uses
+    if tier == "free":
+        if status["monthly_ai_usage"] < plan["ai_credits_included"]:
+            return {"allowed": True, "method": "free_trial", "remaining": plan["ai_credits_included"] - status["monthly_ai_usage"]}
+        elif ai_credits > 0:
+            return {"allowed": True, "method": "credits", "remaining": ai_credits}
+        else:
+            return {
+                "allowed": False,
+                "reason": "ai_limit_reached",
+                "message": "Free AI trial exhausted. Upgrade to PRO or buy AI credits."
+            }
+    
+    # PRO tier
+    if tier in ["pro_monthly", "pro_annual"]:
+        if ai_type == "basic":
+            # Basic AI unlimited for PRO
+            return {"allowed": True, "method": "subscription", "remaining": -1}
+        else:
+            # Advanced AI requires credits for PRO
+            if ai_credits > 0:
+                return {"allowed": True, "method": "credits", "remaining": ai_credits}
+            else:
+                return {
+                    "allowed": False,
+                    "reason": "credits_required",
+                    "message": "Advanced AI features require credits. Purchase an AI credit pack."
+                }
+    
+    # Hospital tiers: Full AI access
+    if tier in ["hospital_basic", "hospital_premium"]:
+        return {"allowed": True, "method": "subscription", "remaining": -1}
+    
+    return {"allowed": False, "reason": "unknown_tier"}
+
+async def deduct_ai_credit(user_id: str) -> bool:
+    """Deduct one AI credit from user's balance"""
+    result = await db.users.find_one_and_update(
+        {"id": user_id, "ai_credits": {"$gt": 0}},
+        {"$inc": {"ai_credits": -1}},
+        return_document=True
+    )
+    return result is not None
+
+async def add_ai_credits(user_id: str, credits: int) -> dict:
+    """Add AI credits to user's balance"""
+    result = await db.users.find_one_and_update(
+        {"id": user_id},
+        {
+            "$inc": {"ai_credits": credits},
+            "$push": {
+                "credit_history": {
+                    "type": "purchase",
+                    "credits": credits,
+                    "timestamp": datetime.now(timezone.utc).isoformat()
+                }
+            }
+        },
+        return_document=True
+    )
+    return {"success": True, "new_balance": result.get("ai_credits", 0)} if result else {"success": False}
+
+# ============================================
+# SUBSCRIPTION API ENDPOINTS
+# ============================================
+
+@api_router.get("/subscription/status")
+async def get_subscription_status(current_user: UserResponse = Depends(get_current_user)):
+    """Get current user's comprehensive subscription status"""
+    status = await get_user_subscription_status(current_user.id)
+    return status
+
+@api_router.get("/subscription/plans")
+async def get_subscription_plans():
+    """Get all available subscription plans"""
+    return {
+        "plans": SUBSCRIPTION_PLANS,
+        "credit_packs": AI_CREDIT_PACKS
+    }
+
+@api_router.get("/subscription/check-access")
+async def check_access(current_user: UserResponse = Depends(get_current_user)):
+    """Check if user can access the app"""
+    access = await check_app_access(current_user.id)
+    return access
+
+@api_router.get("/subscription/check-ai-access")
+async def check_ai_access_endpoint(
+    ai_type: str = "basic",
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Check if user can use AI features"""
+    access = await check_ai_access(current_user.id, ai_type)
+    return access
+
+@api_router.post("/subscription/upgrade")
+async def upgrade_subscription(
+    tier: str,
+    payment_id: Optional[str] = None,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Upgrade user subscription (after payment verification)"""
+    if tier not in SUBSCRIPTION_PLANS:
+        raise HTTPException(status_code=400, detail="Invalid subscription tier")
+    
+    plan = SUBSCRIPTION_PLANS[tier]
+    
+    # Calculate subscription end date
+    if "annual" in tier:
+        end_date = datetime.now(timezone.utc) + timedelta(days=365)
+    else:
+        end_date = datetime.now(timezone.utc) + timedelta(days=30)
+    
+    # Update user subscription
+    await db.users.update_one(
+        {"id": current_user.id},
+        {
+            "$set": {
+                "subscription_tier": tier,
+                "subscription_status": "active",
+                "subscription_start": datetime.now(timezone.utc).isoformat(),
+                "subscription_end": end_date.isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            },
+            "$inc": {"ai_credits": plan["ai_credits_included"]},
+            "$push": {
+                "subscription_history": {
+                    "tier": tier,
+                    "payment_id": payment_id,
+                    "amount": plan["price_monthly"] if "monthly" in tier else plan["price_yearly"],
+                    "timestamp": datetime.now(timezone.utc).isoformat()
+                }
+            }
+        }
+    )
+    
+    return {
+        "success": True,
+        "message": f"Upgraded to {plan['name']}",
+        "tier": tier,
+        "subscription_end": end_date.isoformat(),
+        "ai_credits_added": plan["ai_credits_included"]
+    }
+
+@api_router.post("/subscription/buy-credits")
+async def buy_ai_credits(
+    pack_id: str,
+    payment_id: Optional[str] = None,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Purchase AI credit pack"""
+    if pack_id not in AI_CREDIT_PACKS:
+        raise HTTPException(status_code=400, detail="Invalid credit pack")
+    
+    pack = AI_CREDIT_PACKS[pack_id]
+    result = await add_ai_credits(current_user.id, pack["credits"])
+    
+    if result["success"]:
+        # Log purchase
+        await db.credit_purchases.insert_one({
+            "id": str(uuid.uuid4()),
+            "user_id": current_user.id,
+            "pack_id": pack_id,
+            "credits": pack["credits"],
+            "price": pack["price"],
+            "payment_id": payment_id,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
+        
+        return {
+            "success": True,
+            "message": f"Added {pack['credits']} AI credits",
+            "credits_added": pack["credits"],
+            "new_balance": result["new_balance"]
+        }
+    
+    raise HTTPException(status_code=500, detail="Failed to add credits")
+
 @api_router.get("/ai/usage")
 async def get_ai_usage(current_user: UserResponse = Depends(get_current_user)):
-    """Get current user's daily AI usage stats"""
-    usage = await check_daily_ai_usage(current_user.id)
-    return usage
+    """Get current user's AI usage stats"""
+    status = await get_user_subscription_status(current_user.id)
+    return {
+        "tier": status["tier"],
+        "ai_credits": status["ai_credits"],
+        "monthly_usage": status["monthly_ai_usage"],
+        "ai_credits_included": status["ai_credits_included"],
+        "advanced_ai_included": status["advanced_ai_included"]
+    }
 
 @api_router.post("/ai/generate", response_model=AIResponse)
 async def generate_ai_response(request: AIGenerateRequest, current_user: UserResponse = Depends(get_current_user)):
