@@ -461,6 +461,12 @@ class EREmrAPITester:
         print("🚀 Starting ER-EMR API Test Suite")
         print("=" * 50)
         
+        # Test subscription endpoints (no auth required)
+        print("\n📋 SUBSCRIPTION SYSTEM TESTS (NO AUTH)")
+        print("-" * 40)
+        
+        self.test_subscription_plans()
+        
         # Test authentication
         print("\n📋 AUTHENTICATION TESTS")
         print("-" * 30)
@@ -471,6 +477,15 @@ class EREmrAPITester:
             
         self.test_auth_me()
         self.test_auth_register()
+        
+        # Test subscription endpoints (auth required)
+        print("\n📋 SUBSCRIPTION SYSTEM TESTS (AUTH REQUIRED)")
+        print("-" * 45)
+        
+        self.test_subscription_status()
+        self.test_subscription_check_access()
+        self.test_subscription_check_ai_access()
+        self.test_ai_usage()
         
         # Test case management
         print("\n📋 CASE MANAGEMENT TESTS")
