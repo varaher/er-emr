@@ -29,12 +29,40 @@ export default function DashboardScreen({ navigation, onLogout }) {
     pending: 0,
     discharged: 0,
   });
+  const [subscriptionStatus, setSubscriptionStatus] = useState(null);
+  const [appLocked, setAppLocked] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
       loadData();
+      checkSubscription();
     }, [])
   );
+
+  const checkSubscription = async () => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      const res = await fetch(`${API_URL}/subscription/check-access`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const access = await res.json();
+        if (!access.allowed) {
+          setAppLocked(true);
+          // Navigate to upgrade screen
+          navigation.navigate("Upgrade", {
+            lockReason: access.reason,
+            lockMessage: access.message,
+          });
+        } else {
+          setAppLocked(false);
+          setSubscriptionStatus(access);
+        }
+      }
+    } catch (err) {
+      console.log("Subscription check error:", err);
+    }
+  };
 
   const loadData = async () => {
     try {
