@@ -1914,11 +1914,13 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
                 </CardContent>
               </Card>
 
-              {/* ABCDE Assessment */}
+              {/* ABCDE Assessment - Detailed Dropdown Format */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Primary Assessment - ABCDE</CardTitle>
-                  <CardDescription>Complete the structured primary survey</CardDescription>
+                  <CardTitle className="flex items-center gap-2">
+                    <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-sm font-bold">PRIMARY SURVEY – ABCDE</span>
+                  </CardTitle>
+                  <CardDescription>Complete the structured primary survey with standardized dropdown options</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-6">
@@ -1941,86 +1943,234 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
                       </p>
                     </div>
 
-                    {/* A - Airway */}
-                    <div className="border-b border-slate-200 pb-6">
-                      <h3 className="text-lg font-semibold text-slate-900 mb-4">A - Airway</h3>
-                      <div className="space-y-4">
+                    {/* A - AIRWAY */}
+                    <div className="border-2 border-red-200 rounded-lg p-4 bg-red-50/30">
+                      <h3 className="text-lg font-bold text-red-800 mb-4 flex items-center gap-2">
+                        <span className="bg-red-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm">A</span>
+                        AIRWAY
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         <div className="space-y-2">
-                          <Label htmlFor="airway-status">Status</Label>
+                          <Label htmlFor="airway-position">Position</Label>
                           <select
-                            id="airway-status"
-                            data-testid="select-airway-status"
-                            className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
-                            value={formData.primary_assessment.airway_status}
-                            onChange={(e) => updateNestedField('primary_assessment', 'airway_status', e.target.value)}
+                            id="airway-position"
+                            className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                            value={formData.primary_assessment.airway_position || ''}
+                            onChange={(e) => updateNestedField('primary_assessment', 'airway_position', e.target.value)}
                           >
-                            <option value="Patent">Patent</option>
-                            <option value="Threatened">Threatened</option>
-                            <option value="Compromised">Compromised</option>
+                            <option value="">-- Select --</option>
+                            <option value="Self-maintained">Self-maintained</option>
+                            <option value="Recovery position">Recovery position</option>
+                            <option value="Head tilt/Chin lift">Head tilt/Chin lift</option>
+                            <option value="Jaw thrust">Jaw thrust</option>
                           </select>
                         </div>
                         <div className="space-y-2">
-                          <Label>Interventions</Label>
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                            {['Positioning', 'Suction', 'OPA', 'NPA', 'Intubation', 'Supraglottic', 'Cricothyrotomy'].map(item => (
-                              <div key={item} className="flex items-center space-x-2">
+                          <Label htmlFor="airway-patency">Patency</Label>
+                          <select
+                            id="airway-patency"
+                            className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                            value={formData.primary_assessment.airway_status}
+                            onChange={(e) => updateNestedField('primary_assessment', 'airway_status', e.target.value)}
+                          >
+                            <option value="">-- Select --</option>
+                            <option value="Patent">Patent</option>
+                            <option value="Partially obstructed">Partially obstructed</option>
+                            <option value="Completely obstructed">Completely obstructed</option>
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="airway-obstruction">Obstruction Cause</Label>
+                          <select
+                            id="airway-obstruction"
+                            className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                            value={formData.primary_assessment.airway_obstruction_cause || ''}
+                            onChange={(e) => updateNestedField('primary_assessment', 'airway_obstruction_cause', e.target.value)}
+                          >
+                            <option value="">-- Select --</option>
+                            <option value="None">None</option>
+                            <option value="Tongue fall">Tongue fall</option>
+                            <option value="Secretions">Secretions</option>
+                            <option value="Blood/Vomitus">Blood/Vomitus</option>
+                            <option value="Foreign body">Foreign body</option>
+                            <option value="Edema">Edema</option>
+                            <option value="Trauma">Trauma</option>
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="airway-speech">Speech</Label>
+                          <select
+                            id="airway-speech"
+                            className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                            value={formData.primary_assessment.airway_speech || ''}
+                            onChange={(e) => updateNestedField('primary_assessment', 'airway_speech', e.target.value)}
+                          >
+                            <option value="">-- Select --</option>
+                            <option value="Clear">Clear</option>
+                            <option value="Hoarse">Hoarse</option>
+                            <option value="Stridor">Stridor</option>
+                            <option value="Gurgling">Gurgling</option>
+                            <option value="Unable to speak">Unable to speak</option>
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="airway-signs">Signs of Compromise</Label>
+                          <select
+                            id="airway-signs"
+                            className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                            value={formData.primary_assessment.airway_signs || ''}
+                            onChange={(e) => updateNestedField('primary_assessment', 'airway_signs', e.target.value)}
+                          >
+                            <option value="">-- Select --</option>
+                            <option value="None">None</option>
+                            <option value="Accessory muscle use">Accessory muscle use</option>
+                            <option value="Tracheal tug">Tracheal tug</option>
+                            <option value="Intercostal recession">Intercostal recession</option>
+                            <option value="Cyanosis">Cyanosis</option>
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Interventions Done</Label>
+                          <div className="flex flex-wrap gap-2">
+                            {['Suction', 'OPA', 'NPA', 'LMA', 'ETT', 'Cricothyrotomy'].map(item => (
+                              <div key={item} className="flex items-center space-x-1">
                                 <Checkbox
                                   id={`airway-${item}`}
-                                  checked={formData.primary_assessment.airway_interventions.includes(item)}
+                                  checked={formData.primary_assessment.airway_interventions?.includes(item)}
                                   onCheckedChange={() => toggleArrayField('primary_assessment', 'airway_interventions', item)}
                                 />
-                                <Label htmlFor={`airway-${item}`} className="text-sm">{item}</Label>
+                                <Label htmlFor={`airway-${item}`} className="text-xs">{item}</Label>
                               </div>
                             ))}
                           </div>
                         </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="airway-additional-notes" className="flex items-center gap-2">
-                            <Mic className="h-4 w-4 text-blue-600" />
-                            Additional Notes
-                          </Label>
-                          <VoiceTextarea
-                            id="airway-additional-notes"
-                            data-testid="textarea-airway-additional-notes"
-                            value={formData.primary_assessment.airway_additional_notes}
-                            onChange={(e) => updateNestedField('primary_assessment', 'airway_additional_notes', e.target.value)}
-                            placeholder="Additional observations for Airway..."
-                            rows={2}
-                          />
-                        </div>
+                      </div>
+                      <div className="mt-4 space-y-2">
+                        <Label htmlFor="airway-additional-notes" className="flex items-center gap-2">
+                          <Mic className="h-4 w-4 text-blue-600" />
+                          Additional Notes
+                        </Label>
+                        <VoiceTextarea
+                          id="airway-additional-notes"
+                          value={formData.primary_assessment.airway_additional_notes}
+                          onChange={(e) => updateNestedField('primary_assessment', 'airway_additional_notes', e.target.value)}
+                          placeholder="Additional airway observations..."
+                          rows={2}
+                        />
                       </div>
                     </div>
 
-                    {/* B - Breathing */}
-                    <div className="border-b border-slate-200 pb-6">
-                      <h3 className="text-lg font-semibold text-slate-900 mb-4">B - Breathing</h3>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {/* B - BREATHING */}
+                    <div className="border-2 border-orange-200 rounded-lg p-4 bg-orange-50/30">
+                      <h3 className="text-lg font-bold text-orange-800 mb-4 flex items-center gap-2">
+                        <span className="bg-orange-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm">B</span>
+                        BREATHING
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         <div className="space-y-2">
-                          <Label htmlFor="breathing-rr">RR (bpm)</Label>
+                          <Label htmlFor="breathing-rr">RR (/min)</Label>
                           <Input
                             id="breathing-rr"
-                            data-testid="input-breathing-rr"
                             type="number"
                             value={formData.primary_assessment.breathing_rr || ''}
                             onChange={(e) => updateNestedField('primary_assessment', 'breathing_rr', parseFloat(e.target.value))}
+                            className="border-orange-300 focus:ring-orange-500"
                           />
                         </div>
                         <div className="space-y-2">
                           <Label htmlFor="breathing-spo2">SpO2 (%)</Label>
                           <Input
                             id="breathing-spo2"
-                            data-testid="input-breathing-spo2"
                             type="number"
                             value={formData.primary_assessment.breathing_spo2 || ''}
                             onChange={(e) => updateNestedField('primary_assessment', 'breathing_spo2', parseFloat(e.target.value))}
+                            className="border-orange-300 focus:ring-orange-500"
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="breathing-work">Work of Breathing</Label>
+                          <Label htmlFor="breathing-o2-device">O₂ Device</Label>
                           <select
-                            id="breathing-work"
-                            data-testid="select-breathing-work"
-                            className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+                            id="breathing-o2-device"
+                            className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                            value={formData.primary_assessment.breathing_oxygen_device}
+                            onChange={(e) => updateNestedField('primary_assessment', 'breathing_oxygen_device', e.target.value)}
+                          >
+                            <option value="Room air">Room air</option>
+                            <option value="Nasal prongs">Nasal prongs</option>
+                            <option value="Simple face mask">Simple face mask</option>
+                            <option value="Venturi mask">Venturi mask</option>
+                            <option value="NRM">NRM (Non-rebreather)</option>
+                            <option value="HFNC">HFNC</option>
+                            <option value="NIV/BiPAP">NIV/BiPAP</option>
+                            <option value="Mechanical ventilation">Mechanical ventilation</option>
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="breathing-o2-flow">O₂ Flow (L/min)</Label>
+                          <Input
+                            id="breathing-o2-flow"
+                            type="number"
+                            value={formData.primary_assessment.breathing_oxygen_flow || ''}
+                            onChange={(e) => updateNestedField('primary_assessment', 'breathing_oxygen_flow', parseFloat(e.target.value))}
+                            className="border-orange-300 focus:ring-orange-500"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="breathing-pattern">Breathing Pattern</Label>
+                          <select
+                            id="breathing-pattern"
+                            className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                            value={formData.primary_assessment.breathing_pattern || ''}
+                            onChange={(e) => updateNestedField('primary_assessment', 'breathing_pattern', e.target.value)}
+                          >
+                            <option value="">-- Select --</option>
+                            <option value="Regular">Regular</option>
+                            <option value="Tachypneic">Tachypneic</option>
+                            <option value="Bradypneic">Bradypneic</option>
+                            <option value="Kussmaul">Kussmaul</option>
+                            <option value="Cheyne-Stokes">Cheyne-Stokes</option>
+                            <option value="Ataxic">Ataxic</option>
+                            <option value="Apneic spells">Apneic spells</option>
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="breathing-expansion">Chest Expansion</Label>
+                          <select
+                            id="breathing-expansion"
+                            className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                            value={formData.primary_assessment.breathing_expansion || ''}
+                            onChange={(e) => updateNestedField('primary_assessment', 'breathing_expansion', e.target.value)}
+                          >
+                            <option value="">-- Select --</option>
+                            <option value="Equal bilateral">Equal bilateral</option>
+                            <option value="Reduced left">Reduced left</option>
+                            <option value="Reduced right">Reduced right</option>
+                            <option value="Reduced bilateral">Reduced bilateral</option>
+                            <option value="Paradoxical">Paradoxical (flail chest)</option>
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="breathing-air-entry">Air Entry</Label>
+                          <select
+                            id="breathing-air-entry"
+                            className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                            value={formData.primary_assessment.breathing_air_entry_status || ''}
+                            onChange={(e) => updateNestedField('primary_assessment', 'breathing_air_entry_status', e.target.value)}
+                          >
+                            <option value="">-- Select --</option>
+                            <option value="Equal bilateral">Equal bilateral</option>
+                            <option value="Reduced left">Reduced left</option>
+                            <option value="Reduced right">Reduced right</option>
+                            <option value="Reduced bilateral">Reduced bilateral</option>
+                            <option value="Absent left">Absent left</option>
+                            <option value="Absent right">Absent right</option>
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="breathing-effort">Effort</Label>
+                          <select
+                            id="breathing-effort"
+                            className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
                             value={formData.primary_assessment.breathing_work}
                             onChange={(e) => updateNestedField('primary_assessment', 'breathing_work', e.target.value)}
                           >
@@ -2028,7 +2178,40 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
                             <option value="Mild ↑">Mild ↑</option>
                             <option value="Moderate ↑">Moderate ↑</option>
                             <option value="Severe ↑">Severe ↑</option>
+                            <option value="Exhaustion">Exhaustion</option>
                           </select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="breathing-sounds">Added Breath Sounds</Label>
+                          <select
+                            id="breathing-sounds"
+                            className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                            value={formData.primary_assessment.breathing_added_sounds || ''}
+                            onChange={(e) => updateNestedField('primary_assessment', 'breathing_added_sounds', e.target.value)}
+                          >
+                            <option value="">-- Select --</option>
+                            <option value="None">None</option>
+                            <option value="Wheeze">Wheeze</option>
+                            <option value="Crackles">Crackles</option>
+                            <option value="Rhonchi">Rhonchi</option>
+                            <option value="Stridor">Stridor</option>
+                            <option value="Pleural rub">Pleural rub</option>
+                          </select>
+                        </div>
+                        <div className="space-y-2 md:col-span-2 lg:col-span-3">
+                          <Label>Interventions Done</Label>
+                          <div className="flex flex-wrap gap-2">
+                            {['Nebulization', 'ICD insertion', 'Needle decompression', 'Bag-mask ventilation', 'Intubation'].map(item => (
+                              <div key={item} className="flex items-center space-x-1">
+                                <Checkbox
+                                  id={`breathing-${item}`}
+                                  checked={formData.primary_assessment.breathing_adjuncts?.includes(item)}
+                                  onCheckedChange={() => toggleArrayField('primary_assessment', 'breathing_adjuncts', item)}
+                                />
+                                <Label htmlFor={`breathing-${item}`} className="text-xs">{item}</Label>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       </div>
                       <div className="mt-4 space-y-2">
@@ -2038,59 +2221,159 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
                         </Label>
                         <VoiceTextarea
                           id="breathing-additional-notes"
-                          data-testid="textarea-breathing-additional-notes"
                           value={formData.primary_assessment.breathing_additional_notes}
                           onChange={(e) => updateNestedField('primary_assessment', 'breathing_additional_notes', e.target.value)}
-                          placeholder="Additional observations for Breathing..."
+                          placeholder="Additional breathing observations..."
                           rows={2}
                         />
                       </div>
                     </div>
 
-                    {/* C - Circulation */}
-                    <div className="border-b border-slate-200 pb-6">
-                      <h3 className="text-lg font-semibold text-slate-900 mb-4">C - Circulation</h3>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {/* C - CIRCULATION */}
+                    <div className="border-2 border-yellow-300 rounded-lg p-4 bg-yellow-50/30">
+                      <h3 className="text-lg font-bold text-yellow-800 mb-4 flex items-center gap-2">
+                        <span className="bg-yellow-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm">C</span>
+                        CIRCULATION
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         <div className="space-y-2">
                           <Label htmlFor="circulation-hr">HR (bpm)</Label>
                           <Input
                             id="circulation-hr"
-                            data-testid="input-circulation-hr"
                             type="number"
                             value={formData.primary_assessment.circulation_hr || ''}
                             onChange={(e) => updateNestedField('primary_assessment', 'circulation_hr', parseFloat(e.target.value))}
+                            className="border-yellow-300 focus:ring-yellow-500"
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="circulation-bp-systolic">BP Systolic</Label>
-                          <Input
-                            id="circulation-bp-systolic"
-                            data-testid="input-circulation-bp-systolic"
-                            type="number"
-                            value={formData.primary_assessment.circulation_bp_systolic || ''}
-                            onChange={(e) => updateNestedField('primary_assessment', 'circulation_bp_systolic', parseFloat(e.target.value))}
-                          />
+                          <Label htmlFor="circulation-bp">BP (mmHg)</Label>
+                          <div className="flex gap-2">
+                            <Input
+                              id="circulation-bp-systolic"
+                              type="number"
+                              placeholder="Sys"
+                              value={formData.primary_assessment.circulation_bp_systolic || ''}
+                              onChange={(e) => updateNestedField('primary_assessment', 'circulation_bp_systolic', parseFloat(e.target.value))}
+                              className="border-yellow-300 focus:ring-yellow-500"
+                            />
+                            <span className="flex items-center">/</span>
+                            <Input
+                              id="circulation-bp-diastolic"
+                              type="number"
+                              placeholder="Dia"
+                              value={formData.primary_assessment.circulation_bp_diastolic || ''}
+                              onChange={(e) => updateNestedField('primary_assessment', 'circulation_bp_diastolic', parseFloat(e.target.value))}
+                              className="border-yellow-300 focus:ring-yellow-500"
+                            />
+                          </div>
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="circulation-bp-diastolic">BP Diastolic</Label>
-                          <Input
-                            id="circulation-bp-diastolic"
-                            data-testid="input-circulation-bp-diastolic"
-                            type="number"
-                            value={formData.primary_assessment.circulation_bp_diastolic || ''}
-                            onChange={(e) => updateNestedField('primary_assessment', 'circulation_bp_diastolic', parseFloat(e.target.value))}
-                          />
+                          <Label htmlFor="circulation-rhythm">Rhythm</Label>
+                          <select
+                            id="circulation-rhythm"
+                            className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                            value={formData.primary_assessment.circulation_rhythm || ''}
+                            onChange={(e) => updateNestedField('primary_assessment', 'circulation_rhythm', e.target.value)}
+                          >
+                            <option value="">-- Select --</option>
+                            <option value="Regular">Regular</option>
+                            <option value="Irregular">Irregular</option>
+                            <option value="Irregularly irregular">Irregularly irregular</option>
+                          </select>
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="circulation-crt">CRT (seconds)</Label>
-                          <Input
+                          <Label htmlFor="circulation-crt">CRT (sec)</Label>
+                          <select
                             id="circulation-crt"
-                            data-testid="input-circulation-crt"
-                            type="number"
-                            step="0.1"
-                            value={formData.primary_assessment.circulation_crt || ''}
-                            onChange={(e) => updateNestedField('primary_assessment', 'circulation_crt', parseFloat(e.target.value))}
-                          />
+                            className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                            value={formData.primary_assessment.circulation_crt_status || ''}
+                            onChange={(e) => updateNestedField('primary_assessment', 'circulation_crt_status', e.target.value)}
+                          >
+                            <option value="">-- Select --</option>
+                            <option value="<2 sec">&lt;2 sec (Normal)</option>
+                            <option value="2-3 sec">2-3 sec (Delayed)</option>
+                            <option value=">3 sec">&gt;3 sec (Prolonged)</option>
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="circulation-skin">Skin</Label>
+                          <select
+                            id="circulation-skin"
+                            className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                            value={formData.primary_assessment.circulation_skin || ''}
+                            onChange={(e) => updateNestedField('primary_assessment', 'circulation_skin', e.target.value)}
+                          >
+                            <option value="">-- Select --</option>
+                            <option value="Warm and dry">Warm and dry</option>
+                            <option value="Warm and moist">Warm and moist</option>
+                            <option value="Cool and dry">Cool and dry</option>
+                            <option value="Cool and clammy">Cool and clammy</option>
+                            <option value="Mottled">Mottled</option>
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="circulation-pulses">Peripheral Pulses</Label>
+                          <select
+                            id="circulation-pulses"
+                            className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                            value={formData.primary_assessment.circulation_peripheral_pulses}
+                            onChange={(e) => updateNestedField('primary_assessment', 'circulation_peripheral_pulses', e.target.value)}
+                          >
+                            <option value="Present">Present (all)</option>
+                            <option value="Weak">Weak</option>
+                            <option value="Absent">Absent</option>
+                            <option value="Asymmetric">Asymmetric</option>
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="circulation-neck-veins">Neck Veins (JVP)</Label>
+                          <select
+                            id="circulation-neck-veins"
+                            className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                            value={formData.primary_assessment.circulation_neck_veins}
+                            onChange={(e) => updateNestedField('primary_assessment', 'circulation_neck_veins', e.target.value)}
+                          >
+                            <option value="Normal">Normal</option>
+                            <option value="Raised">Raised</option>
+                            <option value="Flat">Flat</option>
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Bleeding/Injury</Label>
+                          <div className="flex flex-wrap gap-3">
+                            <div className="flex items-center space-x-2">
+                              <Checkbox
+                                id="circulation-external-bleed"
+                                checked={formData.primary_assessment.circulation_external_bleed}
+                                onCheckedChange={(checked) => updateNestedField('primary_assessment', 'circulation_external_bleed', checked)}
+                              />
+                              <Label htmlFor="circulation-external-bleed" className="text-sm">External Bleeding</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Checkbox
+                                id="circulation-long-bone"
+                                checked={formData.primary_assessment.circulation_long_bone_deformity}
+                                onCheckedChange={(checked) => updateNestedField('primary_assessment', 'circulation_long_bone_deformity', checked)}
+                              />
+                              <Label htmlFor="circulation-long-bone" className="text-sm">Long Bone Deformity</Label>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="space-y-2 md:col-span-2 lg:col-span-4">
+                          <Label>Interventions Done</Label>
+                          <div className="flex flex-wrap gap-2">
+                            {['IV access', 'IO access', 'Fluid bolus', 'Blood transfusion', 'Vasopressors', 'CPR', 'Defibrillation', 'Pacing', 'Tourniquet', 'Splinting'].map(item => (
+                              <div key={item} className="flex items-center space-x-1">
+                                <Checkbox
+                                  id={`circulation-${item}`}
+                                  checked={formData.primary_assessment.circulation_adjuncts?.includes(item)}
+                                  onCheckedChange={() => toggleArrayField('primary_assessment', 'circulation_adjuncts', item)}
+                                />
+                                <Label htmlFor={`circulation-${item}`} className="text-xs">{item}</Label>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       </div>
                       <div className="mt-4 space-y-2">
@@ -2100,69 +2383,160 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
                         </Label>
                         <VoiceTextarea
                           id="circulation-additional-notes"
-                          data-testid="textarea-circulation-additional-notes"
                           value={formData.primary_assessment.circulation_additional_notes}
                           onChange={(e) => updateNestedField('primary_assessment', 'circulation_additional_notes', e.target.value)}
-                          placeholder="Additional observations for Circulation..."
+                          placeholder="Additional circulation observations..."
                           rows={2}
                         />
                       </div>
                     </div>
 
-                    {/* D - Disability */}
-                    <div className="border-b border-slate-200 pb-6">
-                      <h3 className="text-lg font-semibold text-slate-900 mb-4">D - Disability</h3>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {/* D - DISABILITY */}
+                    <div className="border-2 border-green-200 rounded-lg p-4 bg-green-50/30">
+                      <h3 className="text-lg font-bold text-green-800 mb-4 flex items-center gap-2">
+                        <span className="bg-green-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm">D</span>
+                        DISABILITY (Neuro)
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         <div className="space-y-2">
                           <Label htmlFor="disability-avpu">AVPU</Label>
                           <select
                             id="disability-avpu"
-                            data-testid="select-disability-avpu"
-                            className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+                            className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
                             value={formData.primary_assessment.disability_avpu}
                             onChange={(e) => updateNestedField('primary_assessment', 'disability_avpu', e.target.value)}
                           >
-                            <option value="A">Alert</option>
-                            <option value="V">Voice</option>
-                            <option value="P">Pain</option>
-                            <option value="U">Unresponsive</option>
+                            <option value="A">A – Alert</option>
+                            <option value="V">V – Responds to Voice</option>
+                            <option value="P">P – Responds to Pain</option>
+                            <option value="U">U – Unresponsive</option>
                           </select>
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="disability-gcs-e">GCS Eye</Label>
+                          <Label>GCS</Label>
+                          <div className="flex gap-2">
+                            <div className="flex-1">
+                              <Label className="text-xs text-slate-500">E (1-4)</Label>
+                              <select
+                                id="disability-gcs-e"
+                                className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                                value={formData.primary_assessment.disability_gcs_e || ''}
+                                onChange={(e) => updateNestedField('primary_assessment', 'disability_gcs_e', parseInt(e.target.value))}
+                              >
+                                <option value="">-</option>
+                                <option value="4">4 - Spontaneous</option>
+                                <option value="3">3 - To voice</option>
+                                <option value="2">2 - To pain</option>
+                                <option value="1">1 - None</option>
+                              </select>
+                            </div>
+                            <div className="flex-1">
+                              <Label className="text-xs text-slate-500">V (1-5)</Label>
+                              <select
+                                id="disability-gcs-v"
+                                className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                                value={formData.primary_assessment.disability_gcs_v || ''}
+                                onChange={(e) => updateNestedField('primary_assessment', 'disability_gcs_v', parseInt(e.target.value))}
+                              >
+                                <option value="">-</option>
+                                <option value="5">5 - Oriented</option>
+                                <option value="4">4 - Confused</option>
+                                <option value="3">3 - Inappropriate</option>
+                                <option value="2">2 - Incomprehensible</option>
+                                <option value="1">1 - None</option>
+                              </select>
+                            </div>
+                            <div className="flex-1">
+                              <Label className="text-xs text-slate-500">M (1-6)</Label>
+                              <select
+                                id="disability-gcs-m"
+                                className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                                value={formData.primary_assessment.disability_gcs_m || ''}
+                                onChange={(e) => updateNestedField('primary_assessment', 'disability_gcs_m', parseInt(e.target.value))}
+                              >
+                                <option value="">-</option>
+                                <option value="6">6 - Obeys commands</option>
+                                <option value="5">5 - Localizes pain</option>
+                                <option value="4">4 - Withdraws</option>
+                                <option value="3">3 - Flexion</option>
+                                <option value="2">2 - Extension</option>
+                                <option value="1">1 - None</option>
+                              </select>
+                            </div>
+                          </div>
+                          {(formData.primary_assessment.disability_gcs_e && formData.primary_assessment.disability_gcs_v && formData.primary_assessment.disability_gcs_m) && (
+                            <div className="text-center mt-1 text-sm font-semibold text-green-700">
+                              Total GCS: {formData.primary_assessment.disability_gcs_e + formData.primary_assessment.disability_gcs_v + formData.primary_assessment.disability_gcs_m}/15
+                            </div>
+                          )}
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="disability-pupils-size">Pupils Size</Label>
+                          <select
+                            id="disability-pupils-size"
+                            className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                            value={formData.primary_assessment.disability_pupils_size}
+                            onChange={(e) => updateNestedField('primary_assessment', 'disability_pupils_size', e.target.value)}
+                          >
+                            <option value="Equal">Equal</option>
+                            <option value="Unequal">Unequal</option>
+                            <option value="Dilated bilateral">Dilated bilateral</option>
+                            <option value="Constricted bilateral">Constricted bilateral</option>
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="disability-pupils-reaction">Pupils Reaction</Label>
+                          <select
+                            id="disability-pupils-reaction"
+                            className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                            value={formData.primary_assessment.disability_pupils_reaction}
+                            onChange={(e) => updateNestedField('primary_assessment', 'disability_pupils_reaction', e.target.value)}
+                          >
+                            <option value="Brisk">Brisk bilateral</option>
+                            <option value="Sluggish">Sluggish</option>
+                            <option value="Non-reactive">Non-reactive</option>
+                            <option value="Fixed">Fixed bilateral</option>
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="disability-grbs">GRBS (mg/dL)</Label>
                           <Input
-                            id="disability-gcs-e"
-                            data-testid="input-disability-gcs-e"
+                            id="disability-grbs"
                             type="number"
-                            min="1"
-                            max="4"
-                            value={formData.primary_assessment.disability_gcs_e || ''}
-                            onChange={(e) => updateNestedField('primary_assessment', 'disability_gcs_e', parseInt(e.target.value))}
+                            value={formData.primary_assessment.disability_grbs || ''}
+                            onChange={(e) => updateNestedField('primary_assessment', 'disability_grbs', parseFloat(e.target.value))}
+                            className="border-green-300 focus:ring-green-500"
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="disability-gcs-v">GCS Verbal</Label>
-                          <Input
-                            id="disability-gcs-v"
-                            data-testid="input-disability-gcs-v"
-                            type="number"
-                            min="1"
-                            max="5"
-                            value={formData.primary_assessment.disability_gcs_v || ''}
-                            onChange={(e) => updateNestedField('primary_assessment', 'disability_gcs_v', parseInt(e.target.value))}
-                          />
+                          <Label>Seizure Activity</Label>
+                          <div className="flex items-center space-x-4 h-10">
+                            <div className="flex items-center space-x-2">
+                              <Checkbox
+                                id="disability-seizure"
+                                checked={formData.primary_assessment.disability_seizure}
+                                onCheckedChange={(checked) => updateNestedField('primary_assessment', 'disability_seizure', checked)}
+                              />
+                              <Label htmlFor="disability-seizure" className="text-sm">Seizure observed</Label>
+                            </div>
+                          </div>
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="disability-gcs-m">GCS Motor</Label>
-                          <Input
-                            id="disability-gcs-m"
-                            data-testid="input-disability-gcs-m"
-                            type="number"
-                            min="1"
-                            max="6"
-                            value={formData.primary_assessment.disability_gcs_m || ''}
-                            onChange={(e) => updateNestedField('primary_assessment', 'disability_gcs_m', parseInt(e.target.value))}
-                          />
+                          <Label htmlFor="disability-lateralizing">Lateralizing Signs</Label>
+                          <select
+                            id="disability-lateralizing"
+                            className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                            value={formData.primary_assessment.disability_lateralizing || ''}
+                            onChange={(e) => updateNestedField('primary_assessment', 'disability_lateralizing', e.target.value)}
+                          >
+                            <option value="">-- Select --</option>
+                            <option value="None">None</option>
+                            <option value="Left hemiparesis">Left hemiparesis</option>
+                            <option value="Right hemiparesis">Right hemiparesis</option>
+                            <option value="Left facial droop">Left facial droop</option>
+                            <option value="Right facial droop">Right facial droop</option>
+                            <option value="Other">Other (specify in notes)</option>
+                          </select>
                         </div>
                       </div>
                       <div className="mt-4 space-y-2">
@@ -2172,42 +2546,142 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
                         </Label>
                         <VoiceTextarea
                           id="disability-additional-notes"
-                          data-testid="textarea-disability-additional-notes"
                           value={formData.primary_assessment.disability_additional_notes}
                           onChange={(e) => updateNestedField('primary_assessment', 'disability_additional_notes', e.target.value)}
-                          placeholder="Additional observations for Disability..."
+                          placeholder="Additional neurological observations..."
                           rows={2}
                         />
                       </div>
                     </div>
 
-                    {/* E - Exposure */}
-                    <div>
-                      <h3 className="text-lg font-semibold text-slate-900 mb-4">E - Exposure</h3>
-                      <div className="space-y-4">
+                    {/* E - EXPOSURE */}
+                    <div className="border-2 border-blue-200 rounded-lg p-4 bg-blue-50/30">
+                      <h3 className="text-lg font-bold text-blue-800 mb-4 flex items-center gap-2">
+                        <span className="bg-blue-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm">E</span>
+                        EXPOSURE
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         <div className="space-y-2">
                           <Label htmlFor="exposure-temperature">Temperature (°C)</Label>
                           <Input
                             id="exposure-temperature"
-                            data-testid="input-exposure-temperature"
                             type="number"
                             step="0.1"
                             value={formData.primary_assessment.exposure_temperature || ''}
                             onChange={(e) => updateNestedField('primary_assessment', 'exposure_temperature', parseFloat(e.target.value))}
+                            className="border-blue-300 focus:ring-blue-500"
                           />
                         </div>
-
                         <div className="space-y-2">
-                          <Label htmlFor="exposure-additional-notes" className="flex items-center gap-2">
+                          <Label htmlFor="exposure-rashes">Rashes</Label>
+                          <select
+                            id="exposure-rashes"
+                            className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            value={formData.primary_assessment.exposure_rashes || ''}
+                            onChange={(e) => updateNestedField('primary_assessment', 'exposure_rashes', e.target.value)}
+                          >
+                            <option value="">-- Select --</option>
+                            <option value="None">None</option>
+                            <option value="Petechiae">Petechiae</option>
+                            <option value="Purpura">Purpura</option>
+                            <option value="Urticaria">Urticaria</option>
+                            <option value="Maculopapular">Maculopapular</option>
+                            <option value="Vesicular">Vesicular</option>
+                            <option value="Other">Other</option>
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="exposure-bruises">Bruises/Injuries</Label>
+                          <select
+                            id="exposure-bruises"
+                            className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            value={formData.primary_assessment.exposure_bruises || ''}
+                            onChange={(e) => updateNestedField('primary_assessment', 'exposure_bruises', e.target.value)}
+                          >
+                            <option value="">-- Select --</option>
+                            <option value="None">None</option>
+                            <option value="Head/Face">Head/Face</option>
+                            <option value="Neck">Neck</option>
+                            <option value="Chest">Chest</option>
+                            <option value="Abdomen">Abdomen</option>
+                            <option value="Back">Back</option>
+                            <option value="Extremities">Extremities</option>
+                            <option value="Multiple sites">Multiple sites</option>
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Logroll Findings</Label>
+                          <div className="flex flex-wrap gap-2">
+                            {['Spinal tenderness', 'Deformity', 'Sacral edema', 'Pressure sores'].map(item => (
+                              <div key={item} className="flex items-center space-x-1">
+                                <Checkbox
+                                  id={`exposure-${item}`}
+                                  checked={formData.primary_assessment.exposure_logroll_findings?.includes(item)}
+                                  onCheckedChange={() => toggleArrayField('primary_assessment', 'exposure_logroll_findings', item)}
+                                />
+                                <Label htmlFor={`exposure-${item}`} className="text-xs">{item}</Label>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mt-4 space-y-2">
+                        <Label htmlFor="exposure-additional-notes" className="flex items-center gap-2">
+                          <Mic className="h-4 w-4 text-blue-600" />
+                          Local Examination / Additional Notes
+                        </Label>
+                        <VoiceTextarea
+                          id="exposure-additional-notes"
+                          value={formData.primary_assessment.exposure_additional_notes}
+                          onChange={(e) => updateNestedField('primary_assessment', 'exposure_additional_notes', e.target.value)}
+                          placeholder="Local examination findings, other observations..."
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+
+                    {/* REASSESSMENT */}
+                    <div className="border-2 border-purple-200 rounded-lg p-4 bg-purple-50/30">
+                      <h3 className="text-lg font-bold text-purple-800 mb-4 flex items-center gap-2">
+                        <span className="bg-purple-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm">R</span>
+                        REASSESSMENT
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="reassessment-status">Status After Initial Resuscitation</Label>
+                          <select
+                            id="reassessment-status"
+                            className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            value={formData.primary_assessment.reassessment_status || ''}
+                            onChange={(e) => updateNestedField('primary_assessment', 'reassessment_status', e.target.value)}
+                          >
+                            <option value="">-- Select --</option>
+                            <option value="Improving">Improving</option>
+                            <option value="Stable">Stable</option>
+                            <option value="Deteriorating">Deteriorating</option>
+                            <option value="Critical">Critical</option>
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="reassessment-time">Time of Reassessment</Label>
+                          <Input
+                            id="reassessment-time"
+                            type="time"
+                            value={formData.primary_assessment.reassessment_time || ''}
+                            onChange={(e) => updateNestedField('primary_assessment', 'reassessment_time', e.target.value)}
+                            className="border-purple-300 focus:ring-purple-500"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="reassessment-notes" className="flex items-center gap-2">
                             <Mic className="h-4 w-4 text-blue-600" />
-                            Additional Notes
+                            Reassessment Notes
                           </Label>
                           <VoiceTextarea
-                            id="exposure-additional-notes"
-                            data-testid="textarea-exposure-additional-notes"
-                            value={formData.primary_assessment.exposure_additional_notes}
-                            onChange={(e) => updateNestedField('primary_assessment', 'exposure_additional_notes', e.target.value)}
-                            placeholder="Additional observations for Exposure..."
+                            id="reassessment-notes"
+                            value={formData.primary_assessment.reassessment_notes || ''}
+                            onChange={(e) => updateNestedField('primary_assessment', 'reassessment_notes', e.target.value)}
+                            placeholder="Response to interventions, changes noted..."
                             rows={2}
                           />
                         </div>
@@ -2215,8 +2689,8 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
                     </div>
 
                     {/* Adjuvants to Primary Assessment */}
-                    <div>
-                      <h3 className="text-lg font-semibold text-slate-900 mb-4 border-t pt-4">Adjuvants to Primary Assessment</h3>
+                    <div className="border-t-2 border-slate-300 pt-6">
+                      <h3 className="text-lg font-semibold text-slate-900 mb-4">Adjuvants to Primary Assessment</h3>
                       <div className="space-y-4">
                         <div className="space-y-2">
                           <Label htmlFor="ecg-findings" className="flex items-center gap-2">
@@ -2225,7 +2699,6 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
                           </Label>
                           <VoiceTextarea
                             id="ecg-findings"
-                            data-testid="textarea-ecg-findings"
                             value={formData.primary_assessment.ecg_findings}
                             onChange={(e) => updateNestedField('primary_assessment', 'ecg_findings', e.target.value)}
                             placeholder="Document ECG findings..."
@@ -2345,7 +2818,6 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
                           </Label>
                           <VoiceTextarea
                             id="bedside-echo-findings"
-                            data-testid="textarea-bedside-echo-findings"
                             value={formData.primary_assessment.bedside_echo_findings}
                             onChange={(e) => updateNestedField('primary_assessment', 'bedside_echo_findings', e.target.value)}
                             placeholder="e.g., Good LVM, IVC Collapsing, No Blines, No RWMA, No RA, RV..."
@@ -2360,7 +2832,6 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
                           </Label>
                           <VoiceTextarea
                             id="adjuvants-additional-notes"
-                            data-testid="textarea-adjuvants-additional-notes"
                             value={formData.primary_assessment.adjuvants_additional_notes}
                             onChange={(e) => updateNestedField('primary_assessment', 'adjuvants_additional_notes', e.target.value)}
                             placeholder="Additional observations for adjuvant assessments..."
