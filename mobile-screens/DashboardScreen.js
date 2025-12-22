@@ -348,7 +348,7 @@ export default function DashboardScreen({ navigation, onLogout }) {
                         </Text>
                         {time.exceeds4Hours && status.text !== "Discharged" && (
                           <View style={styles.warningBadge}>
-                            <Text style={styles.warningText}>⚠️ >4h</Text>
+                            <Text style={styles.warningText}>⚠️ {'>'}4h</Text>
                           </View>
                         )}
                       </View>
