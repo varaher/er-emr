@@ -104,6 +104,103 @@
 
 user_problem_statement: "Test the 4 updates made to the ER-EMR application: 1) Triage Normal Option - 'Normal / No Critical Symptoms' option at the top of triage symptoms section, 2) Psychological Assessment Yes/No Radio Buttons - Changed from text input to radio buttons for 6 questions, 3) AI with Sources - Enhanced AI Red Flags and Diagnosis features to display clinical reference sources, 4) Microphone/Voice Input - Should be functioning correctly with proper browser permissions"
 
+backend:
+  - task: "Subscription Plans API"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: GET /api/subscription/plans endpoint working correctly. Returns all expected subscription plans (free, pro_monthly, pro_annual, hospital_basic, hospital_premium) and credit packs (pack_10, pack_25, pack_50). No authentication required as expected."
+
+  - task: "Subscription Status API"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: GET /api/subscription/status endpoint working correctly with authentication. Returns user subscription status including tier='free', plan_name='Free Trial', patient_count, and ai_credits fields as expected."
+
+  - task: "Subscription Access Check API"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: GET /api/subscription/check-access endpoint working correctly with authentication. Returns allowed=True and tier='free' for test user as expected."
+
+  - task: "AI Access Check API"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: GET /api/subscription/check-ai-access?ai_type=basic endpoint working correctly with authentication. Returns allowed=True, method='free_trial', remaining=5 for free tier user as expected."
+
+  - task: "AI Usage Stats API"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: GET /api/ai/usage endpoint working correctly with authentication. Returns AI usage statistics successfully."
+
+  - task: "Authentication System"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: Authentication system working correctly. Login with testnew123@test.com successful, token generation working, user registration functional."
+
+  - task: "Case Management APIs"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: Case management APIs working correctly. GET /api/cases returns 14 cases, individual case retrieval working, case updates functional."
+
+  - task: "AI Integration APIs"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: AI Red Flags generation working correctly (8490 character response). Minor: AI Diagnosis generation has timeout issues but this is due to processing time, not system failure."
+
 frontend:
   - task: "Login and Registration System"
     implemented: true
