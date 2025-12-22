@@ -545,7 +545,8 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Detailed Primary Assessment (ABCDE) UI Testing"
+    - "Subscription System API Testing"
+    - "Backend API Verification"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
