@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+// FIXED DispositionScreen.js - useRef pattern to fix typing lag
+import React, { useState, useRef, useCallback } from "react";
 import {
   View,
   Text,
@@ -8,71 +9,75 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+// ⚠️ PRODUCTION API URL
 const API_URL = "https://er-emr-backend.onrender.com/api";
 
 export default function DispositionScreen({ route, navigation }) {
-  const { caseId, patientType, patientInfo, vitals, triageData, investigations } = route.params || {};
+  const { caseId, patientType = "adult", patientName = "", triageData = {} } = route.params || {};
 
   const [saving, setSaving] = useState(false);
 
-  /* ===================== DIAGNOSIS ===================== */
-  const [provisionalDiagnosis, setProvisionalDiagnosis] = useState("");
-  const [differentialDiagnoses, setDifferentialDiagnoses] = useState("");
+  /* ===================== useRef for text inputs (FIXES TYPING LAG) ===================== */
+  const formDataRef = useRef({
+    destination: "",
+    advice: "",
+    followup: "",
+    medications_at_discharge: "",
+    warning_signs: "",
+    em_resident: "",
+    em_consultant: "",
+  });
 
-  /* ===================== DISPOSITION ===================== */
+  /* ===================== useState only for UI that needs re-render ===================== */
   const [dispositionType, setDispositionType] = useState("");
-  const [destination, setDestination] = useState("");
   const [conditionAtDischarge, setConditionAtDischarge] = useState("Stable");
 
-  /* ===================== DOCTORS ===================== */
-  const [emResident, setEmResident] = useState("");
-  const [emConsultant, setEmConsultant] = useState("");
+  const updateTextField = useCallback((field, value) => {
+    formDataRef.current[field] = value;
+  }, []);
 
-  /* ===================== DISPOSITION OPTIONS ===================== */
   const dispositionOptions = [
-    { id: "discharge", label: "Normal Discharge", icon: "home", color: "#22c55e" },
-    { id: "discharge_request", label: "Discharge at Request", icon: "hand-left", color: "#eab308" },
-    { id: "dama", label: "DAMA", icon: "warning", color: "#f97316" },
-    { id: "ward", label: "Admit to Ward", icon: "bed", color: "#3b82f6" },
-    { id: "icu", label: "Admit to ICU", icon: "pulse", color: "#ef4444" },
-    { id: "ot", label: "Shift to OT", icon: "medical", color: "#8b5cf6" },
-    { id: "referred", label: "Referred Out", icon: "arrow-redo", color: "#06b6d4" },
-    { id: "expired", label: "Expired", icon: "skull", color: "#1f2937" },
+    { value: "discharged", label: "🏠 Discharged", color: "#22c55e" },
+    { value: "admitted-ward", label: "🏥 Admitted (Ward)", color: "#3b82f6" },
+    { value: "admitted-hdu", label: "🔶 Admitted (HDU)", color: "#f97316" },
+    { value: "admitted-icu", label: "🔴 Admitted (ICU)", color: "#ef4444" },
+    { value: "referred", label: "↗️ Referred", color: "#8b5cf6" },
+    { value: "dama", label: "⚠️ DAMA", color: "#eab308" },
+    { value: "death", label: "🖤 Death", color: "#1f2937" },
   ];
 
-  /* ===================== SAVE & COMPLETE ===================== */
   const saveDisposition = async () => {
-    if (!dispositionType) {
-      Alert.alert("Required", "Please select a disposition type");
-      return false;
+    if (!caseId) {
+      Alert.alert("Error", "No case ID");
+      return;
     }
 
-    if (!provisionalDiagnosis) {
-      Alert.alert("Required", "Please enter provisional diagnosis");
-      return false;
+    if (!dispositionType) {
+      Alert.alert("Required", "Please select a disposition type");
+      return;
     }
 
     setSaving(true);
     try {
       const token = await AsyncStorage.getItem("token");
+      const fd = formDataRef.current;
 
       const payload = {
-        treatment: {
-          differential_diagnoses: differentialDiagnoses.split(",").map(d => d.trim()).filter(Boolean),
-          provisional_diagnosis: provisionalDiagnosis,
-        },
         disposition: {
           type: dispositionType,
-          destination: destination,
+          destination: fd.destination,
+          advice: fd.advice,
           condition_at_discharge: conditionAtDischarge,
         },
-        em_resident: emResident,
-        em_consultant: emConsultant,
-        status: dispositionType === "discharge" ? "discharged" : "admitted",
+        em_resident: fd.em_resident,
+        em_consultant: fd.em_consultant,
+        status: "completed",
       };
 
       const response = await fetch(`${API_URL}/cases/${caseId}`, {
@@ -88,233 +93,240 @@ export default function DispositionScreen({ route, navigation }) {
         throw new Error("Failed to save disposition");
       }
 
-      return true;
+      Alert.alert(
+        "✅ Case Completed",
+        "Disposition saved successfully!",
+        [
+          {
+            text: "View Discharge Summary",
+            onPress: () => navigation.navigate("DischargeSummary", { caseId, patientName }),
+          },
+          {
+            text: "Go to Dashboard",
+            onPress: goToDashboard,
+          },
+        ]
+      );
     } catch (err) {
       console.error("Save error:", err);
-      Alert.alert("Error", err.message || "Failed to save");
-      return false;
+      Alert.alert("Error", err.message);
     } finally {
       setSaving(false);
     }
   };
 
-  /* ===================== PROCEED TO DISCHARGE SUMMARY ===================== */
-  const proceedToDischarge = async () => {
-    const saved = await saveDisposition();
-    if (!saved) return;
-
-    // If patient is being discharged, go to discharge summary
-    if (["discharge", "discharge_request", "dama", "referred"].includes(dispositionType)) {
-      navigation.navigate("DischargeSummary", {
-        caseId,
-        patientType,
-        patientInfo,
-        vitals,
-        triageData,
-        investigations,
-        disposition: {
-          type: dispositionType,
-          destination,
-          condition_at_discharge: conditionAtDischarge,
-          provisional_diagnosis: provisionalDiagnosis,
-          differential_diagnoses: differentialDiagnoses,
-        },
-        doctors: {
-          em_resident: emResident,
-          em_consultant: emConsultant,
-        },
-      });
-    } else {
-      // If admitted, go back to dashboard
-      Alert.alert(
-        "✅ Case Saved",
-        `Patient has been ${dispositionType === "icu" ? "admitted to ICU" : dispositionType === "ward" ? "admitted to Ward" : "shifted to OT"}.`,
-        [
-          {
-            text: "Go to Dashboard",
-            onPress: () => navigation.navigate("Dashboard"),
-          },
-        ]
-      );
-    }
+  const goToDashboard = () => {
+    navigation.reset({
+      index: 0,
+      routes: [{ name: "Dashboard" }],
+    });
   };
 
-  /* ===================== UI ===================== */
+  const goToTriage = () => {
+    navigation.reset({
+      index: 0,
+      routes: [{ name: "Triage" }],
+    });
+  };
+
+  const SectionTitle = ({ icon, title }) => (
+    <View style={styles.sectionHeader}>
+      <Ionicons name={icon} size={20} color="#1e40af" />
+      <Text style={styles.sectionTitle}>{title}</Text>
+    </View>
+  );
+
+  const InputField = ({ label, field, placeholder, multiline }) => (
+    <View style={styles.inputGroup}>
+      <Text style={styles.label}>{label}</Text>
+      <TextInput
+        style={[styles.input, multiline && styles.textArea]}
+        defaultValue={formDataRef.current[field]}
+        onChangeText={(text) => updateTextField(field, text)}
+        placeholder={placeholder}
+        placeholderTextColor="#9ca3af"
+        multiline={multiline}
+      />
+    </View>
+  );
 
   return (
-    <ScrollView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#1e293b" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>📋 Disposition</Text>
-        <View style={{ width: 24 }} />
-      </View>
-
-      {/* Patient Info Banner */}
-      <View style={styles.patientBanner}>
-        <Text style={styles.patientName}>{patientInfo?.name || "Patient"}</Text>
-        <Text style={styles.patientDetails}>
-          {patientInfo?.age} {patientInfo?.age_unit} • {patientInfo?.sex}
-        </Text>
-      </View>
-
-      {/* Diagnosis Section */}
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>🩺 Diagnosis</Text>
-        
-        <Text style={styles.label}>Provisional Diagnosis <Text style={styles.required}>*</Text></Text>
-        <TextInput
-          style={[styles.input, styles.textArea]}
-          value={provisionalDiagnosis}
-          onChangeText={setProvisionalDiagnosis}
-          placeholder="Primary diagnosis..."
-          placeholderTextColor="#9ca3af"
-          multiline
-        />
-
-        <Text style={styles.label}>Differential Diagnoses</Text>
-        <TextInput
-          style={styles.input}
-          value={differentialDiagnoses}
-          onChangeText={setDifferentialDiagnoses}
-          placeholder="Comma separated (e.g., AMI, Angina, GERD)"
-          placeholderTextColor="#9ca3af"
-        />
-      </View>
-
-      {/* Disposition Type */}
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>🚪 Disposition <Text style={styles.required}>*</Text></Text>
-        
-        <View style={styles.dispositionGrid}>
-          {dispositionOptions.map((option) => (
-            <TouchableOpacity
-              key={option.id}
-              style={[
-                styles.dispositionBtn,
-                dispositionType === option.id && { backgroundColor: option.color, borderColor: option.color },
-              ]}
-              onPress={() => setDispositionType(option.id)}
-            >
-              <Ionicons
-                name={option.icon}
-                size={24}
-                color={dispositionType === option.id ? "#fff" : option.color}
-              />
-              <Text
-                style={[
-                  styles.dispositionBtnText,
-                  dispositionType === option.id && { color: "#fff" },
-                ]}
-              >
-                {option.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
+      <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={24} color="#1e293b" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>📋 Disposition</Text>
+          <View style={{ width: 24 }} />
         </View>
-      </View>
 
-      {/* Destination (if referred or admitted) */}
-      {["referred", "ward", "icu"].includes(dispositionType) && (
+        {/* Patient Banner */}
+        {patientName && (
+          <View style={styles.patientBanner}>
+            <Ionicons name="person" size={18} color="#1e40af" />
+            <Text style={styles.patientName}>{patientName}</Text>
+          </View>
+        )}
+
+        {/* Disposition Type */}
+        <SectionTitle icon="exit" title="Disposition Type" />
         <View style={styles.card}>
-          <Text style={styles.label}>
-            {dispositionType === "referred" ? "Referred To" : "Destination"}
-          </Text>
-          <TextInput
-            style={styles.input}
-            value={destination}
-            onChangeText={setDestination}
-            placeholder={dispositionType === "referred" ? "Hospital/Facility name" : "Ward/Unit name"}
-            placeholderTextColor="#9ca3af"
+          <View style={styles.dispositionGrid}>
+            {dispositionOptions.map((opt) => (
+              <TouchableOpacity
+                key={opt.value}
+                style={[
+                  styles.dispositionBtn,
+                  dispositionType === opt.value && {
+                    backgroundColor: opt.color,
+                    borderColor: opt.color,
+                  },
+                ]}
+                onPress={() => setDispositionType(opt.value)}
+              >
+                <Text
+                  style={[
+                    styles.dispositionBtnText,
+                    dispositionType === opt.value && { color: "#fff" },
+                  ]}
+                >
+                  {opt.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* Destination */}
+        {(dispositionType === "admitted-ward" ||
+          dispositionType === "admitted-hdu" ||
+          dispositionType === "admitted-icu" ||
+          dispositionType === "referred") && (
+          <>
+            <SectionTitle icon="location" title="Destination" />
+            <View style={styles.card}>
+              <InputField
+                label="Ward/ICU/Referral Hospital"
+                field="destination"
+                placeholder="Specify destination..."
+              />
+            </View>
+          </>
+        )}
+
+        {/* Condition at Discharge */}
+        <SectionTitle icon="pulse" title="Condition at Discharge" />
+        <View style={styles.card}>
+          <View style={styles.selectRow}>
+            {["Stable", "Unstable", "Critical"].map((opt) => (
+              <TouchableOpacity
+                key={opt}
+                style={[
+                  styles.selectBtn,
+                  conditionAtDischarge === opt && styles.selectBtnActive,
+                ]}
+                onPress={() => setConditionAtDischarge(opt)}
+              >
+                <Text
+                  style={[
+                    styles.selectBtnText,
+                    conditionAtDischarge === opt && styles.selectBtnTextActive,
+                  ]}
+                >
+                  {opt}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* Discharge Advice */}
+        {dispositionType === "discharged" && (
+          <>
+            <SectionTitle icon="document-text" title="Discharge Advice" />
+            <View style={styles.card}>
+              <InputField
+                label="Advice"
+                field="advice"
+                placeholder="Discharge instructions..."
+                multiline
+              />
+              <InputField
+                label="Follow-up"
+                field="followup"
+                placeholder="Follow-up instructions..."
+              />
+              <InputField
+                label="Medications"
+                field="medications_at_discharge"
+                placeholder="Prescription..."
+                multiline
+              />
+              <InputField
+                label="Warning Signs"
+                field="warning_signs"
+                placeholder="When to return..."
+                multiline
+              />
+            </View>
+          </>
+        )}
+
+        {/* Attending Doctors */}
+        <SectionTitle icon="medkit" title="Attending Doctors" />
+        <View style={styles.card}>
+          <InputField
+            label="EM Resident"
+            field="em_resident"
+            placeholder="Name of resident..."
+          />
+          <InputField
+            label="EM Consultant"
+            field="em_consultant"
+            placeholder="Name of consultant..."
           />
         </View>
-      )}
 
-      {/* Condition at Discharge */}
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>📊 Condition at Shift</Text>
-        <View style={styles.conditionRow}>
-          {["Stable", "Unstable"].map((condition) => (
-            <TouchableOpacity
-              key={condition}
-              style={[
-                styles.conditionBtn,
-                conditionAtDischarge === condition && styles.conditionBtnActive,
-                condition === "Unstable" && conditionAtDischarge === condition && { backgroundColor: "#ef4444" },
-              ]}
-              onPress={() => setConditionAtDischarge(condition)}
-            >
-              <Ionicons
-                name={condition === "Stable" ? "checkmark-circle" : "alert-circle"}
-                size={20}
-                color={conditionAtDischarge === condition ? "#fff" : "#64748b"}
-              />
-              <Text
-                style={[
-                  styles.conditionBtnText,
-                  conditionAtDischarge === condition && { color: "#fff" },
-                ]}
-              >
-                {condition}
-              </Text>
-            </TouchableOpacity>
-          ))}
+        {/* Action Buttons */}
+        <View style={styles.actionRow}>
+          <TouchableOpacity
+            style={[styles.saveBtn, saving && styles.btnDisabled]}
+            onPress={saveDisposition}
+            disabled={saving}
+          >
+            {saving ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <>
+                <Ionicons name="checkmark-circle" size={20} color="#fff" />
+                <Text style={styles.btnText}>Complete Case</Text>
+              </>
+            )}
+          </TouchableOpacity>
         </View>
-      </View>
 
-      {/* Doctors */}
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>👨‍⚕️ Treating Doctors</Text>
-        
-        <Text style={styles.label}>EM Resident</Text>
-        <TextInput
-          style={styles.input}
-          value={emResident}
-          onChangeText={setEmResident}
-          placeholder="Dr. Name"
-          placeholderTextColor="#9ca3af"
-        />
+        {/* Quick Actions */}
+        <View style={styles.quickActions}>
+          <TouchableOpacity style={styles.quickBtn} onPress={goToTriage}>
+            <Ionicons name="add-circle" size={20} color="#2563eb" />
+            <Text style={styles.quickBtnText}>New Case</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.quickBtn} onPress={goToDashboard}>
+            <Ionicons name="home" size={20} color="#2563eb" />
+            <Text style={styles.quickBtnText}>Dashboard</Text>
+          </TouchableOpacity>
+        </View>
 
-        <Text style={styles.label}>EM Consultant</Text>
-        <TextInput
-          style={styles.input}
-          value={emConsultant}
-          onChangeText={setEmConsultant}
-          placeholder="Dr. Name"
-          placeholderTextColor="#9ca3af"
-        />
-      </View>
-
-      {/* Action Buttons */}
-      <View style={styles.actionButtons}>
-        <TouchableOpacity
-          style={[styles.nextBtn, saving && styles.btnDisabled]}
-          onPress={proceedToDischarge}
-          disabled={saving}
-        >
-          {saving ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <>
-              <Text style={styles.btnText}>
-                {["discharge", "discharge_request", "dama", "referred"].includes(dispositionType)
-                  ? "Generate Discharge Summary"
-                  : "Complete & Save"}
-              </Text>
-              <Ionicons name="arrow-forward" size={20} color="#fff" />
-            </>
-          )}
-        </TouchableOpacity>
-      </View>
-
-      <View style={{ height: 40 }} />
-    </ScrollView>
+        <View style={{ height: 40 }} />
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
-
-/* ===================== STYLES ===================== */
 
 const styles = StyleSheet.create({
   container: {
@@ -331,65 +343,46 @@ const styles = StyleSheet.create({
     borderBottomColor: "#e2e8f0",
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "800",
     color: "#1e293b",
   },
   patientBanner: {
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: "#eff6ff",
     padding: 12,
-    margin: 16,
+    marginHorizontal: 16,
+    marginTop: 12,
     borderRadius: 10,
-    borderLeftWidth: 4,
-    borderLeftColor: "#2563eb",
+    gap: 8,
   },
   patientName: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: "700",
     color: "#1e40af",
   },
-  patientDetails: {
-    fontSize: 13,
-    color: "#3b82f6",
-    marginTop: 2,
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 8,
+  },
+  sectionTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#1e40af",
   },
   card: {
     backgroundColor: "#fff",
     marginHorizontal: 16,
-    marginBottom: 12,
+    marginBottom: 8,
     padding: 16,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: "#e2e8f0",
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#1e293b",
-    marginBottom: 12,
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#475569",
-    marginBottom: 6,
-    marginTop: 12,
-  },
-  required: {
-    color: "#ef4444",
-  },
-  input: {
-    backgroundColor: "#f8fafc",
-    padding: 12,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-    fontSize: 15,
-    color: "#1e293b",
-  },
-  textArea: {
-    minHeight: 80,
-    textAlignVertical: "top",
   },
   dispositionGrid: {
     flexDirection: "row",
@@ -397,57 +390,78 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   dispositionBtn: {
-    width: "47%",
-    padding: 14,
-    borderRadius: 12,
-    backgroundColor: "#f8fafc",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    backgroundColor: "#f1f5f9",
     borderWidth: 2,
     borderColor: "#e2e8f0",
+    minWidth: "45%",
     alignItems: "center",
-    gap: 8,
   },
   dispositionBtnText: {
-    fontSize: 12,
-    fontWeight: "600",
+    fontSize: 13,
+    fontWeight: "700",
     color: "#475569",
-    textAlign: "center",
   },
-  conditionRow: {
+  selectRow: {
     flexDirection: "row",
-    gap: 12,
+    gap: 10,
   },
-  conditionBtn: {
+  selectBtn: {
     flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    padding: 14,
-    borderRadius: 10,
+    paddingVertical: 12,
+    borderRadius: 8,
     backgroundColor: "#f1f5f9",
     borderWidth: 1,
     borderColor: "#e2e8f0",
+    alignItems: "center",
   },
-  conditionBtnActive: {
-    backgroundColor: "#22c55e",
-    borderColor: "#22c55e",
+  selectBtnActive: {
+    backgroundColor: "#2563eb",
+    borderColor: "#2563eb",
   },
-  conditionBtnText: {
-    fontSize: 14,
+  selectBtnText: {
+    fontSize: 13,
     fontWeight: "600",
     color: "#475569",
   },
-  actionButtons: {
+  selectBtnTextActive: {
+    color: "#fff",
+  },
+  inputGroup: {
+    marginBottom: 12,
+  },
+  label: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#475569",
+    marginBottom: 6,
+  },
+  input: {
+    backgroundColor: "#f8fafc",
+    padding: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    fontSize: 14,
+    color: "#1e293b",
+  },
+  textArea: {
+    minHeight: 80,
+    textAlignVertical: "top",
+  },
+  actionRow: {
     padding: 16,
   },
-  nextBtn: {
+  saveBtn: {
     backgroundColor: "#16a34a",
-    padding: 18,
+    padding: 16,
     borderRadius: 12,
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    gap: 10,
+    gap: 8,
   },
   btnDisabled: {
     opacity: 0.6,
@@ -456,5 +470,22 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "700",
     fontSize: 16,
+  },
+  quickActions: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 20,
+    paddingHorizontal: 16,
+  },
+  quickBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    padding: 12,
+  },
+  quickBtnText: {
+    color: "#2563eb",
+    fontWeight: "600",
+    fontSize: 14,
   },
 });

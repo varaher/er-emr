@@ -1,4 +1,7 @@
-import React, { useState, useEffect, useCallback } from "react";
+// CaseSheetScreen_V2.js - Enhanced UI with Dropdowns, Collapsible Sections, Voice Input
+// Features: ABCDE with notes, VBG with AI, Examination dropdowns, Psychological Assessment
+
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   View,
   Text,
@@ -11,11 +14,11 @@ import {
   Switch,
   KeyboardAvoidingView,
   Platform,
+  Modal,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Audio } from "expo-av";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useFocusEffect } from "@react-navigation/native";
 
 const API_URL = "https://er-emr-backend.onrender.com/api";
 
@@ -23,28 +26,54 @@ export default function CaseSheetScreen({ route, navigation }) {
   const { patientType = "adult", vitals = {}, triageData = {}, caseId: existingCaseId } = route.params || {};
   const isPediatric = patientType === "pediatric";
 
-  /* ===================== LOADING & CASE ID ===================== */
+  /* ===================== STATE ===================== */
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [caseId, setCaseId] = useState(existingCaseId || null);
+  const [activeTab, setActiveTab] = useState("patient");
+  
+  // Collapsed sections
+  const [collapsed, setCollapsed] = useState({
+    airway: false,
+    breathing: false,
+    circulation: false,
+    disability: false,
+    exposure: false,
+    reassessment: false,
+    adjuvants: true,
+    generalExam: false,
+    cvs: true,
+    respiratory: true,
+    abdomen: true,
+    cns: true,
+    extremities: true,
+    psychological: true,
+  });
+
+  // Examination status (Normal/Abnormal)
+  const [examStatus, setExamStatus] = useState({
+    cvs: "Normal",
+    respiratory: "Normal",
+    abdomen: "Normal",
+    cns: "Normal",
+    extremities: "Normal",
+  });
 
   /* ===================== VOICE STATE ===================== */
   const [recording, setRecording] = useState(null);
   const [isRecording, setIsRecording] = useState(false);
-  const [transcriptText, setTranscriptText] = useState("");
+  const [activeVoiceField, setActiveVoiceField] = useState(null);
+  const [transcribing, setTranscribing] = useState(false);
 
-  /* ===================== FORM DATA (Single State Object) ===================== */
-  const [formData, setFormData] = useState({
+  /* ===================== FORM DATA REF ===================== */
+  const formDataRef = useRef({
     // Patient Info
     patient_name: "",
     patient_age: vitals.age ? String(vitals.age) : "",
-    patient_age_unit: vitals.age_unit || "years",
     patient_sex: "Male",
     patient_phone: "",
-    patient_address: "",
     patient_uhid: "",
     patient_mode_of_arrival: "Walk-in",
-    patient_brought_by: "Self",
     patient_mlc: false,
 
     // Presenting Complaint
@@ -59,175 +88,216 @@ export default function CaseSheetScreen({ route, navigation }) {
     vitals_bp_diastolic: vitals.bp_diastolic ? String(vitals.bp_diastolic) : "",
     vitals_spo2: vitals.spo2 ? String(vitals.spo2) : "",
     vitals_temperature: vitals.temperature ? String(vitals.temperature) : "",
-    vitals_gcs_e: vitals.gcs_e ? String(vitals.gcs_e) : "",
-    vitals_gcs_v: vitals.gcs_v ? String(vitals.gcs_v) : "",
-    vitals_gcs_m: vitals.gcs_m ? String(vitals.gcs_m) : "",
+    vitals_gcs_e: "",
+    vitals_gcs_v: "",
+    vitals_gcs_m: "",
     vitals_pain_score: "",
     vitals_grbs: "",
-    vitals_capillary_refill: vitals.capillary_refill ? String(vitals.capillary_refill) : "",
 
-    // ABCDE
+    // Primary Assessment (ABCDE) with Notes
     airway_status: "Patent",
+    airway_position: "",
+    airway_patency: "",
+    airway_obstruction_cause: "",
+    airway_speech: "",
+    airway_interventions: [],
     airway_notes: "",
+    
     breathing_wob: "Normal",
-    breathing_air_entry: "Normal",
+    breathing_rr: "",
+    breathing_spo2: "",
+    breathing_o2_flow: "",
+    breathing_o2_device: "",
+    breathing_effort: "",
+    breathing_pattern: "",
+    breathing_expansion: "",
+    breathing_air_entry: "Equal",
+    breathing_added_sounds: "",
+    breathing_breath_sounds: "Normal",
+    breathing_interventions: [],
     breathing_notes: "",
+    
+    circulation_status: "Normal",
+    circulation_hr: "",
+    circulation_bp: "",
+    circulation_rhythm: "",
     circulation_crt: "Normal",
-    circulation_skin_color: "Pink",
-    circulation_distended_neck_veins: false,
+    circulation_skin: "Warm, Dry",
+    circulation_pulse: "Regular",
+    circulation_jvp: "Normal",
+    circulation_external_bleed: false,
+    circulation_long_bone: false,
+    circulation_interventions: [],
     circulation_notes: "",
+    
     disability_avpu: "Alert",
-    disability_pupils: "Equal, Reactive",
+    disability_gcs_e: "",
+    disability_gcs_v: "",
+    disability_gcs_m: "",
     disability_grbs: "",
-    exposure_trauma: false,
-    exposure_long_bone_deformity: false,
-    efast_done: false,
-    efast_notes: "",
+    disability_pupils: "Equal, Reactive",
+    disability_pupils_size: "",
+    disability_pupils_reaction: "",
+    disability_lateralizing: "",
+    disability_seizure: false,
+    disability_motor: "Normal",
+    disability_notes: "",
+    
+    exposure_status: "Normal",
+    exposure_temperature: "",
+    exposure_rashes: "",
+    exposure_bruises: "",
+    exposure_logroll: [],
+    exposure_findings: "",
+    exposure_notes: "",
 
-    // PAT (Pediatric)
-    pat_appearance: "Normal",
-    pat_tone: "Normal",
-    pat_interactivity: "Normal",
-    pat_consolability: "Consolable",
-    pat_work_of_breathing: "Normal",
-    pat_circulation_to_skin: "Normal",
-    pat_overall_impression: "Stable",
+    // Reassessment
+    reassessment_status: "",
+    reassessment_notes: "",
 
-    // History
+    // Adjuvants to Primary
+    ecg_findings: "",
+    vbg_ph: "",
+    vbg_pco2: "",
+    vbg_hco3: "",
+    vbg_hb: "",
+    vbg_glu: "",
+    vbg_lac: "",
+    vbg_na: "",
+    vbg_k: "",
+    vbg_cr: "",
+    vbg_ai_interpretation: "",
+    bedside_echo: "",
+    adjuvants_notes: "",
+
+    // History (SAMPLE)
     history_hpi: "",
     history_signs_symptoms: "",
+    history_secondary_survey: "",
     history_allergies: "",
     history_medications: "",
     history_past_medical: "",
     history_past_surgical: "",
     history_last_meal: "",
-    history_events: "",
-    history_family: "",
+    history_family_gynae: "",
+    history_additional_notes: "",
 
-    // Examination
-    exam_general_pallor: false,
-    exam_general_icterus: false,
-    exam_general_cyanosis: false,
-    exam_general_clubbing: false,
-    exam_general_lymphadenopathy: false,
-    exam_general_edema: false,
-    exam_general_notes: "",
-    exam_cvs_status: "Normal",
-    exam_cvs_notes: "",
-    exam_respiratory_status: "Normal",
-    exam_respiratory_notes: "",
-    exam_abdomen_status: "Normal",
-    exam_abdomen_notes: "",
-    exam_cns_status: "Normal",
-    exam_cns_notes: "",
-    exam_extremities_status: "Normal",
-    exam_extremities_notes: "",
+    // Psychological Assessment
+    psych_suicidal_ideation: false,
+    psych_self_harm: false,
+    psych_harm_others: false,
+    psych_substance_abuse: false,
+    psych_psychiatric_history: false,
+    psych_current_treatment: false,
+    psych_support_system: true,
+    psych_notes: "",
+
+    // Examination - General
+    general_appearance: "Well",
+    general_pallor: false,
+    general_icterus: false,
+    general_cyanosis: false,
+    general_clubbing: false,
+    general_lymphadenopathy: false,
+    general_edema: false,
+    general_notes: "",
+
+    // Examination - CVS
+    cvs_s1_s2: "Normal",
+    cvs_pulse: "Regular",
+    cvs_pulse_rate: "",
+    cvs_apex_beat: "Normal",
+    cvs_precordial_heave: false,
+    cvs_added_sounds: "",
+    cvs_murmurs: "",
+    cvs_notes: "",
+
+    // Examination - Respiratory
+    resp_expansion: "Equal",
+    resp_percussion: "Resonant",
+    resp_breath_sounds: "Vesicular",
+    resp_vocal_resonance: "Normal",
+    resp_added_sounds: "",
+    resp_notes: "",
+
+    // Examination - Abdomen
+    abd_umbilical: "Normal",
+    abd_organomegaly: "",
+    abd_percussion: "Tympanic",
+    abd_bowel_sounds: "Present",
+    abd_external_genitalia: "Normal",
+    abd_hernial_orifices: "Normal",
+    abd_per_rectal: "",
+    abd_per_vaginal: "",
+    abd_notes: "",
+
+    // Examination - CNS
+    cns_higher_mental: "Intact",
+    cns_cranial_nerves: "Intact",
+    cns_sensory: "Intact",
+    cns_motor: "Normal",
+    cns_reflexes: "Normal",
+    cns_romberg: "Negative",
+    cns_cerebellar: "Normal",
+    cns_notes: "",
+
+    // Examination - Extremities
+    ext_findings: "",
+    ext_notes: "",
 
     // Treatment
     treatment_interventions: "",
-    treatment_course: "",
   });
 
-  /* ===================== TRIAGE INFO ===================== */
-  const triage = {
-    priority: triageData.priority || "",
-    priority_color: triageData.priority_color || "",
-    priority_name: triageData.priority_name || "",
+  // Select states for UI
+  const [selectStates, setSelectStates] = useState({
+    patient_sex: "Male",
+    patient_mode_of_arrival: "Walk-in",
+    complaint_onset: "Sudden",
+    airway_status: "Patent",
+    breathing_wob: "Normal",
+    breathing_air_entry: "Equal",
+    circulation_crt: "Normal",
+    circulation_pulse: "Regular",
+    disability_avpu: "Alert",
+    disability_pupils: "Equal, Reactive",
+    patient_mlc: false,
+  });
+
+  /* ===================== HELPERS ===================== */
+  const [, setForceRender] = useState(0);
+  const forceUpdate = () => setForceRender(prev => prev + 1);
+
+  const toggleCollapse = (section) => {
+    setCollapsed(prev => ({ ...prev, [section]: !prev[section] }));
   };
 
-  /* ===================== OPTIMIZED FIELD UPDATE ===================== */
-  const updateField = useCallback((field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+  const updateTextField = useCallback((field, value) => {
+    formDataRef.current[field] = value;
   }, []);
 
-  /* ===================== LOAD EXISTING CASE ===================== */
-  useEffect(() => {
-    if (existingCaseId) {
-      loadExistingCase(existingCaseId);
-    }
-  }, [existingCaseId]);
+  const updateSelectField = useCallback((field, value) => {
+    formDataRef.current[field] = value;
+    setSelectStates(prev => ({ ...prev, [field]: value }));
+  }, []);
 
-  const loadExistingCase = async (id) => {
-    setLoading(true);
-    try {
-      const token = await AsyncStorage.getItem("token");
-      const res = await fetch(`${API_URL}/cases/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!res.ok) throw new Error("Failed to load case");
-
-      const data = await res.json();
-      populateFromCaseData(data);
-    } catch (err) {
-      console.error("Load case error:", err);
-    }
-    setLoading(false);
+  const updateExamStatus = (exam, status) => {
+    setExamStatus(prev => ({ ...prev, [exam]: status }));
   };
 
-  const populateFromCaseData = (data) => {
-    const p = data.patient || {};
-    const c = data.presenting_complaint || {};
-    const v = data.vitals_at_arrival || {};
-    const h = data.history || {};
-    const pa = data.primary_assessment || {};
-    const ex = data.examination || {};
-    const tr = data.treatment || {};
-
-    setFormData(prev => ({
-      ...prev,
-      patient_name: p.name || "",
-      patient_age: p.age ? String(p.age) : "",
-      patient_sex: p.sex || "Male",
-      patient_phone: p.phone || "",
-      patient_uhid: p.uhid || "",
-      patient_mode_of_arrival: p.mode_of_arrival || "Walk-in",
-      patient_mlc: p.mlc || false,
-
-      complaint_text: c.text || "",
-      complaint_duration: c.duration || "",
-      complaint_onset: c.onset_type || "Sudden",
-
-      vitals_hr: v.hr ? String(v.hr) : "",
-      vitals_rr: v.rr ? String(v.rr) : "",
-      vitals_bp_systolic: v.bp_systolic ? String(v.bp_systolic) : "",
-      vitals_bp_diastolic: v.bp_diastolic ? String(v.bp_diastolic) : "",
-      vitals_spo2: v.spo2 ? String(v.spo2) : "",
-      vitals_temperature: v.temperature ? String(v.temperature) : "",
-      vitals_gcs_e: v.gcs_e ? String(v.gcs_e) : "",
-      vitals_gcs_v: v.gcs_v ? String(v.gcs_v) : "",
-      vitals_gcs_m: v.gcs_m ? String(v.gcs_m) : "",
-      vitals_pain_score: v.pain_score ? String(v.pain_score) : "",
-      vitals_grbs: v.grbs ? String(v.grbs) : "",
-
-      history_hpi: h.hpi || "",
-      history_allergies: Array.isArray(h.allergies) ? h.allergies.join(", ") : (h.allergies || ""),
-      history_medications: h.drug_history || "",
-      history_past_medical: Array.isArray(h.past_medical) ? h.past_medical.join(", ") : (h.past_medical || ""),
-      history_past_surgical: h.past_surgical || "",
-
-      airway_status: pa.airway_status || "Patent",
-      airway_notes: pa.airway_additional_notes || "",
-      breathing_wob: pa.breathing_work || "Normal",
-      breathing_air_entry: pa.breathing_air_entry?.[0] || "Normal",
-      circulation_crt: pa.circulation_crt ? "Delayed" : "Normal",
-      disability_avpu: pa.disability_avpu || "Alert",
-
-      exam_cvs_status: ex.cvs_status || "Normal",
-      exam_respiratory_status: ex.respiratory_status || "Normal",
-      exam_abdomen_status: ex.abdomen_status || "Normal",
-      exam_cns_status: ex.cns_status || "Normal",
-
-      treatment_interventions: tr.intervention_notes || "",
-      treatment_course: tr.course_in_hospital || "",
-    }));
+  // Toggle intervention in array field
+  const toggleIntervention = (field, item) => {
+    const current = formDataRef.current[field] || [];
+    if (current.includes(item)) {
+      formDataRef.current[field] = current.filter(i => i !== item);
+    } else {
+      formDataRef.current[field] = [...current, item];
+    }
+    forceUpdate();
   };
 
-  /* =========================================================
-     🎤 VOICE RECORDING
-     ========================================================= */
-
-  const startRecording = async () => {
+  /* ===================== VOICE RECORDING ===================== */
+  const startVoiceInput = async (field) => {
     try {
       const { status } = await Audio.requestPermissionsAsync();
       if (status !== "granted") {
@@ -246,73 +316,81 @@ export default function CaseSheetScreen({ route, navigation }) {
 
       setRecording(recording);
       setIsRecording(true);
+      setActiveVoiceField(field);
     } catch (err) {
       console.error("Recording error:", err);
       Alert.alert("Error", "Cannot start recording");
     }
   };
 
-  const stopRecording = async () => {
+  const stopVoiceInput = async () => {
     try {
       setIsRecording(false);
       await recording.stopAndUnloadAsync();
       const uri = recording.getURI();
       setRecording(null);
-      uploadAudio(uri);
+      
+      // Transcribe
+      setTranscribing(true);
+      const token = await AsyncStorage.getItem("token");
+      
+      const formData = new FormData();
+      formData.append("file", { uri, name: "voice.m4a", type: "audio/m4a" });
+      formData.append("engine", "auto");
+      formData.append("language", "en");
+
+      const res = await fetch(`${API_URL}/ai/voice-to-text`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.transcription && activeVoiceField) {
+          const currentValue = formDataRef.current[activeVoiceField] || "";
+          formDataRef.current[activeVoiceField] = currentValue 
+            ? `${currentValue}\n${data.transcription}` 
+            : data.transcription;
+          // Force re-render
+          setSelectStates(prev => ({ ...prev }));
+        }
+      }
+      setTranscribing(false);
+      setActiveVoiceField(null);
     } catch (err) {
-      console.error("Stop recording error:", err);
-      Alert.alert("Error", "Recording failed");
+      console.error("Voice error:", err);
+      setTranscribing(false);
+      setActiveVoiceField(null);
     }
   };
 
-  /* =========================================================
-     📤 UPLOAD AUDIO → TRANSCRIBE → AUTO-POPULATE
-     ========================================================= */
+  /* ===================== VBG AI INTERPRETATION ===================== */
+  const getVBGInterpretation = async () => {
+    const fd = formDataRef.current;
+    
+    if (!fd.vbg_ph && !fd.vbg_pco2 && !fd.vbg_hco3) {
+      Alert.alert("Required", "Please enter VBG values first");
+      return;
+    }
 
-  const uploadAudio = async (uri) => {
     setLoading(true);
     try {
       const token = await AsyncStorage.getItem("token");
-      if (!token) {
-        Alert.alert("Auth Error", "Please login again");
-        return;
-      }
+      
+      const vbgData = {
+        ph: fd.vbg_ph,
+        pco2: fd.vbg_pco2,
+        hco3: fd.vbg_hco3,
+        hb: fd.vbg_hb,
+        glucose: fd.vbg_glu,
+        lactate: fd.vbg_lac,
+        sodium: fd.vbg_na,
+        potassium: fd.vbg_k,
+        creatinine: fd.vbg_cr,
+      };
 
-      // Step 1: Transcribe
-      const formDataUpload = new FormData();
-      formDataUpload.append("file", {
-        uri,
-        name: "casesheet.m4a",
-        type: "audio/m4a",
-      });
-      formDataUpload.append("engine", "auto");
-      formDataUpload.append("language", "en");
-
-      const transcribeRes = await fetch(`${API_URL}/ai/voice-to-text`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body: formDataUpload,
-      });
-
-      if (!transcribeRes.ok) throw new Error("Transcription failed");
-
-      const transcribeData = await transcribeRes.json();
-      if (!transcribeData?.transcription) throw new Error("No transcription");
-
-      setTranscriptText(transcribeData.transcription);
-
-      // Step 2: Parse & Auto-populate
-      await parseTranscript(transcribeData.transcription, token);
-    } catch (err) {
-      console.error("Upload error:", err);
-      Alert.alert("Voice Error", err.message || "Unable to process voice");
-    }
-    setLoading(false);
-  };
-
-  const parseTranscript = async (text, token) => {
-    try {
-      const res = await fetch(`${API_URL}/ai/parse-transcript`, {
+      const res = await fetch(`${API_URL}/ai/interpretation`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -320,318 +398,370 @@ export default function CaseSheetScreen({ route, navigation }) {
         },
         body: JSON.stringify({
           case_sheet_id: caseId || "new",
-          transcript: text,
-          source_language: "en",
+          type: "vbg",
+          data: vbgData,
         }),
       });
 
-      if (!res.ok) throw new Error("Parsing failed");
-
-      const data = await res.json();
-      console.log("Parsed data:", JSON.stringify(data, null, 2));
-
-      // Auto-populate all fields
-      autoPopulate(data);
-
-      Alert.alert("✅ Success", "Case sheet auto-populated from voice!");
+      if (res.ok) {
+        const data = await res.json();
+        formDataRef.current.vbg_ai_interpretation = data.interpretation || data.response || "";
+        setSelectStates(prev => ({ ...prev }));
+        Alert.alert("✅ AI Interpretation", formDataRef.current.vbg_ai_interpretation);
+      } else {
+        throw new Error("Failed to get interpretation");
+      }
     } catch (err) {
-      console.error("Parse error:", err);
-      Alert.alert("Parse Error", err.message || "Could not structure data");
+      console.error("VBG interpretation error:", err);
+      Alert.alert("Error", "Failed to get AI interpretation");
+    }
+    setLoading(false);
+  };
+
+  /* ===================== DEFAULT VALUES ===================== */
+  const DEFAULT_NORMAL_VALUES = {
+    // Primary Assessment
+    airway_status: "Patent",
+    breathing_wob: "Normal",
+    breathing_air_entry: "Equal",
+    circulation_status: "Normal",
+    circulation_crt: "Normal",
+    circulation_pulse: "Regular",
+    circulation_jvp: "Normal",
+    disability_avpu: "Alert",
+    disability_pupils: "Equal, Reactive",
+    exposure_status: "Normal",
+    // Examination defaults
+    general_appearance: "Conscious, alert, oriented",
+    general_pallor: "Absent",
+    general_icterus: "Absent",
+    general_cyanosis: "Absent",
+    general_clubbing: "Absent",
+    general_lymphadenopathy: "Absent",
+    general_edema: "Absent",
+    cvs_s1_s2: "Normal",
+    cvs_murmur: "Absent",
+    resp_percussion: "Resonant",
+    resp_breath_sounds: "Vesicular",
+    abd_inspection: "Normal",
+    abd_tenderness: "Absent",
+    abd_guarding_rigidity: "Absent",
+    abd_organomegaly: "Absent",
+    abd_bowel_sounds: "Present",
+    cns_gcs: "15/15",
+    cns_pupils: "Equal, reactive",
+    cns_tone: "Normal",
+    cns_power: "5/5",
+    cns_reflexes: "Normal",
+    cns_sensation: "Intact",
+    cns_motor: "Normal",
+    ext_inspection: "Normal",
+    ext_deformity: "Nil",
+    ext_swelling: "Nil",
+    ext_tenderness: "Nil",
+    ext_movement: "Full ROM",
+    ext_pulses: "Present",
+    ext_sensation: "Intact",
+  };
+
+  const applyDefaultValues = () => {
+    const fd = formDataRef.current;
+    
+    // Apply defaults only if fields are empty
+    Object.entries(DEFAULT_NORMAL_VALUES).forEach(([key, value]) => {
+      if (!fd[key] || fd[key] === "") {
+        fd[key] = value;
+      }
+    });
+    
+    // Ensure arrays have defaults
+    if (!fd.airway_interventions || fd.airway_interventions.length === 0) {
+      fd.airway_interventions = [];
+    }
+    if (!fd.breathing_interventions || fd.breathing_interventions.length === 0) {
+      fd.breathing_interventions = [];
+    }
+    if (!fd.circulation_interventions || fd.circulation_interventions.length === 0) {
+      fd.circulation_interventions = [];
+    }
+    if (!fd.exposure_logroll || fd.exposure_logroll.length === 0) {
+      fd.exposure_logroll = [];
     }
   };
 
-  /* =========================================================
-     🔄 AUTO-POPULATE FROM PARSED DATA (FIXED)
-     ========================================================= */
-
-  const autoPopulate = (data) => {
-    setFormData(prev => {
-      const updated = { ...prev };
-
-      // Patient Info
-      if (data.patient_info) {
-        const pi = data.patient_info;
-        if (pi.name) updated.patient_name = pi.name;
-        if (pi.age) updated.patient_age = String(pi.age);
-        if (pi.gender) updated.patient_sex = pi.gender;
-        if (pi.sex) updated.patient_sex = pi.sex;
-      }
-
-      // Presenting Complaint
-      if (data.presenting_complaint) {
-        const pc = data.presenting_complaint;
-        if (pc.text) updated.complaint_text = pc.text;
-        if (pc.chief_complaint) updated.complaint_text = pc.chief_complaint;
-        if (pc.duration) updated.complaint_duration = pc.duration;
-        if (pc.onset_type) updated.complaint_onset = pc.onset_type;
-      }
-
-      // Vitals
-      if (data.vitals) {
-        const v = data.vitals;
-        if (v.hr) updated.vitals_hr = String(v.hr);
-        if (v.rr) updated.vitals_rr = String(v.rr);
-        if (v.bp_systolic) updated.vitals_bp_systolic = String(v.bp_systolic);
-        if (v.bp_diastolic) updated.vitals_bp_diastolic = String(v.bp_diastolic);
-        if (v.spo2) updated.vitals_spo2 = String(v.spo2);
-        if (v.temperature) updated.vitals_temperature = String(v.temperature);
-        if (v.gcs_e) updated.vitals_gcs_e = String(v.gcs_e);
-        if (v.gcs_v) updated.vitals_gcs_v = String(v.gcs_v);
-        if (v.gcs_m) updated.vitals_gcs_m = String(v.gcs_m);
-        if (v.grbs) updated.vitals_grbs = String(v.grbs);
-      }
-
-      // History (SAMPLE)
-      if (data.history) {
-        const h = data.history;
-        if (h.hpi) updated.history_hpi = h.hpi;
-        if (h.signs_and_symptoms) updated.history_signs_symptoms = h.signs_and_symptoms;
-        if (h.allergies) {
-          updated.history_allergies = Array.isArray(h.allergies) ? h.allergies.join(", ") : h.allergies;
-        }
-        if (h.drug_history) updated.history_medications = h.drug_history;
-        if (h.medications) updated.history_medications = h.medications;
-        if (h.past_medical) {
-          updated.history_past_medical = Array.isArray(h.past_medical) ? h.past_medical.join(", ") : h.past_medical;
-        }
-        if (h.past_surgical) updated.history_past_surgical = h.past_surgical;
-        if (h.events) updated.history_events = h.events;
-        if (h.events_hopi) updated.history_events = h.events_hopi;
-      }
-
-      // Primary Assessment
-      if (data.primary_assessment) {
-        const pa = data.primary_assessment;
-        if (pa.airway_status) updated.airway_status = pa.airway_status;
-        if (pa.airway_additional_notes) updated.airway_notes = pa.airway_additional_notes;
-        if (pa.breathing_additional_notes) updated.breathing_notes = pa.breathing_additional_notes;
-        if (pa.circulation_additional_notes) updated.circulation_notes = pa.circulation_additional_notes;
-        if (pa.disability_avpu) updated.disability_avpu = pa.disability_avpu;
-      }
-
-      // Examination
-      if (data.examination) {
-        const ex = data.examination;
-        if (ex.general_notes) updated.exam_general_notes = ex.general_notes;
-        if (ex.general_pallor !== undefined) updated.exam_general_pallor = ex.general_pallor;
-        if (ex.general_icterus !== undefined) updated.exam_general_icterus = ex.general_icterus;
-        if (ex.cvs_status) updated.exam_cvs_status = ex.cvs_status;
-        if (ex.cvs_additional_notes) updated.exam_cvs_notes = ex.cvs_additional_notes;
-        if (ex.respiratory_status) updated.exam_respiratory_status = ex.respiratory_status;
-        if (ex.respiratory_additional_notes) updated.exam_respiratory_notes = ex.respiratory_additional_notes;
-        if (ex.abdomen_status) updated.exam_abdomen_status = ex.abdomen_status;
-        if (ex.abdomen_additional_notes) updated.exam_abdomen_notes = ex.abdomen_additional_notes;
-        if (ex.cns_status) updated.exam_cns_status = ex.cns_status;
-        if (ex.cns_additional_notes) updated.exam_cns_notes = ex.cns_additional_notes;
-      }
-
-      // Treatment
-      if (data.treatment) {
-        if (data.treatment.intervention_notes) updated.treatment_interventions = data.treatment.intervention_notes;
-        if (data.treatment.interventions) {
-          updated.treatment_interventions = Array.isArray(data.treatment.interventions)
-            ? data.treatment.interventions.join(", ")
-            : data.treatment.interventions;
-        }
-      }
-
-      return updated;
-    });
-  };
-
-  /* =========================================================
-     💾 SAVE CASE SHEET
-     ========================================================= */
-
+  /* ===================== SAVE ===================== */
   const saveCaseSheet = async () => {
     setSaving(true);
+    
+    // Apply default values to empty fields before saving
+    applyDefaultValues();
+    
     try {
       const token = await AsyncStorage.getItem("token");
       const user = JSON.parse(await AsyncStorage.getItem("user") || "{}");
+      const fd = formDataRef.current;
 
       const payload = {
         case_type: patientType,
         patient: {
-          name: formData.patient_name,
-          age: formData.patient_age,
-          age_unit: formData.patient_age_unit,
-          sex: formData.patient_sex,
-          phone: formData.patient_phone,
-          address: formData.patient_address,
-          uhid: formData.patient_uhid,
-          mode_of_arrival: formData.patient_mode_of_arrival,
-          brought_by: formData.patient_brought_by,
-          mlc: formData.patient_mlc,
+          name: fd.patient_name,
+          age: fd.patient_age,
+          sex: fd.patient_sex,
+          phone: fd.patient_phone,
+          uhid: fd.patient_uhid,
+          mode_of_arrival: fd.patient_mode_of_arrival,
+          mlc: fd.patient_mlc,
           arrival_datetime: new Date().toISOString(),
-          informant_name: "",
-          informant_reliability: "Reliable",
-          identification_mark: "",
-          nature_of_accident: [],
-          mechanism_of_injury: [],
         },
         presenting_complaint: {
-          text: formData.complaint_text,
-          duration: formData.complaint_duration,
-          onset_type: formData.complaint_onset,
-          course: "Progressive",
+          text: fd.complaint_text,
+          duration: fd.complaint_duration,
+          onset_type: fd.complaint_onset,
         },
         vitals_at_arrival: {
-          hr: formData.vitals_hr ? Number(formData.vitals_hr) : null,
-          rr: formData.vitals_rr ? Number(formData.vitals_rr) : null,
-          bp_systolic: formData.vitals_bp_systolic ? Number(formData.vitals_bp_systolic) : null,
-          bp_diastolic: formData.vitals_bp_diastolic ? Number(formData.vitals_bp_diastolic) : null,
-          spo2: formData.vitals_spo2 ? Number(formData.vitals_spo2) : null,
-          temperature: formData.vitals_temperature ? Number(formData.vitals_temperature) : null,
-          gcs_e: formData.vitals_gcs_e ? Number(formData.vitals_gcs_e) : null,
-          gcs_v: formData.vitals_gcs_v ? Number(formData.vitals_gcs_v) : null,
-          gcs_m: formData.vitals_gcs_m ? Number(formData.vitals_gcs_m) : null,
-          pain_score: formData.vitals_pain_score ? Number(formData.vitals_pain_score) : null,
-          grbs: formData.vitals_grbs ? Number(formData.vitals_grbs) : null,
+          hr: fd.vitals_hr ? Number(fd.vitals_hr) : null,
+          rr: fd.vitals_rr ? Number(fd.vitals_rr) : null,
+          bp_systolic: fd.vitals_bp_systolic ? Number(fd.vitals_bp_systolic) : null,
+          bp_diastolic: fd.vitals_bp_diastolic ? Number(fd.vitals_bp_diastolic) : null,
+          spo2: fd.vitals_spo2 ? Number(fd.vitals_spo2) : null,
+          temperature: fd.vitals_temperature ? Number(fd.vitals_temperature) : null,
+          gcs_e: fd.vitals_gcs_e ? Number(fd.vitals_gcs_e) : null,
+          gcs_v: fd.vitals_gcs_v ? Number(fd.vitals_gcs_v) : null,
+          gcs_m: fd.vitals_gcs_m ? Number(fd.vitals_gcs_m) : null,
+          pain_score: fd.vitals_pain_score ? Number(fd.vitals_pain_score) : null,
+          grbs: fd.vitals_grbs ? Number(fd.vitals_grbs) : null,
         },
         primary_assessment: {
-          airway_status: formData.airway_status,
-          airway_additional_notes: formData.airway_notes,
-          breathing_work: formData.breathing_wob,
-          breathing_air_entry: [formData.breathing_air_entry],
-          breathing_additional_notes: formData.breathing_notes,
-          circulation_crt: formData.circulation_crt === "Delayed" ? 3 : 2,
-          circulation_additional_notes: formData.circulation_notes,
-          disability_avpu: formData.disability_avpu,
-          disability_pupils_size: formData.disability_pupils,
-          disability_grbs: formData.disability_grbs ? Number(formData.disability_grbs) : null,
-          exposure_temperature: formData.vitals_temperature ? Number(formData.vitals_temperature) : null,
+          airway_status: fd.airway_status,
+          airway_interventions: fd.airway_interventions,
+          airway_additional_notes: fd.airway_notes,
+          breathing_work: fd.breathing_wob,
+          breathing_air_entry: [fd.breathing_air_entry],
+          breathing_additional_notes: fd.breathing_notes,
+          circulation_crt: fd.circulation_crt === "Delayed" ? 3 : 2,
+          circulation_additional_notes: fd.circulation_notes,
+          disability_avpu: fd.disability_avpu,
+          disability_pupils_size: fd.disability_pupils,
+          disability_additional_notes: fd.disability_notes,
+          exposure_additional_notes: fd.exposure_notes,
         },
-        pat: isPediatric ? {
-          appearance_tone: formData.pat_appearance,
-          work_of_breathing: formData.pat_work_of_breathing,
-          circulation_to_skin: formData.pat_circulation_to_skin,
-        } : null,
+        adjuvants: {
+          ecg_findings: fd.ecg_findings,
+          vbg: {
+            ph: fd.vbg_ph,
+            pco2: fd.vbg_pco2,
+            hco3: fd.vbg_hco3,
+            hb: fd.vbg_hb,
+            glucose: fd.vbg_glu,
+            lactate: fd.vbg_lac,
+            sodium: fd.vbg_na,
+            potassium: fd.vbg_k,
+            creatinine: fd.vbg_cr,
+            ai_interpretation: fd.vbg_ai_interpretation,
+          },
+          bedside_echo: fd.bedside_echo,
+          additional_notes: fd.adjuvants_notes,
+        },
         history: {
-          hpi: formData.history_hpi,
-          signs_and_symptoms: formData.history_signs_symptoms,
-          allergies: formData.history_allergies.split(",").map(s => s.trim()).filter(Boolean),
-          drug_history: formData.history_medications,
-          past_medical: formData.history_past_medical.split(",").map(s => s.trim()).filter(Boolean),
-          past_surgical: formData.history_past_surgical,
-          last_meal_lmp: formData.history_last_meal,
-          events_hopi: formData.history_events,
-          family_gyn_additional_notes: formData.history_family,
+          hpi: fd.history_hpi,
+          signs_and_symptoms: fd.history_signs_symptoms,
+          secondary_survey: fd.history_secondary_survey,
+          allergies: fd.history_allergies.split(",").map(s => s.trim()).filter(Boolean),
+          drug_history: fd.history_medications,
+          past_medical: fd.history_past_medical.split(",").map(s => s.trim()).filter(Boolean),
+          past_surgical: fd.history_past_surgical,
+          last_meal_lmp: fd.history_last_meal,
+          family_gyn_additional_notes: fd.history_family_gynae,
+          additional_notes: fd.history_additional_notes,
+        },
+        psychological_assessment: {
+          suicidal_ideation: fd.psych_suicidal_ideation,
+          self_harm: fd.psych_self_harm,
+          harm_others: fd.psych_harm_others,
+          substance_abuse: fd.psych_substance_abuse,
+          psychiatric_history: fd.psych_psychiatric_history,
+          current_treatment: fd.psych_current_treatment,
+          support_system: fd.psych_support_system,
+          notes: fd.psych_notes,
         },
         examination: {
-          general_pallor: formData.exam_general_pallor,
-          general_icterus: formData.exam_general_icterus,
-          general_cyanosis: formData.exam_general_cyanosis,
-          general_clubbing: formData.exam_general_clubbing,
-          general_lymphadenopathy: formData.exam_general_lymphadenopathy,
-          general_additional_notes: formData.exam_general_notes,
-          cvs_status: formData.exam_cvs_status,
-          cvs_additional_notes: formData.exam_cvs_notes,
-          respiratory_status: formData.exam_respiratory_status,
-          respiratory_additional_notes: formData.exam_respiratory_notes,
-          abdomen_status: formData.exam_abdomen_status,
-          abdomen_additional_notes: formData.exam_abdomen_notes,
-          cns_status: formData.exam_cns_status,
-          cns_additional_notes: formData.exam_cns_notes,
-          extremities_status: formData.exam_extremities_status,
-          extremities_additional_notes: formData.exam_extremities_notes,
+          general_appearance: fd.general_appearance,
+          general_pallor: fd.general_pallor,
+          general_icterus: fd.general_icterus,
+          general_cyanosis: fd.general_cyanosis,
+          general_clubbing: fd.general_clubbing,
+          general_lymphadenopathy: fd.general_lymphadenopathy,
+          general_edema: fd.general_edema,
+          general_notes: fd.general_notes,
+          cvs_status: examStatus.cvs,
+          cvs_s1_s2: fd.cvs_s1_s2,
+          cvs_pulse: fd.cvs_pulse,
+          cvs_pulse_rate: fd.cvs_pulse_rate,
+          cvs_apex_beat: fd.cvs_apex_beat,
+          cvs_precordial_heave: fd.cvs_precordial_heave,
+          cvs_added_sounds: fd.cvs_added_sounds,
+          cvs_murmurs: fd.cvs_murmurs,
+          cvs_additional_notes: fd.cvs_notes,
+          respiratory_status: examStatus.respiratory,
+          respiratory_expansion: fd.resp_expansion,
+          respiratory_percussion: fd.resp_percussion,
+          respiratory_breath_sounds: fd.resp_breath_sounds,
+          respiratory_vocal_resonance: fd.resp_vocal_resonance,
+          respiratory_added_sounds: fd.resp_added_sounds,
+          respiratory_additional_notes: fd.resp_notes,
+          abdomen_status: examStatus.abdomen,
+          abdomen_umbilical: fd.abd_umbilical,
+          abdomen_organomegaly: fd.abd_organomegaly,
+          abdomen_percussion: fd.abd_percussion,
+          abdomen_bowel_sounds: fd.abd_bowel_sounds,
+          abdomen_external_genitalia: fd.abd_external_genitalia,
+          abdomen_hernial_orifices: fd.abd_hernial_orifices,
+          abdomen_per_rectal: fd.abd_per_rectal,
+          abdomen_per_vaginal: fd.abd_per_vaginal,
+          abdomen_additional_notes: fd.abd_notes,
+          cns_status: examStatus.cns,
+          cns_higher_mental: fd.cns_higher_mental,
+          cns_cranial_nerves: fd.cns_cranial_nerves,
+          cns_sensory: fd.cns_sensory,
+          cns_motor: fd.cns_motor,
+          cns_reflexes: fd.cns_reflexes,
+          cns_romberg: fd.cns_romberg,
+          cns_cerebellar: fd.cns_cerebellar,
+          cns_additional_notes: fd.cns_notes,
+          extremities_status: examStatus.extremities,
+          extremities_findings: fd.ext_findings,
+          extremities_additional_notes: fd.ext_notes,
         },
         treatment: {
-          intervention_notes: formData.treatment_interventions,
-          course_in_hospital: formData.treatment_course,
-          interventions: formData.treatment_interventions.split(",").map(s => s.trim()).filter(Boolean),
+          intervention_notes: fd.treatment_interventions,
         },
-        triage_priority: triage.priority ? getPriorityLevel(triage.priority) : null,
-        triage_color: triage.priority_color || null,
         em_resident: user.name || "",
-        em_consultant: "",
       };
 
       let response;
       if (caseId) {
         response = await fetch(`${API_URL}/cases/${caseId}`, {
           method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
           body: JSON.stringify(payload),
         });
       } else {
         response = await fetch(`${API_URL}/cases`, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
           body: JSON.stringify(payload),
         });
       }
 
-      if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.detail || "Failed to save case");
-      }
+      if (!response.ok) throw new Error("Failed to save");
 
       const savedCase = await response.json();
       setCaseId(savedCase.id);
-      Alert.alert("✅ Saved", "Case sheet saved successfully!");
+      Alert.alert("✅ Saved", "Case sheet saved!");
       return savedCase.id;
     } catch (err) {
       console.error("Save error:", err);
-      Alert.alert("Error", err.message || "Failed to save");
+      Alert.alert("Error", err.message);
       return null;
     } finally {
       setSaving(false);
     }
   };
 
-  /* =========================================================
-     ➡️ PROCEED TO NEXT SCREEN (No mandatory save)
-     ========================================================= */
-
-  const proceedToInvestigations = async () => {
+  const proceedNext = async () => {
     let id = caseId;
-
-    // Auto-save if patient name is filled
-    if (formData.patient_name && !caseId) {
+    if (formDataRef.current.patient_name && !caseId) {
       id = await saveCaseSheet();
     }
-
-    navigation.navigate("Investigations", {
+    navigation.navigate("PhysicalExam", {
       caseId: id,
       patientType,
-      patientName: formData.patient_name,
-      triageData: triage,
+      patientName: formDataRef.current.patient_name,
     });
   };
 
-  /* =========================================================
-     🧱 UI COMPONENTS (OPTIMIZED)
-     ========================================================= */
+  /* ===================== UI COMPONENTS ===================== */
 
-  const SectionTitle = ({ icon, title }) => (
-    <View style={styles.sectionHeader}>
-      <Ionicons name={icon} size={20} color="#1e40af" />
-      <Text style={styles.sectionTitle}>{title}</Text>
-    </View>
+  // Collapsible Section Header
+  const CollapsibleHeader = ({ title, icon, section, color = "#1e40af" }) => (
+    <TouchableOpacity 
+      style={styles.collapsibleHeader} 
+      onPress={() => toggleCollapse(section)}
+    >
+      <View style={styles.collapsibleLeft}>
+        <Ionicons name={icon} size={20} color={color} />
+        <Text style={[styles.collapsibleTitle, { color }]}>{title}</Text>
+      </View>
+      <Ionicons 
+        name={collapsed[section] ? "chevron-down" : "chevron-up"} 
+        size={20} 
+        color="#64748b" 
+      />
+    </TouchableOpacity>
   );
 
-  // Optimized Input - uses onEndEditing for better performance
-  const InputField = ({ label, field, placeholder, multiline, keyboardType }) => (
+  // Voice Input Button
+  const VoiceButton = ({ field }) => (
+    <TouchableOpacity
+      style={[
+        styles.voiceBtn,
+        isRecording && activeVoiceField === field && styles.voiceBtnRecording,
+      ]}
+      onPress={() => {
+        if (isRecording && activeVoiceField === field) {
+          stopVoiceInput();
+        } else if (!isRecording) {
+          startVoiceInput(field);
+        }
+      }}
+      disabled={transcribing || (isRecording && activeVoiceField !== field)}
+    >
+      {transcribing && activeVoiceField === field ? (
+        <ActivityIndicator size="small" color="#fff" />
+      ) : (
+        <Ionicons 
+          name={isRecording && activeVoiceField === field ? "stop" : "mic"} 
+          size={16} 
+          color="#fff" 
+        />
+      )}
+    </TouchableOpacity>
+  );
+
+  // Text Input with Voice
+  const InputWithVoice = ({ label, field, placeholder, multiline = false }) => (
     <View style={styles.inputGroup}>
-      <Text style={styles.label}>{label}</Text>
+      <View style={styles.labelRow}>
+        <Text style={styles.label}>{label}</Text>
+        <VoiceButton field={field} />
+      </View>
       <TextInput
         style={[styles.input, multiline && styles.textArea]}
-        defaultValue={formData[field]}
-        onChangeText={(text) => updateField(field, text)}
+        defaultValue={formDataRef.current[field]}
+        onChangeText={(text) => updateTextField(field, text)}
         placeholder={placeholder}
         placeholderTextColor="#9ca3af"
         multiline={multiline}
-        keyboardType={keyboardType || "default"}
       />
     </View>
   );
 
+  // Simple Input
+  const InputField = ({ label, field, placeholder, keyboardType = "default" }) => (
+    <View style={styles.inputGroup}>
+      <Text style={styles.label}>{label}</Text>
+      <TextInput
+        style={styles.input}
+        defaultValue={formDataRef.current[field]}
+        onChangeText={(text) => updateTextField(field, text)}
+        placeholder={placeholder}
+        placeholderTextColor="#9ca3af"
+        keyboardType={keyboardType}
+      />
+    </View>
+  );
+
+  // Select Buttons
   const SelectButtons = ({ label, options, field }) => (
     <View style={styles.inputGroup}>
       <Text style={styles.label}>{label}</Text>
@@ -639,10 +769,10 @@ export default function CaseSheetScreen({ route, navigation }) {
         {options.map((opt) => (
           <TouchableOpacity
             key={opt}
-            style={[styles.selectBtn, formData[field] === opt && styles.selectBtnActive]}
-            onPress={() => updateField(field, opt)}
+            style={[styles.selectBtn, selectStates[field] === opt && styles.selectBtnActive]}
+            onPress={() => updateSelectField(field, opt)}
           >
-            <Text style={[styles.selectBtnText, formData[field] === opt && styles.selectBtnTextActive]}>
+            <Text style={[styles.selectBtnText, selectStates[field] === opt && styles.selectBtnTextActive]}>
               {opt}
             </Text>
           </TouchableOpacity>
@@ -651,25 +781,55 @@ export default function CaseSheetScreen({ route, navigation }) {
     </View>
   );
 
+  // Normal/Abnormal Dropdown
+  const ExamDropdown = ({ exam, label }) => (
+    <View style={styles.examDropdown}>
+      <Text style={styles.examLabel}>{label}</Text>
+      <View style={styles.examToggle}>
+        <TouchableOpacity
+          style={[styles.examToggleBtn, examStatus[exam] === "Normal" && styles.examToggleNormal]}
+          onPress={() => updateExamStatus(exam, "Normal")}
+        >
+          <Text style={[styles.examToggleText, examStatus[exam] === "Normal" && styles.examToggleTextActive]}>
+            Normal
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.examToggleBtn, examStatus[exam] === "Abnormal" && styles.examToggleAbnormal]}
+          onPress={() => updateExamStatus(exam, "Abnormal")}
+        >
+          <Text style={[styles.examToggleText, examStatus[exam] === "Abnormal" && styles.examToggleTextActive]}>
+            Abnormal
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
+  // Switch Row
   const SwitchRow = ({ label, field }) => (
     <View style={styles.switchRow}>
       <Text style={styles.switchLabel}>{label}</Text>
       <Switch
-        value={formData[field]}
-        onValueChange={(v) => updateField(field, v)}
+        value={formDataRef.current[field]}
+        onValueChange={(v) => {
+          formDataRef.current[field] = v;
+          setSelectStates(prev => ({ ...prev }));
+        }}
         trackColor={{ false: "#d1d5db", true: "#86efac" }}
-        thumbColor={formData[field] ? "#22c55e" : "#f4f3f4"}
+        thumbColor={formDataRef.current[field] ? "#22c55e" : "#f4f3f4"}
       />
     </View>
   );
 
+  // Vital Input
   const VitalInput = ({ label, field, placeholder }) => (
     <View style={styles.vitalItem}>
       <Text style={styles.vitalLabel}>{label}</Text>
       <TextInput
         style={styles.vitalInput}
-        defaultValue={formData[field]}
-        onChangeText={(text) => updateField(field, text)}
+        defaultValue={formDataRef.current[field]}
+        onChangeText={(text) => updateTextField(field, text)}
         placeholder={placeholder}
         placeholderTextColor="#9ca3af"
         keyboardType="numeric"
@@ -677,16 +837,21 @@ export default function CaseSheetScreen({ route, navigation }) {
     </View>
   );
 
-  /* =========================================================
-     🧱 MAIN UI
-     ========================================================= */
-
-  return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+  // Tab Button
+  const TabButton = ({ id, label, icon }) => (
+    <TouchableOpacity
+      style={[styles.tabBtn, activeTab === id && styles.tabBtnActive]}
+      onPress={() => setActiveTab(id)}
     >
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+      <Ionicons name={icon} size={18} color={activeTab === id ? "#fff" : "#64748b"} />
+      <Text style={[styles.tabText, activeTab === id && styles.tabTextActive]}>{label}</Text>
+    </TouchableOpacity>
+  );
+
+  /* ===================== RENDER ===================== */
+  return (
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+      <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -695,241 +860,662 @@ export default function CaseSheetScreen({ route, navigation }) {
           <Text style={styles.headerTitle}>
             {isPediatric ? "👶 Pediatric" : "🏥 Adult"} Case Sheet
           </Text>
-          {triage.priority && (
-            <View style={[styles.priorityBadge, { backgroundColor: getPriorityColor(triage.priority) }]}>
-              <Text style={styles.priorityText}>{triage.priority}</Text>
-            </View>
-          )}
-        </View>
-
-        {/* Voice Recording */}
-        <TouchableOpacity
-          style={[styles.voiceBtn, isRecording && styles.voiceBtnRecording]}
-          onPress={isRecording ? stopRecording : startRecording}
-          disabled={loading}
-        >
-          <Ionicons name={isRecording ? "stop-circle" : "mic"} size={24} color="#fff" />
-          <Text style={styles.voiceText}>
-            {isRecording ? "Stop Recording" : "🎤 Dictate Full Case (Auto-Populate)"}
-          </Text>
-        </TouchableOpacity>
-
-        {transcriptText ? (
-          <View style={styles.transcriptBox}>
-            <Text style={styles.transcriptLabel}>📝 Transcript:</Text>
-            <Text style={styles.transcriptText}>{transcriptText}</Text>
-          </View>
-        ) : null}
-
-        {loading && (
-          <View style={styles.loadingBox}>
-            <ActivityIndicator size="large" color="#1976d2" />
-            <Text style={styles.loadingText}>Processing voice...</Text>
-          </View>
-        )}
-
-        {/* ==================== PATIENT INFO ==================== */}
-        <SectionTitle icon="person" title="Patient Information" />
-        <View style={styles.card}>
-          <View style={styles.row}>
-            <View style={{ flex: 2 }}>
-              <InputField label="Name" field="patient_name" placeholder="Patient name" />
-            </View>
-            <View style={{ flex: 1 }}>
-              <InputField label="UHID" field="patient_uhid" placeholder="ID" />
-            </View>
-          </View>
-
-          <View style={styles.row}>
-            <View style={{ flex: 1 }}>
-              <InputField label="Age" field="patient_age" placeholder="Age" keyboardType="numeric" />
-            </View>
-            <View style={{ flex: 1 }}>
-              <SelectButtons label="Sex" options={["Male", "Female"]} field="patient_sex" />
-            </View>
-          </View>
-
-          <InputField label="Phone" field="patient_phone" placeholder="Contact number" keyboardType="phone-pad" />
-
-          <SelectButtons
-            label="Mode of Arrival"
-            options={["Walk-in", "Ambulance", "Referred"]}
-            field="patient_mode_of_arrival"
-          />
-
-          <SwitchRow label="MLC (Medico-Legal Case)" field="patient_mlc" />
-        </View>
-
-        {/* ==================== PRESENTING COMPLAINT ==================== */}
-        <SectionTitle icon="alert-circle" title="Presenting Complaint" />
-        <View style={styles.card}>
-          <InputField label="Chief Complaint" field="complaint_text" placeholder="Main complaint..." multiline />
-          <View style={styles.row}>
-            <View style={{ flex: 1 }}>
-              <InputField label="Duration" field="complaint_duration" placeholder="e.g., 2 hours" />
-            </View>
-            <View style={{ flex: 1 }}>
-              <SelectButtons label="Onset" options={["Sudden", "Gradual"]} field="complaint_onset" />
-            </View>
-          </View>
-        </View>
-
-        {/* ==================== VITALS ==================== */}
-        <SectionTitle icon="heart" title="Vitals at Arrival" />
-        <View style={styles.card}>
-          <View style={styles.vitalsGrid}>
-            <VitalInput label="HR" field="vitals_hr" placeholder="bpm" />
-            <VitalInput label="RR" field="vitals_rr" placeholder="/min" />
-            <VitalInput label="SpO₂" field="vitals_spo2" placeholder="%" />
-            <VitalInput label="Temp" field="vitals_temperature" placeholder="°C" />
-            <VitalInput label="BP Sys" field="vitals_bp_systolic" placeholder="mmHg" />
-            <VitalInput label="BP Dia" field="vitals_bp_diastolic" placeholder="mmHg" />
-          </View>
-
-          <Text style={styles.subSection}>GCS</Text>
-          <View style={styles.vitalsGrid}>
-            <VitalInput label="E" field="vitals_gcs_e" placeholder="1-4" />
-            <VitalInput label="V" field="vitals_gcs_v" placeholder="1-5" />
-            <VitalInput label="M" field="vitals_gcs_m" placeholder="1-6" />
-            <VitalInput label="Pain" field="vitals_pain_score" placeholder="0-10" />
-            <VitalInput label="GRBS" field="vitals_grbs" placeholder="mg/dL" />
-            <VitalInput label="CRT" field="vitals_capillary_refill" placeholder="sec" />
-          </View>
-        </View>
-
-        {/* ==================== PAT (Pediatric Only) ==================== */}
-        {isPediatric && (
-          <>
-            <SectionTitle icon="happy" title="PAT (Pediatric Assessment Triangle)" />
-            <View style={styles.card}>
-              <SelectButtons label="Appearance" options={["Normal", "Abnormal"]} field="pat_appearance" />
-              <SelectButtons label="Tone" options={["Normal", "Hypotonic", "Hypertonic"]} field="pat_tone" />
-              <SelectButtons label="Interactivity" options={["Normal", "Decreased", "Absent"]} field="pat_interactivity" />
-              <SelectButtons label="Consolability" options={["Consolable", "Inconsolable"]} field="pat_consolability" />
-              <SelectButtons label="Work of Breathing" options={["Normal", "Increased"]} field="pat_work_of_breathing" />
-              <SelectButtons label="Circulation to Skin" options={["Normal", "Pale", "Mottled", "Cyanotic"]} field="pat_circulation_to_skin" />
-              <SelectButtons label="Overall Impression" options={["Stable", "Sick", "Critical"]} field="pat_overall_impression" />
-            </View>
-          </>
-        )}
-
-        {/* ==================== PRIMARY ASSESSMENT (ABCDE) ==================== */}
-        <SectionTitle icon="fitness" title="Primary Assessment (ABCDE)" />
-        <View style={styles.card}>
-          <Text style={styles.subSection}>A - Airway</Text>
-          <SelectButtons label="Status" options={["Patent", "Threatened", "Compromised"]} field="airway_status" />
-          <InputField label="Notes" field="airway_notes" placeholder="Airway findings..." />
-
-          <Text style={styles.subSection}>B - Breathing</Text>
-          <SelectButtons label="Work of Breathing" options={["Normal", "Increased"]} field="breathing_wob" />
-          <SelectButtons label="Air Entry" options={["Normal", "Decreased", "Absent"]} field="breathing_air_entry" />
-          <InputField label="Notes" field="breathing_notes" placeholder="Breathing findings..." />
-
-          <Text style={styles.subSection}>C - Circulation</Text>
-          <SelectButtons label="CRT" options={["Normal", "Delayed"]} field="circulation_crt" />
-          <SelectButtons label="Skin Color" options={["Pink", "Pale", "Mottled", "Cyanosed"]} field="circulation_skin_color" />
-          <SwitchRow label="Distended Neck Veins" field="circulation_distended_neck_veins" />
-          <InputField label="Notes" field="circulation_notes" placeholder="Circulation findings..." />
-
-          <Text style={styles.subSection}>D - Disability</Text>
-          <SelectButtons label="AVPU" options={["Alert", "Verbal", "Pain", "Unresponsive"]} field="disability_avpu" />
-          <SelectButtons label="Pupils" options={["Equal, Reactive", "Unequal", "Fixed"]} field="disability_pupils" />
-          <InputField label="GRBS" field="disability_grbs" placeholder="mg/dL" keyboardType="numeric" />
-
-          <Text style={styles.subSection}>E - Exposure</Text>
-          <SwitchRow label="Trauma Signs" field="exposure_trauma" />
-          <SwitchRow label="Long Bone Deformity" field="exposure_long_bone_deformity" />
-          <SwitchRow label="EFAST Done" field="efast_done" />
-          {formData.efast_done && (
-            <InputField label="EFAST Findings" field="efast_notes" placeholder="EFAST results..." />
-          )}
-        </View>
-
-        {/* ==================== HISTORY (SAMPLE) ==================== */}
-        <SectionTitle icon="document-text" title="History (SAMPLE)" />
-        <View style={styles.card}>
-          <InputField label="History of Present Illness" field="history_hpi" placeholder="Detailed history..." multiline />
-          <InputField label="Signs & Symptoms" field="history_signs_symptoms" placeholder="Associated symptoms..." />
-          <InputField label="Allergies" field="history_allergies" placeholder="NKDA or list allergies" />
-          <InputField label="Medications" field="history_medications" placeholder="Current medications..." />
-          <InputField label="Past Medical History" field="history_past_medical" placeholder="DM, HTN, Asthma..." />
-          <InputField label="Past Surgical History" field="history_past_surgical" placeholder="Previous surgeries..." />
-          <InputField label="Last Meal / LMP" field="history_last_meal" placeholder="Time of last meal" />
-          <InputField label="Events" field="history_events" placeholder="Events leading to presentation..." multiline />
-        </View>
-
-        {/* ==================== TREATMENT ==================== */}
-        <SectionTitle icon="medkit" title="Treatment / Interventions" />
-        <View style={styles.card}>
-          <InputField label="Interventions Done" field="treatment_interventions" placeholder="IV access, medications, procedures..." multiline />
-        </View>
-
-        {/* ==================== ACTION BUTTONS ==================== */}
-        <View style={styles.actionRow}>
-          <TouchableOpacity
-            style={[styles.saveBtn, saving && styles.btnDisabled]}
-            onPress={saveCaseSheet}
-            disabled={saving}
-          >
-            {saving ? <ActivityIndicator color="#fff" /> : (
-              <>
-                <Ionicons name="save" size={20} color="#fff" />
-                <Text style={styles.btnText}>Save</Text>
-              </>
+          <TouchableOpacity onPress={saveCaseSheet} disabled={saving}>
+            {saving ? (
+              <ActivityIndicator size="small" color="#2563eb" />
+            ) : (
+              <Ionicons name="save" size={24} color="#2563eb" />
             )}
           </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.nextBtn, loading && styles.btnDisabled]}
-            onPress={proceedToInvestigations}
-            disabled={loading}
-          >
-            <Text style={styles.btnText}>Investigations</Text>
-            <Ionicons name="arrow-forward" size={20} color="#fff" />
-          </TouchableOpacity>
         </View>
 
-        <View style={{ height: 40 }} />
-      </ScrollView>
+        {/* Tabs */}
+        <View style={styles.tabBar}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <TabButton id="patient" label="Patient" icon="person" />
+            <TabButton id="vitals" label="Vitals" icon="heart" />
+            <TabButton id="primary" label="Primary" icon="fitness" />
+            <TabButton id="history" label="History" icon="document-text" />
+            <TabButton id="exam" label="Exam" icon="body" />
+          </ScrollView>
+        </View>
+
+        <ScrollView style={styles.content} keyboardShouldPersistTaps="handled">
+          
+          {/* ==================== PATIENT TAB ==================== */}
+          {activeTab === "patient" && (
+            <View style={styles.tabContent}>
+              <View style={styles.card}>
+                <InputField label="Name *" field="patient_name" placeholder="Patient name" />
+                <View style={styles.row}>
+                  <View style={{ flex: 1 }}>
+                    <InputField label="Age *" field="patient_age" placeholder="Age" keyboardType="numeric" />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <SelectButtons label="Sex" options={["Male", "Female"]} field="patient_sex" />
+                  </View>
+                </View>
+                <InputField label="UHID" field="patient_uhid" placeholder="Hospital ID" />
+                <InputField label="Phone" field="patient_phone" placeholder="Contact" keyboardType="phone-pad" />
+                <SelectButtons label="Mode of Arrival" options={["Walk-in", "Ambulance", "Referred"]} field="patient_mode_of_arrival" />
+                <SwitchRow label="MLC Case" field="patient_mlc" />
+              </View>
+
+              <View style={styles.card}>
+                <Text style={styles.cardTitle}>Presenting Complaint</Text>
+                <InputWithVoice label="Chief Complaint" field="complaint_text" placeholder="Describe complaint..." multiline />
+                <View style={styles.row}>
+                  <View style={{ flex: 1 }}>
+                    <InputField label="Duration" field="complaint_duration" placeholder="e.g., 2 hours" />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <SelectButtons label="Onset" options={["Sudden", "Gradual"]} field="complaint_onset" />
+                  </View>
+                </View>
+              </View>
+            </View>
+          )}
+
+          {/* ==================== VITALS TAB ==================== */}
+          {activeTab === "vitals" && (
+            <View style={styles.tabContent}>
+              <View style={styles.card}>
+                <Text style={styles.cardTitle}>Vitals at Arrival</Text>
+                <View style={styles.vitalsGrid}>
+                  <VitalInput label="HR" field="vitals_hr" placeholder="bpm" />
+                  <VitalInput label="RR" field="vitals_rr" placeholder="/min" />
+                  <VitalInput label="SpO₂" field="vitals_spo2" placeholder="%" />
+                  <VitalInput label="Temp" field="vitals_temperature" placeholder="°C" />
+                  <VitalInput label="BP Sys" field="vitals_bp_systolic" placeholder="mmHg" />
+                  <VitalInput label="BP Dia" field="vitals_bp_diastolic" placeholder="mmHg" />
+                </View>
+                
+                <Text style={styles.subSection}>GCS</Text>
+                <View style={styles.vitalsGrid}>
+                  <VitalInput label="E" field="vitals_gcs_e" placeholder="1-4" />
+                  <VitalInput label="V" field="vitals_gcs_v" placeholder="1-5" />
+                  <VitalInput label="M" field="vitals_gcs_m" placeholder="1-6" />
+                  <VitalInput label="Pain" field="vitals_pain_score" placeholder="0-10" />
+                  <VitalInput label="GRBS" field="vitals_grbs" placeholder="mg/dL" />
+                </View>
+              </View>
+            </View>
+          )}
+
+          {/* ==================== PRIMARY ASSESSMENT TAB ==================== */}
+          {activeTab === "primary" && (
+            <View style={styles.tabContent}>
+              {/* A - Airway */}
+              <View style={[styles.card, { borderLeftWidth: 4, borderLeftColor: '#ef4444' }]}>
+                <CollapsibleHeader title="A - AIRWAY" icon="medical" section="airway" color="#ef4444" />
+                {!collapsed.airway && (
+                  <View style={styles.collapsibleContent}>
+                    {/* Normal/Abnormal Toggle */}
+                    <View style={styles.statusToggleRow}>
+                      <TouchableOpacity
+                        style={[styles.statusToggle, formDataRef.current.airway_status === 'Patent' && styles.statusToggleNormalActive]}
+                        onPress={() => { updateTextField('airway_status', 'Patent'); forceUpdate(); }}
+                      >
+                        <Ionicons name="checkmark-circle" size={16} color={formDataRef.current.airway_status === 'Patent' ? '#fff' : '#22c55e'} />
+                        <Text style={[styles.statusToggleText, formDataRef.current.airway_status === 'Patent' && styles.statusToggleTextActive]}>Normal</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.statusToggle, formDataRef.current.airway_status !== 'Patent' && styles.statusToggleAbnormalActive]}
+                        onPress={() => { updateTextField('airway_status', 'Compromised'); forceUpdate(); }}
+                      >
+                        <Ionicons name="alert-circle" size={16} color={formDataRef.current.airway_status !== 'Patent' ? '#fff' : '#ef4444'} />
+                        <Text style={[styles.statusToggleText, formDataRef.current.airway_status !== 'Patent' && styles.statusToggleTextActive]}>Abnormal</Text>
+                      </TouchableOpacity>
+                    </View>
+                    
+                    {/* Expanded options when Abnormal */}
+                    {formDataRef.current.airway_status !== 'Patent' && (
+                      <View style={styles.abnormalDetails}>
+                        <SelectButtons label="Position" options={["Self-maintained", "Head tilt/Chin lift", "Jaw thrust"]} field="airway_position" />
+                        <SelectButtons label="Patency" options={["Partial obstruction", "Complete obstruction"]} field="airway_patency" />
+                        <SelectButtons label="Cause" options={["Tongue fall", "Secretions", "Blood/Vomitus", "Foreign body", "Edema"]} field="airway_obstruction_cause" />
+                        <SelectButtons label="Speech" options={["Hoarse", "Stridor", "Gurgling", "Unable to speak"]} field="airway_speech" />
+                        <Text style={styles.checkboxLabel}>Interventions Done:</Text>
+                        <View style={styles.checkboxGrid}>
+                          {['Suction', 'OPA', 'NPA', 'LMA', 'ETT', 'Cricothyrotomy'].map(item => (
+                            <TouchableOpacity key={item} style={styles.checkboxItem} onPress={() => toggleIntervention('airway_interventions', item)}>
+                              <Ionicons name={formDataRef.current.airway_interventions?.includes(item) ? 'checkbox' : 'square-outline'} size={20} color="#ef4444" />
+                              <Text style={styles.checkboxText}>{item}</Text>
+                            </TouchableOpacity>
+                          ))}
+                        </View>
+                      </View>
+                    )}
+                    <InputWithVoice label="Notes" field="airway_notes" placeholder="Additional airway observations..." multiline />
+                  </View>
+                )}
+              </View>
+
+              {/* B - Breathing */}
+              <View style={[styles.card, { borderLeftWidth: 4, borderLeftColor: '#f97316' }]}>
+                <CollapsibleHeader title="B - BREATHING" icon="fitness" section="breathing" color="#f97316" />
+                {!collapsed.breathing && (
+                  <View style={styles.collapsibleContent}>
+                    {/* Normal/Abnormal Toggle */}
+                    <View style={styles.statusToggleRow}>
+                      <TouchableOpacity
+                        style={[styles.statusToggle, formDataRef.current.breathing_wob === 'Normal' && styles.statusToggleNormalActive]}
+                        onPress={() => { updateTextField('breathing_wob', 'Normal'); forceUpdate(); }}
+                      >
+                        <Ionicons name="checkmark-circle" size={16} color={formDataRef.current.breathing_wob === 'Normal' ? '#fff' : '#22c55e'} />
+                        <Text style={[styles.statusToggleText, formDataRef.current.breathing_wob === 'Normal' && styles.statusToggleTextActive]}>Normal</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.statusToggle, formDataRef.current.breathing_wob !== 'Normal' && styles.statusToggleAbnormalActive]}
+                        onPress={() => { updateTextField('breathing_wob', 'Increased'); forceUpdate(); }}
+                      >
+                        <Ionicons name="alert-circle" size={16} color={formDataRef.current.breathing_wob !== 'Normal' ? '#fff' : '#ef4444'} />
+                        <Text style={[styles.statusToggleText, formDataRef.current.breathing_wob !== 'Normal' && styles.statusToggleTextActive]}>Abnormal</Text>
+                      </TouchableOpacity>
+                    </View>
+                    
+                    {/* Vitals Row */}
+                    <View style={styles.vitalsRowCompact}>
+                      <View style={styles.vitalItemCompact}>
+                        <Text style={styles.vitalLabelCompact}>RR</Text>
+                        <TextInput style={styles.vitalInputCompact} defaultValue={formDataRef.current.breathing_rr} onChangeText={(t) => updateTextField('breathing_rr', t)} placeholder="/min" keyboardType="numeric" />
+                      </View>
+                      <View style={styles.vitalItemCompact}>
+                        <Text style={styles.vitalLabelCompact}>SpO2</Text>
+                        <TextInput style={styles.vitalInputCompact} defaultValue={formDataRef.current.breathing_spo2} onChangeText={(t) => updateTextField('breathing_spo2', t)} placeholder="%" keyboardType="numeric" />
+                      </View>
+                      <View style={styles.vitalItemCompact}>
+                        <Text style={styles.vitalLabelCompact}>O2 Flow</Text>
+                        <TextInput style={styles.vitalInputCompact} defaultValue={formDataRef.current.breathing_o2_flow} onChangeText={(t) => updateTextField('breathing_o2_flow', t)} placeholder="L/min" keyboardType="numeric" />
+                      </View>
+                    </View>
+                    
+                    {/* Expanded options when Abnormal */}
+                    {formDataRef.current.breathing_wob !== 'Normal' && (
+                      <View style={styles.abnormalDetails}>
+                        <SelectButtons label="Effort" options={["Mild ↑", "Moderate ↑", "Severe ↑", "Exhaustion"]} field="breathing_effort" />
+                        <SelectButtons label="O2 Device" options={["Room air", "Nasal prongs", "Face mask", "NRM", "NIV", "Ventilator"]} field="breathing_o2_device" />
+                        <SelectButtons label="Pattern" options={["Tachypneic", "Bradypneic", "Kussmaul", "Cheyne-Stokes"]} field="breathing_pattern" />
+                        <SelectButtons label="Chest Expansion" options={["Equal", "Reduced L", "Reduced R", "Reduced both"]} field="breathing_expansion" />
+                        <SelectButtons label="Air Entry" options={["Reduced L", "Reduced R", "Reduced both", "Absent L", "Absent R"]} field="breathing_air_entry" />
+                        <SelectButtons label="Added Sounds" options={["Wheeze", "Crackles", "Rhonchi", "Stridor"]} field="breathing_added_sounds" />
+                        <Text style={styles.checkboxLabel}>Interventions:</Text>
+                        <View style={styles.checkboxGrid}>
+                          {['Nebulization', 'ICD', 'Needle decomp', 'BVM', 'Intubation'].map(item => (
+                            <TouchableOpacity key={item} style={styles.checkboxItem} onPress={() => toggleIntervention('breathing_interventions', item)}>
+                              <Ionicons name={formDataRef.current.breathing_interventions?.includes(item) ? 'checkbox' : 'square-outline'} size={20} color="#f97316" />
+                              <Text style={styles.checkboxText}>{item}</Text>
+                            </TouchableOpacity>
+                          ))}
+                        </View>
+                      </View>
+                    )}
+                    <InputWithVoice label="Notes" field="breathing_notes" placeholder="Additional breathing observations..." multiline />
+                  </View>
+                )}
+              </View>
+
+              {/* C - Circulation */}
+              <View style={[styles.card, { borderLeftWidth: 4, borderLeftColor: '#eab308' }]}>
+                <CollapsibleHeader title="C - CIRCULATION" icon="heart" section="circulation" color="#eab308" />
+                {!collapsed.circulation && (
+                  <View style={styles.collapsibleContent}>
+                    {/* Normal/Abnormal Toggle */}
+                    <View style={styles.statusToggleRow}>
+                      <TouchableOpacity
+                        style={[styles.statusToggle, formDataRef.current.circulation_status === 'Normal' && styles.statusToggleNormalActive]}
+                        onPress={() => { updateTextField('circulation_status', 'Normal'); forceUpdate(); }}
+                      >
+                        <Ionicons name="checkmark-circle" size={16} color={formDataRef.current.circulation_status === 'Normal' ? '#fff' : '#22c55e'} />
+                        <Text style={[styles.statusToggleText, formDataRef.current.circulation_status === 'Normal' && styles.statusToggleTextActive]}>Normal</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.statusToggle, formDataRef.current.circulation_status !== 'Normal' && styles.statusToggleAbnormalActive]}
+                        onPress={() => { updateTextField('circulation_status', 'Abnormal'); forceUpdate(); }}
+                      >
+                        <Ionicons name="alert-circle" size={16} color={formDataRef.current.circulation_status !== 'Normal' ? '#fff' : '#ef4444'} />
+                        <Text style={[styles.statusToggleText, formDataRef.current.circulation_status !== 'Normal' && styles.statusToggleTextActive]}>Abnormal</Text>
+                      </TouchableOpacity>
+                    </View>
+                    
+                    {/* Vitals Row */}
+                    <View style={styles.vitalsRowCompact}>
+                      <View style={styles.vitalItemCompact}>
+                        <Text style={styles.vitalLabelCompact}>HR</Text>
+                        <TextInput style={styles.vitalInputCompact} defaultValue={formDataRef.current.circulation_hr} onChangeText={(t) => updateTextField('circulation_hr', t)} placeholder="bpm" keyboardType="numeric" />
+                      </View>
+                      <View style={styles.vitalItemCompact}>
+                        <Text style={styles.vitalLabelCompact}>BP</Text>
+                        <TextInput style={styles.vitalInputCompact} defaultValue={formDataRef.current.circulation_bp} onChangeText={(t) => updateTextField('circulation_bp', t)} placeholder="Sys/Dia" />
+                      </View>
+                    </View>
+                    
+                    {/* Expanded options when Abnormal */}
+                    {formDataRef.current.circulation_status !== 'Normal' && (
+                      <View style={styles.abnormalDetails}>
+                        <SelectButtons label="Rhythm" options={["Regular", "Irregular", "Irreg irregular"]} field="circulation_rhythm" />
+                        <SelectButtons label="CRT" options={["<2 sec", "2-3 sec", ">3 sec"]} field="circulation_crt" />
+                        <SelectButtons label="Skin" options={["Warm dry", "Cool dry", "Cool clammy", "Mottled"]} field="circulation_skin" />
+                        <SelectButtons label="Pulses" options={["Present", "Weak", "Absent", "Asymmetric"]} field="circulation_pulse" />
+                        <SelectButtons label="JVP" options={["Normal", "Raised", "Flat"]} field="circulation_jvp" />
+                        <View style={styles.checkboxGrid}>
+                          <TouchableOpacity style={styles.checkboxItem} onPress={() => { formDataRef.current.circulation_external_bleed = !formDataRef.current.circulation_external_bleed; forceUpdate(); }}>
+                            <Ionicons name={formDataRef.current.circulation_external_bleed ? 'checkbox' : 'square-outline'} size={20} color="#eab308" />
+                            <Text style={styles.checkboxText}>External Bleeding</Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity style={styles.checkboxItem} onPress={() => { formDataRef.current.circulation_long_bone = !formDataRef.current.circulation_long_bone; forceUpdate(); }}>
+                            <Ionicons name={formDataRef.current.circulation_long_bone ? 'checkbox' : 'square-outline'} size={20} color="#eab308" />
+                            <Text style={styles.checkboxText}>Long Bone Deformity</Text>
+                          </TouchableOpacity>
+                        </View>
+                        <Text style={styles.checkboxLabel}>Interventions:</Text>
+                        <View style={styles.checkboxGrid}>
+                          {['IV access', 'IO access', 'Fluid bolus', 'Blood', 'Vasopressors', 'CPR'].map(item => (
+                            <TouchableOpacity key={item} style={styles.checkboxItem} onPress={() => toggleIntervention('circulation_interventions', item)}>
+                              <Ionicons name={formDataRef.current.circulation_interventions?.includes(item) ? 'checkbox' : 'square-outline'} size={20} color="#eab308" />
+                              <Text style={styles.checkboxText}>{item}</Text>
+                            </TouchableOpacity>
+                          ))}
+                        </View>
+                      </View>
+                    )}
+                    <InputWithVoice label="Notes" field="circulation_notes" placeholder="Additional circulation observations..." multiline />
+                  </View>
+                )}
+              </View>
+
+              {/* D - Disability */}
+              <View style={[styles.card, { borderLeftWidth: 4, borderLeftColor: '#22c55e' }]}>
+                <CollapsibleHeader title="D - DISABILITY (Neuro)" icon="brain" section="disability" color="#22c55e" />
+                {!collapsed.disability && (
+                  <View style={styles.collapsibleContent}>
+                    {/* Normal/Abnormal Toggle */}
+                    <View style={styles.statusToggleRow}>
+                      <TouchableOpacity
+                        style={[styles.statusToggle, formDataRef.current.disability_avpu === 'Alert' && styles.statusToggleNormalActive]}
+                        onPress={() => { updateTextField('disability_avpu', 'Alert'); forceUpdate(); }}
+                      >
+                        <Ionicons name="checkmark-circle" size={16} color={formDataRef.current.disability_avpu === 'Alert' ? '#fff' : '#22c55e'} />
+                        <Text style={[styles.statusToggleText, formDataRef.current.disability_avpu === 'Alert' && styles.statusToggleTextActive]}>Normal</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.statusToggle, formDataRef.current.disability_avpu !== 'Alert' && styles.statusToggleAbnormalActive]}
+                        onPress={() => { updateTextField('disability_avpu', 'Verbal'); forceUpdate(); }}
+                      >
+                        <Ionicons name="alert-circle" size={16} color={formDataRef.current.disability_avpu !== 'Alert' ? '#fff' : '#ef4444'} />
+                        <Text style={[styles.statusToggleText, formDataRef.current.disability_avpu !== 'Alert' && styles.statusToggleTextActive]}>Abnormal</Text>
+                      </TouchableOpacity>
+                    </View>
+                    
+                    {/* GCS Row */}
+                    <View style={styles.vitalsRowCompact}>
+                      <View style={styles.vitalItemCompact}>
+                        <Text style={styles.vitalLabelCompact}>GCS E</Text>
+                        <TextInput style={styles.vitalInputCompact} defaultValue={formDataRef.current.disability_gcs_e} onChangeText={(t) => updateTextField('disability_gcs_e', t)} placeholder="1-4" keyboardType="numeric" />
+                      </View>
+                      <View style={styles.vitalItemCompact}>
+                        <Text style={styles.vitalLabelCompact}>V</Text>
+                        <TextInput style={styles.vitalInputCompact} defaultValue={formDataRef.current.disability_gcs_v} onChangeText={(t) => updateTextField('disability_gcs_v', t)} placeholder="1-5" keyboardType="numeric" />
+                      </View>
+                      <View style={styles.vitalItemCompact}>
+                        <Text style={styles.vitalLabelCompact}>M</Text>
+                        <TextInput style={styles.vitalInputCompact} defaultValue={formDataRef.current.disability_gcs_m} onChangeText={(t) => updateTextField('disability_gcs_m', t)} placeholder="1-6" keyboardType="numeric" />
+                      </View>
+                      <View style={styles.vitalItemCompact}>
+                        <Text style={styles.vitalLabelCompact}>GRBS</Text>
+                        <TextInput style={styles.vitalInputCompact} defaultValue={formDataRef.current.disability_grbs} onChangeText={(t) => updateTextField('disability_grbs', t)} placeholder="mg/dL" keyboardType="numeric" />
+                      </View>
+                    </View>
+                    
+                    {/* Expanded options when Abnormal */}
+                    {formDataRef.current.disability_avpu !== 'Alert' && (
+                      <View style={styles.abnormalDetails}>
+                        <SelectButtons label="AVPU" options={["Verbal", "Pain", "Unresponsive"]} field="disability_avpu" />
+                        <SelectButtons label="Pupils Size" options={["Equal", "Unequal", "Dilated", "Constricted"]} field="disability_pupils_size" />
+                        <SelectButtons label="Pupils Reaction" options={["Brisk", "Sluggish", "Non-reactive", "Fixed"]} field="disability_pupils_reaction" />
+                        <SelectButtons label="Lateralizing" options={["None", "Left hemiparesis", "Right hemiparesis", "Facial droop"]} field="disability_lateralizing" />
+                        <TouchableOpacity style={styles.checkboxItem} onPress={() => { formDataRef.current.disability_seizure = !formDataRef.current.disability_seizure; forceUpdate(); }}>
+                          <Ionicons name={formDataRef.current.disability_seizure ? 'checkbox' : 'square-outline'} size={20} color="#22c55e" />
+                          <Text style={styles.checkboxText}>Seizure Observed</Text>
+                        </TouchableOpacity>
+                      </View>
+                    )}
+                    <InputWithVoice label="Notes" field="disability_notes" placeholder="Additional neuro observations..." multiline />
+                  </View>
+                )}
+              </View>
+
+              {/* E - Exposure */}
+              <View style={[styles.card, { borderLeftWidth: 4, borderLeftColor: '#3b82f6' }]}>
+                <CollapsibleHeader title="E - EXPOSURE" icon="body" section="exposure" color="#3b82f6" />
+                {!collapsed.exposure && (
+                  <View style={styles.collapsibleContent}>
+                    {/* Normal/Abnormal Toggle */}
+                    <View style={styles.statusToggleRow}>
+                      <TouchableOpacity
+                        style={[styles.statusToggle, formDataRef.current.exposure_status === 'Normal' && styles.statusToggleNormalActive]}
+                        onPress={() => { updateTextField('exposure_status', 'Normal'); forceUpdate(); }}
+                      >
+                        <Ionicons name="checkmark-circle" size={16} color={formDataRef.current.exposure_status === 'Normal' ? '#fff' : '#22c55e'} />
+                        <Text style={[styles.statusToggleText, formDataRef.current.exposure_status === 'Normal' && styles.statusToggleTextActive]}>Normal</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.statusToggle, formDataRef.current.exposure_status !== 'Normal' && styles.statusToggleAbnormalActive]}
+                        onPress={() => { updateTextField('exposure_status', 'Abnormal'); forceUpdate(); }}
+                      >
+                        <Ionicons name="alert-circle" size={16} color={formDataRef.current.exposure_status !== 'Normal' ? '#fff' : '#ef4444'} />
+                        <Text style={[styles.statusToggleText, formDataRef.current.exposure_status !== 'Normal' && styles.statusToggleTextActive]}>Abnormal</Text>
+                      </TouchableOpacity>
+                    </View>
+                    
+                    {/* Temperature */}
+                    <View style={styles.vitalsRowCompact}>
+                      <View style={styles.vitalItemCompact}>
+                        <Text style={styles.vitalLabelCompact}>Temp</Text>
+                        <TextInput style={styles.vitalInputCompact} defaultValue={formDataRef.current.exposure_temperature} onChangeText={(t) => updateTextField('exposure_temperature', t)} placeholder="°C" keyboardType="decimal-pad" />
+                      </View>
+                    </View>
+                    
+                    {/* Expanded options when Abnormal */}
+                    {formDataRef.current.exposure_status !== 'Normal' && (
+                      <View style={styles.abnormalDetails}>
+                        <SelectButtons label="Rashes" options={["None", "Petechiae", "Purpura", "Urticaria", "Vesicular"]} field="exposure_rashes" />
+                        <SelectButtons label="Bruises" options={["None", "Head/Face", "Chest", "Abdomen", "Extremities", "Multiple"]} field="exposure_bruises" />
+                        <Text style={styles.checkboxLabel}>Logroll Findings:</Text>
+                        <View style={styles.checkboxGrid}>
+                          {['Spinal tenderness', 'Deformity', 'Sacral edema', 'Pressure sores'].map(item => (
+                            <TouchableOpacity key={item} style={styles.checkboxItem} onPress={() => toggleIntervention('exposure_logroll', item)}>
+                              <Ionicons name={formDataRef.current.exposure_logroll?.includes(item) ? 'checkbox' : 'square-outline'} size={20} color="#3b82f6" />
+                              <Text style={styles.checkboxText}>{item}</Text>
+                            </TouchableOpacity>
+                          ))}
+                        </View>
+                      </View>
+                    )}
+                    <InputWithVoice label="Local Exam / Notes" field="exposure_notes" placeholder="Local examination findings..." multiline />
+                  </View>
+                )}
+              </View>
+
+              {/* R - Reassessment */}
+              <View style={[styles.card, { borderLeftWidth: 4, borderLeftColor: '#8b5cf6' }]}>
+                <CollapsibleHeader title="R - REASSESSMENT" icon="refresh" section="reassessment" color="#8b5cf6" />
+                {!collapsed.reassessment && (
+                  <View style={styles.collapsibleContent}>
+                    <SelectButtons label="Status After Resuscitation" options={["Improving", "Stable", "Deteriorating", "Critical"]} field="reassessment_status" />
+                    <InputWithVoice label="Reassessment Notes" field="reassessment_notes" placeholder="Response to interventions..." multiline />
+                  </View>
+                )}
+              </View>
+
+              {/* Adjuvants to Primary */}
+              <View style={styles.card}>
+                <CollapsibleHeader title="Adjuvants to Primary" icon="analytics" section="adjuvants" color="#6b7280" />
+                {!collapsed.adjuvants && (
+                  <View style={styles.collapsibleContent}>
+                    <InputWithVoice label="ECG Findings" field="ecg_findings" placeholder="ECG interpretation..." multiline />
+                    
+                    <Text style={styles.subSection}>VBG Parameters</Text>
+                    <View style={styles.vbgGrid}>
+                      <View style={styles.vbgItem}>
+                        <Text style={styles.vbgLabel}>pH</Text>
+                        <TextInput style={styles.vbgInput} defaultValue={formDataRef.current.vbg_ph} onChangeText={(t) => updateTextField("vbg_ph", t)} placeholder="7.35-7.45" keyboardType="decimal-pad" />
+                      </View>
+                      <View style={styles.vbgItem}>
+                        <Text style={styles.vbgLabel}>PCO2</Text>
+                        <TextInput style={styles.vbgInput} defaultValue={formDataRef.current.vbg_pco2} onChangeText={(t) => updateTextField("vbg_pco2", t)} placeholder="35-45" keyboardType="decimal-pad" />
+                      </View>
+                      <View style={styles.vbgItem}>
+                        <Text style={styles.vbgLabel}>HCO3</Text>
+                        <TextInput style={styles.vbgInput} defaultValue={formDataRef.current.vbg_hco3} onChangeText={(t) => updateTextField("vbg_hco3", t)} placeholder="22-26" keyboardType="decimal-pad" />
+                      </View>
+                      <View style={styles.vbgItem}>
+                        <Text style={styles.vbgLabel}>Hb</Text>
+                        <TextInput style={styles.vbgInput} defaultValue={formDataRef.current.vbg_hb} onChangeText={(t) => updateTextField("vbg_hb", t)} placeholder="12-16" keyboardType="decimal-pad" />
+                      </View>
+                      <View style={styles.vbgItem}>
+                        <Text style={styles.vbgLabel}>Glucose</Text>
+                        <TextInput style={styles.vbgInput} defaultValue={formDataRef.current.vbg_glu} onChangeText={(t) => updateTextField("vbg_glu", t)} placeholder="70-110" keyboardType="decimal-pad" />
+                      </View>
+                      <View style={styles.vbgItem}>
+                        <Text style={styles.vbgLabel}>Lactate</Text>
+                        <TextInput style={styles.vbgInput} defaultValue={formDataRef.current.vbg_lac} onChangeText={(t) => updateTextField("vbg_lac", t)} placeholder="0.5-2" keyboardType="decimal-pad" />
+                      </View>
+                      <View style={styles.vbgItem}>
+                        <Text style={styles.vbgLabel}>Na</Text>
+                        <TextInput style={styles.vbgInput} defaultValue={formDataRef.current.vbg_na} onChangeText={(t) => updateTextField("vbg_na", t)} placeholder="135-145" keyboardType="decimal-pad" />
+                      </View>
+                      <View style={styles.vbgItem}>
+                        <Text style={styles.vbgLabel}>K</Text>
+                        <TextInput style={styles.vbgInput} defaultValue={formDataRef.current.vbg_k} onChangeText={(t) => updateTextField("vbg_k", t)} placeholder="3.5-5" keyboardType="decimal-pad" />
+                      </View>
+                      <View style={styles.vbgItem}>
+                        <Text style={styles.vbgLabel}>Cr</Text>
+                        <TextInput style={styles.vbgInput} defaultValue={formDataRef.current.vbg_cr} onChangeText={(t) => updateTextField("vbg_cr", t)} placeholder="0.7-1.3" keyboardType="decimal-pad" />
+                      </View>
+                    </View>
+
+                    <TouchableOpacity style={styles.aiBtn} onPress={getVBGInterpretation} disabled={loading}>
+                      {loading ? <ActivityIndicator color="#fff" /> : (
+                        <>
+                          <Ionicons name="sparkles" size={18} color="#fff" />
+                          <Text style={styles.aiBtnText}>AI Interpretation</Text>
+                        </>
+                      )}
+                    </TouchableOpacity>
+
+                    {formDataRef.current.vbg_ai_interpretation ? (
+                      <View style={styles.aiResult}>
+                        <Text style={styles.aiResultTitle}>🤖 AI Interpretation:</Text>
+                        <Text style={styles.aiResultText}>{formDataRef.current.vbg_ai_interpretation}</Text>
+                      </View>
+                    ) : null}
+
+                    <InputWithVoice label="Bedside Echo" field="bedside_echo" placeholder="Echo findings..." multiline />
+                    <InputWithVoice label="Additional Notes" field="adjuvants_notes" placeholder="Other adjuvant notes..." multiline />
+                  </View>
+                )}
+              </View>
+            </View>
+          )}
+
+          {/* ==================== HISTORY TAB ==================== */}
+          {activeTab === "history" && (
+            <View style={styles.tabContent}>
+              <View style={styles.card}>
+                <Text style={styles.cardTitle}>History (SAMPLE)</Text>
+                <InputWithVoice label="Signs & Symptoms" field="history_signs_symptoms" placeholder="Associated symptoms..." multiline />
+                <InputWithVoice label="Secondary Survey" field="history_secondary_survey" placeholder="Head-to-toe assessment..." multiline />
+                <InputWithVoice label="Allergies" field="history_allergies" placeholder="NKDA or list allergies" />
+                <InputWithVoice label="Medications" field="history_medications" placeholder="Current medications..." />
+                <InputWithVoice label="Past Medical History" field="history_past_medical" placeholder="DM, HTN, Asthma..." />
+                <InputWithVoice label="Past Surgical History" field="history_past_surgical" placeholder="Previous surgeries..." />
+                <InputField label="Last Meal / LMP" field="history_last_meal" placeholder="Time of last meal/LMP date" />
+                {/* Events / HOPI - Now placed after Last Meal/LMP */}
+                <View style={[styles.highlightedField, { borderLeftColor: '#8b5cf6' }]}>
+                  <InputWithVoice label="Events / HOPI" field="history_hpi" placeholder="Events and history of present illness..." multiline />
+                </View>
+                <InputWithVoice label="Family / Gynae History" field="history_family_gynae" placeholder="Family history..." multiline />
+                <InputWithVoice label="Additional Notes" field="history_additional_notes" placeholder="Any other relevant history..." multiline />
+              </View>
+
+              {/* Psychological Assessment */}
+              <View style={styles.card}>
+                <CollapsibleHeader title="Psychological Assessment" icon="happy" section="psychological" color="#ec4899" />
+                {!collapsed.psychological && (
+                  <View style={styles.collapsibleContent}>
+                    <SwitchRow label="Suicidal Ideation" field="psych_suicidal_ideation" />
+                    <SwitchRow label="Self-Harm History" field="psych_self_harm" />
+                    <SwitchRow label="Intent to Harm Others" field="psych_harm_others" />
+                    <SwitchRow label="Substance Abuse" field="psych_substance_abuse" />
+                    <SwitchRow label="Psychiatric History" field="psych_psychiatric_history" />
+                    <SwitchRow label="Currently on Psychiatric Treatment" field="psych_current_treatment" />
+                    <SwitchRow label="Has Support System" field="psych_support_system" />
+                    <InputWithVoice label="Notes" field="psych_notes" placeholder="Additional psychological notes..." multiline />
+                  </View>
+                )}
+              </View>
+            </View>
+          )}
+
+          {/* ==================== EXAMINATION TAB ==================== */}
+          {activeTab === "exam" && (
+            <View style={styles.tabContent}>
+              {/* General Examination */}
+              <View style={styles.card}>
+                <CollapsibleHeader title="General Examination" icon="person" section="generalExam" color="#0ea5e9" />
+                {!collapsed.generalExam && (
+                  <View style={styles.collapsibleContent}>
+                    <View style={styles.checkboxGrid}>
+                      <SwitchRow label="Pallor" field="general_pallor" />
+                      <SwitchRow label="Icterus" field="general_icterus" />
+                      <SwitchRow label="Cyanosis" field="general_cyanosis" />
+                      <SwitchRow label="Clubbing" field="general_clubbing" />
+                      <SwitchRow label="Lymphadenopathy" field="general_lymphadenopathy" />
+                      <SwitchRow label="Edema" field="general_edema" />
+                    </View>
+                    <InputWithVoice label="Additional Notes" field="general_notes" placeholder="General exam notes..." multiline />
+                  </View>
+                )}
+              </View>
+
+              {/* CVS */}
+              <View style={styles.card}>
+                <CollapsibleHeader title="Cardiovascular System" icon="heart" section="cvs" color="#ef4444" />
+                {!collapsed.cvs && (
+                  <View style={styles.collapsibleContent}>
+                    <ExamDropdown exam="cvs" label="CVS Status" />
+                    {examStatus.cvs === "Normal" ? (
+                      <Text style={styles.normalSummary}>S1S2 heard, no murmurs, regular rhythm</Text>
+                    ) : (
+                      <>
+                        <SelectButtons label="S1/S2" options={["Normal", "Soft", "Loud"]} field="cvs_s1_s2" />
+                        <SelectButtons label="Pulse" options={["Regular", "Irregular"]} field="cvs_pulse" />
+                        <InputField label="Pulse Rate" field="cvs_pulse_rate" placeholder="/min" keyboardType="numeric" />
+                        <SelectButtons label="Apex Beat" options={["Normal", "Displaced"]} field="cvs_apex_beat" />
+                        <SwitchRow label="Precordial Heave" field="cvs_precordial_heave" />
+                        <InputField label="Added Sounds" field="cvs_added_sounds" placeholder="S3, S4..." />
+                        <InputField label="Murmurs" field="cvs_murmurs" placeholder="Describe murmurs..." />
+                      </>
+                    )}
+                    <InputWithVoice label="Additional Notes" field="cvs_notes" placeholder="CVS notes..." multiline />
+                  </View>
+                )}
+              </View>
+
+              {/* Respiratory */}
+              <View style={styles.card}>
+                <CollapsibleHeader title="Respiratory System" icon="fitness" section="respiratory" color="#f97316" />
+                {!collapsed.respiratory && (
+                  <View style={styles.collapsibleContent}>
+                    <ExamDropdown exam="respiratory" label="Respiratory Status" />
+                    {examStatus.respiratory === "Normal" ? (
+                      <Text style={styles.normalSummary}>Equal air entry, vesicular breath sounds, no added sounds</Text>
+                    ) : (
+                      <>
+                        <SelectButtons label="Expansion" options={["Equal", "Reduced"]} field="resp_expansion" />
+                        <SelectButtons label="Percussion" options={["Resonant", "Dull", "Hyper-resonant"]} field="resp_percussion" />
+                        <SelectButtons label="Breath Sounds" options={["Vesicular", "Bronchial", "Diminished"]} field="resp_breath_sounds" />
+                        <SelectButtons label="Vocal Resonance" options={["Normal", "Increased", "Decreased"]} field="resp_vocal_resonance" />
+                        <InputField label="Added Sounds" field="resp_added_sounds" placeholder="Crackles, wheezes..." />
+                      </>
+                    )}
+                    <InputWithVoice label="Additional Notes" field="resp_notes" placeholder="Respiratory notes..." multiline />
+                  </View>
+                )}
+              </View>
+
+              {/* Abdomen */}
+              <View style={styles.card}>
+                <CollapsibleHeader title="Abdomen" icon="body" section="abdomen" color="#22c55e" />
+                {!collapsed.abdomen && (
+                  <View style={styles.collapsibleContent}>
+                    <ExamDropdown exam="abdomen" label="Abdomen Status" />
+                    {examStatus.abdomen === "Normal" ? (
+                      <Text style={styles.normalSummary}>Soft, non-tender, no organomegaly, bowel sounds present</Text>
+                    ) : (
+                      <>
+                        <SelectButtons label="Umbilical" options={["Normal", "Herniated"]} field="abd_umbilical" />
+                        <InputField label="Organomegaly" field="abd_organomegaly" placeholder="Hepatomegaly, splenomegaly..." />
+                        <SelectButtons label="Percussion" options={["Tympanic", "Dull", "Shifting"]} field="abd_percussion" />
+                        <SelectButtons label="Bowel Sounds" options={["Present", "Absent", "Hyperactive"]} field="abd_bowel_sounds" />
+                        <SelectButtons label="External Genitalia" options={["Normal", "Abnormal"]} field="abd_external_genitalia" />
+                        <SelectButtons label="Hernial Orifices" options={["Normal", "Hernia present"]} field="abd_hernial_orifices" />
+                        <InputField label="Per Rectal" field="abd_per_rectal" placeholder="If done..." />
+                        <InputField label="Per Vaginal" field="abd_per_vaginal" placeholder="If done..." />
+                      </>
+                    )}
+                    <InputWithVoice label="Additional Notes" field="abd_notes" placeholder="Abdomen notes..." multiline />
+                  </View>
+                )}
+              </View>
+
+              {/* CNS */}
+              <View style={styles.card}>
+                <CollapsibleHeader title="Central Nervous System" icon="brain" section="cns" color="#8b5cf6" />
+                {!collapsed.cns && (
+                  <View style={styles.collapsibleContent}>
+                    <ExamDropdown exam="cns" label="CNS Status" />
+                    {examStatus.cns === "Normal" ? (
+                      <Text style={styles.normalSummary}>Alert, oriented, cranial nerves intact, no focal deficits</Text>
+                    ) : (
+                      <>
+                        <SelectButtons label="Higher Mental Functions" options={["Intact", "Impaired"]} field="cns_higher_mental" />
+                        <SelectButtons label="Cranial Nerves" options={["Intact", "Deficit"]} field="cns_cranial_nerves" />
+                        <SelectButtons label="Sensory System" options={["Intact", "Impaired"]} field="cns_sensory" />
+                        <SelectButtons label="Motor System" options={["Normal", "Weakness"]} field="cns_motor" />
+                        <SelectButtons label="Reflexes" options={["Normal", "Brisk", "Diminished"]} field="cns_reflexes" />
+                        <SelectButtons label="Romberg Sign" options={["Negative", "Positive"]} field="cns_romberg" />
+                        <SelectButtons label="Cerebellar Signs" options={["Normal", "Abnormal"]} field="cns_cerebellar" />
+                      </>
+                    )}
+                    <InputWithVoice label="Additional Notes" field="cns_notes" placeholder="CNS notes..." multiline />
+                  </View>
+                )}
+              </View>
+
+              {/* Extremities */}
+              <View style={styles.card}>
+                <CollapsibleHeader title="Extremities" icon="hand-left" section="extremities" color="#ec4899" />
+                {!collapsed.extremities && (
+                  <View style={styles.collapsibleContent}>
+                    <ExamDropdown exam="extremities" label="Extremities Status" />
+                    {examStatus.extremities === "Abnormal" && (
+                      <InputWithVoice label="Findings" field="ext_findings" placeholder="Describe findings..." multiline />
+                    )}
+                    <InputWithVoice label="Additional Notes" field="ext_notes" placeholder="Extremities notes..." multiline />
+                  </View>
+                )}
+              </View>
+            </View>
+          )}
+
+          {/* Action Buttons */}
+          <View style={styles.actionRow}>
+            <TouchableOpacity style={[styles.saveBtn, saving && styles.btnDisabled]} onPress={saveCaseSheet} disabled={saving}>
+              {saving ? <ActivityIndicator color="#fff" /> : (
+                <>
+                  <Ionicons name="save" size={20} color="#fff" />
+                  <Text style={styles.btnText}>Save</Text>
+                </>
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.nextBtn} onPress={proceedNext}>
+              <Text style={styles.btnText}>Next</Text>
+              <Ionicons name="arrow-forward" size={20} color="#fff" />
+            </TouchableOpacity>
+          </View>
+
+          <View style={{ height: 40 }} />
+        </ScrollView>
+      </View>
     </KeyboardAvoidingView>
   );
 }
 
-/* =========================================================
-   🎨 HELPERS
-   ========================================================= */
-
-const getPriorityColor = (priority) => {
-  switch (priority) {
-    case "RED": return "#ef4444";
-    case "ORANGE": return "#f97316";
-    case "YELLOW": return "#eab308";
-    case "GREEN": return "#22c55e";
-    case "BLUE": return "#3b82f6";
-    default: return "#6b7280";
-  }
-};
-
-const getPriorityLevel = (priority) => {
-  switch (priority) {
-    case "RED": return 1;
-    case "ORANGE": return 2;
-    case "YELLOW": return 3;
-    case "GREEN": return 4;
-    case "BLUE": return 5;
-    default: return 4;
-  }
-};
-
-/* =========================================================
-   🎨 STYLES
-   ========================================================= */
-
+/* ===================== STYLES ===================== */
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f8fafc",
-  },
+  container: { flex: 1, backgroundColor: "#f8fafc" },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -939,107 +1525,48 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#e2e8f0",
   },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: "#1e293b",
+  headerTitle: { fontSize: 18, fontWeight: "800", color: "#1e293b" },
+  tabBar: {
+    backgroundColor: "#fff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e2e8f0",
+    paddingVertical: 8,
+    paddingHorizontal: 8,
   },
-  priorityBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  priorityText: {
-    color: "#fff",
-    fontWeight: "700",
-    fontSize: 11,
-  },
-  voiceBtn: {
-    backgroundColor: "#1976d2",
-    margin: 16,
-    padding: 16,
-    borderRadius: 12,
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    gap: 10,
-  },
-  voiceBtnRecording: {
-    backgroundColor: "#dc2626",
-  },
-  voiceText: {
-    color: "#fff",
-    fontWeight: "700",
-    fontSize: 15,
-  },
-  transcriptBox: {
-    backgroundColor: "#f0f9ff",
-    marginHorizontal: 16,
-    padding: 12,
-    borderRadius: 10,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: "#bae6fd",
-  },
-  transcriptLabel: {
-    fontWeight: "700",
-    color: "#0369a1",
-    marginBottom: 4,
-  },
-  transcriptText: {
-    color: "#0c4a6e",
-    fontSize: 13,
-  },
-  loadingBox: {
-    alignItems: "center",
-    padding: 16,
-  },
-  loadingText: {
-    marginTop: 8,
-    color: "#64748b",
-  },
-  sectionHeader: {
+  tabBtn: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    marginRight: 8,
+    borderRadius: 20,
+    backgroundColor: "#f1f5f9",
+    gap: 6,
   },
-  sectionTitle: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: "#1e40af",
-  },
-  subSection: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#475569",
-    marginTop: 16,
-    marginBottom: 8,
-  },
+  tabBtnActive: { backgroundColor: "#2563eb" },
+  tabText: { fontSize: 13, fontWeight: "600", color: "#64748b" },
+  tabTextActive: { color: "#fff" },
+  content: { flex: 1 },
+  tabContent: { padding: 12 },
   card: {
     backgroundColor: "#fff",
-    marginHorizontal: 16,
-    marginBottom: 8,
-    padding: 16,
+    marginBottom: 12,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: "#e2e8f0",
+    overflow: "hidden",
   },
-  row: {
-    flexDirection: "row",
-    gap: 12,
+  cardTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#1e40af",
+    padding: 16,
+    paddingBottom: 8,
   },
-  inputGroup: {
-    marginBottom: 12,
-  },
-  label: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#475569",
-    marginBottom: 6,
-  },
+  row: { flexDirection: "row", gap: 12, paddingHorizontal: 16 },
+  inputGroup: { marginBottom: 12, paddingHorizontal: 16 },
+  labelRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 6 },
+  label: { fontSize: 12, fontWeight: "600", color: "#475569" },
   input: {
     backgroundColor: "#f8fafc",
     padding: 12,
@@ -1049,60 +1576,54 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#1e293b",
   },
-  textArea: {
-    minHeight: 80,
-    textAlignVertical: "top",
-  },
-  selectRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
+  textArea: { minHeight: 80, textAlignVertical: "top" },
+  selectRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   selectBtn: {
     paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     borderRadius: 8,
     backgroundColor: "#f1f5f9",
     borderWidth: 1,
     borderColor: "#e2e8f0",
   },
-  selectBtnActive: {
-    backgroundColor: "#2563eb",
-    borderColor: "#2563eb",
-  },
-  selectBtnText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#475569",
-  },
-  selectBtnTextActive: {
-    color: "#fff",
-  },
+  selectBtnActive: { backgroundColor: "#2563eb", borderColor: "#2563eb" },
+  selectBtnText: { fontSize: 12, fontWeight: "600", color: "#475569" },
+  selectBtnTextActive: { color: "#fff" },
   switchRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingVertical: 8,
+    paddingHorizontal: 16,
   },
-  switchLabel: {
-    fontSize: 13,
-    color: "#475569",
+  switchLabel: { fontSize: 13, color: "#475569" },
+  voiceBtn: {
+    backgroundColor: "#2563eb",
+    padding: 6,
+    borderRadius: 6,
   },
-  vitalsGrid: {
+  voiceBtnRecording: { backgroundColor: "#dc2626" },
+  collapsibleHeader: {
     flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 10,
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 16,
+    backgroundColor: "#f8fafc",
   },
-  vitalItem: {
-    width: "30%",
-  },
-  vitalLabel: {
-    fontSize: 11,
-    fontWeight: "600",
+  collapsibleLeft: { flexDirection: "row", alignItems: "center", gap: 10 },
+  collapsibleTitle: { fontSize: 15, fontWeight: "700" },
+  collapsibleContent: { paddingBottom: 16 },
+  subSection: {
+    fontSize: 13,
+    fontWeight: "700",
     color: "#64748b",
-    marginBottom: 4,
-    textAlign: "center",
+    marginTop: 16,
+    marginBottom: 8,
+    paddingHorizontal: 16,
   },
+  vitalsGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10, paddingHorizontal: 16 },
+  vitalItem: { width: "30%" },
+  vitalLabel: { fontSize: 11, fontWeight: "600", color: "#64748b", marginBottom: 4, textAlign: "center" },
   vitalInput: {
     backgroundColor: "#f8fafc",
     padding: 10,
@@ -1113,11 +1634,123 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "600",
   },
-  actionRow: {
-    flexDirection: "row",
-    gap: 12,
-    padding: 16,
+  vbgGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8, paddingHorizontal: 16 },
+  vbgItem: { width: "31%" },
+  vbgLabel: { fontSize: 10, fontWeight: "700", color: "#8b5cf6", marginBottom: 2, textAlign: "center" },
+  vbgInput: {
+    backgroundColor: "#f5f3ff",
+    padding: 8,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: "#c4b5fd",
+    textAlign: "center",
+    fontSize: 13,
   },
+  aiBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#8b5cf6",
+    padding: 12,
+    borderRadius: 10,
+    margin: 16,
+    gap: 8,
+  },
+  aiBtnText: { color: "#fff", fontWeight: "700", fontSize: 14 },
+  aiResult: {
+    backgroundColor: "#f5f3ff",
+    padding: 12,
+    marginHorizontal: 16,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#c4b5fd",
+  },
+  aiResultTitle: { fontSize: 13, fontWeight: "700", color: "#7c3aed", marginBottom: 6 },
+  aiResultText: { fontSize: 13, color: "#5b21b6", lineHeight: 20 },
+  examDropdown: { paddingHorizontal: 16, marginBottom: 12 },
+  examLabel: { fontSize: 12, fontWeight: "600", color: "#475569", marginBottom: 6 },
+  examToggle: { flexDirection: "row", gap: 8 },
+  examToggleBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 8,
+    backgroundColor: "#f1f5f9",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    alignItems: "center",
+  },
+  examToggleNormal: { backgroundColor: "#dcfce7", borderColor: "#86efac" },
+  examToggleAbnormal: { backgroundColor: "#fee2e2", borderColor: "#fca5a5" },
+  examToggleText: { fontSize: 13, fontWeight: "600", color: "#64748b" },
+  examToggleTextActive: { color: "#1e293b" },
+  normalSummary: {
+    backgroundColor: "#f0fdf4",
+    padding: 12,
+    marginHorizontal: 16,
+    borderRadius: 8,
+    fontSize: 13,
+    color: "#166534",
+    fontStyle: "italic",
+  },
+  checkboxGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8, paddingHorizontal: 16, marginBottom: 8 },
+  checkboxItem: { flexDirection: "row", alignItems: "center", gap: 6, paddingVertical: 4, minWidth: "45%" },
+  checkboxText: { fontSize: 12, color: "#475569" },
+  checkboxLabel: { fontSize: 12, fontWeight: "600", color: "#475569", marginTop: 12, marginBottom: 6, paddingHorizontal: 16 },
+  
+  // Normal/Abnormal toggle styles
+  statusToggleRow: { flexDirection: "row", gap: 10, paddingHorizontal: 16, marginBottom: 12 },
+  statusToggle: { 
+    flex: 1, 
+    flexDirection: "row", 
+    alignItems: "center", 
+    justifyContent: "center",
+    paddingVertical: 10, 
+    borderRadius: 10, 
+    backgroundColor: "#f1f5f9", 
+    borderWidth: 2, 
+    borderColor: "#e2e8f0",
+    gap: 6,
+  },
+  statusToggleNormalActive: { backgroundColor: "#22c55e", borderColor: "#16a34a" },
+  statusToggleAbnormalActive: { backgroundColor: "#ef4444", borderColor: "#dc2626" },
+  statusToggleText: { fontSize: 14, fontWeight: "700", color: "#64748b" },
+  statusToggleTextActive: { color: "#fff" },
+  
+  abnormalDetails: { 
+    backgroundColor: "#fef2f2", 
+    padding: 12, 
+    marginHorizontal: 16, 
+    marginBottom: 12, 
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#fecaca",
+  },
+  
+  // Compact vitals row
+  vitalsRowCompact: { flexDirection: "row", gap: 8, paddingHorizontal: 16, marginBottom: 12 },
+  vitalItemCompact: { flex: 1 },
+  vitalLabelCompact: { fontSize: 10, fontWeight: "700", color: "#64748b", marginBottom: 4, textAlign: "center" },
+  vitalInputCompact: {
+    backgroundColor: "#f8fafc",
+    padding: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    textAlign: "center",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  
+  // Highlighted field
+  highlightedField: {
+    borderLeftWidth: 4,
+    paddingLeft: 8,
+    marginLeft: 16,
+    marginRight: 16,
+    marginTop: 8,
+  },
+  
+  actionRow: { flexDirection: "row", gap: 12, padding: 16 },
   saveBtn: {
     flex: 1,
     backgroundColor: "#64748b",
@@ -1138,12 +1771,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
   },
-  btnDisabled: {
-    opacity: 0.6,
-  },
-  btnText: {
-    color: "#fff",
-    fontWeight: "700",
-    fontSize: 15,
-  },
+  btnDisabled: { opacity: 0.6 },
+  btnText: { color: "#fff", fontWeight: "700", fontSize: 15 },
 });

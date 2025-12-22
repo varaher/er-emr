@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+// FIXED DischargeSummaryScreen.js - useRef for text inputs to prevent lag
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import {
   View,
   Text,
@@ -8,7 +9,6 @@ import {
   ActivityIndicator,
   TextInput,
   Alert,
-  Share,
   Platform,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -23,17 +23,24 @@ export default function DischargeSummaryScreen({ route, navigation }) {
   const [caseData, setCaseData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  
-  // Editable discharge-specific fields
-  const [dischargeData, setDischargeData] = useState({
+
+  // useRef for text inputs to prevent lag
+  const dischargeDataRef = useRef({
     discharge_medications: "",
-    disposition_type: "Normal Discharge",
-    condition_at_discharge: "STABLE",
-    discharge_vitals: { hr: "", bp: "", rr: "", spo2: "", gcs: "", pain_score: "", grbs: "", temp: "" },
     follow_up_advice: "",
     ed_resident: "",
     ed_consultant: "",
+    discharge_vitals: { hr: "", bp: "", rr: "", spo2: "", gcs: "", pain_score: "", grbs: "", temp: "" },
   });
+
+  // useState only for radio buttons that need visual feedback
+  const [radioStates, setRadioStates] = useState({
+    disposition_type: "Normal Discharge",
+    condition_at_discharge: "STABLE",
+  });
+
+  // Force re-render after data load
+  const [dataLoaded, setDataLoaded] = useState(false);
 
   useEffect(() => {
     loadCaseData();
@@ -43,7 +50,6 @@ export default function DischargeSummaryScreen({ route, navigation }) {
     try {
       const token = await AsyncStorage.getItem("token");
 
-      // Fetch full case data
       const res = await fetch(`${API_URL}/cases/${caseId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -55,16 +61,22 @@ export default function DischargeSummaryScreen({ route, navigation }) {
       const data = await res.json();
       setCaseData(data);
 
-      // Pre-fill editable fields from case data
-      setDischargeData((prev) => ({
-        ...prev,
+      // Pre-fill ref values from case data
+      dischargeDataRef.current = {
+        ...dischargeDataRef.current,
         ed_resident: data.em_resident || "",
         ed_consultant: data.em_consultant || "",
         discharge_medications: data.treatment?.medications || "",
         follow_up_advice: data.disposition?.advice || "",
-        condition_at_discharge: data.disposition?.condition_at_discharge || "STABLE",
+      };
+
+      // Update radio states
+      setRadioStates({
         disposition_type: mapDispositionType(data.disposition?.type),
-      }));
+        condition_at_discharge: data.disposition?.condition_at_discharge || "STABLE",
+      });
+
+      setDataLoaded(true);
     } catch (err) {
       console.log("DISCHARGE ERROR:", err);
       Alert.alert("Error", "Unable to load case data");
@@ -81,10 +93,28 @@ export default function DischargeSummaryScreen({ route, navigation }) {
     return map[type] || "Normal Discharge";
   };
 
+  const updateTextField = useCallback((field, value) => {
+    dischargeDataRef.current[field] = value;
+  }, []);
+
+  const updateVitalField = useCallback((vital, value) => {
+    dischargeDataRef.current.discharge_vitals[vital] = value;
+  }, []);
+
+  const updateRadioState = useCallback((field, value) => {
+    setRadioStates(prev => ({ ...prev, [field]: value }));
+  }, []);
+
   const handleSave = async () => {
     try {
       setSaving(true);
       const token = await AsyncStorage.getItem("token");
+
+      const payload = {
+        ...dischargeDataRef.current,
+        disposition_type: radioStates.disposition_type,
+        condition_at_discharge: radioStates.condition_at_discharge,
+      };
 
       const res = await fetch(`${API_URL}/discharge/${caseId}`, {
         method: "PUT",
@@ -92,7 +122,7 @@ export default function DischargeSummaryScreen({ route, navigation }) {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(dischargeData),
+        body: JSON.stringify(payload),
       });
 
       if (res.ok) {
@@ -110,11 +140,15 @@ export default function DischargeSummaryScreen({ route, navigation }) {
   const generatePDF = async () => {
     if (!caseData) return;
 
-    const html = buildPrintableHTML(caseData, dischargeData);
+    const html = buildPrintableHTML(caseData, {
+      ...dischargeDataRef.current,
+      disposition_type: radioStates.disposition_type,
+      condition_at_discharge: radioStates.condition_at_discharge,
+    });
 
     try {
       const { uri } = await Print.printToFileAsync({ html });
-      
+
       if (Platform.OS === "ios") {
         await Sharing.shareAsync(uri);
       } else {
@@ -158,7 +192,6 @@ export default function DischargeSummaryScreen({ route, navigation }) {
   const primaryAssessment = caseData.primary_assessment || {};
   const isPediatric = caseData.case_type === "pediatric";
 
-  // Calculate GCS total
   const gcsTotal =
     (vitalsAtArrival.gcs_e || 0) +
     (vitalsAtArrival.gcs_v || 0) +
@@ -216,9 +249,9 @@ export default function DischargeSummaryScreen({ route, navigation }) {
         </Text>
       </Section>
 
-      {/* History of Present Illness */}
-      <Section title="History of Present Illness">
-        <Text style={styles.text}>{history.hpi || "N/A"}</Text>
+      {/* History of Present Illness / Events */}
+      <Section title="Events / HOPI">
+        <Text style={styles.text}>{history.hpi || history.events_hopi || "N/A"}</Text>
       </Section>
 
       {/* Past Medical/Surgical History */}
@@ -231,20 +264,12 @@ export default function DischargeSummaryScreen({ route, navigation }) {
         </Text>
       </Section>
 
-      {/* Family / Gynae History */}
-      <Section title="Family / Gynae History">
-        <Text style={styles.text}>
-          {history.family_gyn_additional_notes || history.family_history || "Not significant"}
-        </Text>
-        <Text style={styles.text}>LMP: {history.lmp || "N/A"}</Text>
-      </Section>
-
-      {/* Primary Assessment (ABCDE) */}
+      {/* Primary Assessment */}
       <Section title="Primary Assessment">
         <Text style={styles.text}>{buildPrimaryAssessmentText(primaryAssessment)}</Text>
       </Section>
 
-      {/* Secondary Assessment / Examination */}
+      {/* Systemic Examination */}
       <Section title="Systemic Examination">
         <Text style={styles.text}>{buildExaminationText(examination, isPediatric)}</Text>
       </Section>
@@ -284,10 +309,8 @@ export default function DischargeSummaryScreen({ route, navigation }) {
           multiline
           numberOfLines={4}
           placeholder="List all discharge medications with dosages and duration..."
-          value={dischargeData.discharge_medications}
-          onChangeText={(text) =>
-            setDischargeData({ ...dischargeData, discharge_medications: text })
-          }
+          defaultValue={dischargeDataRef.current.discharge_medications}
+          onChangeText={(text) => updateTextField("discharge_medications", text)}
         />
       </Section>
 
@@ -303,14 +326,12 @@ export default function DischargeSummaryScreen({ route, navigation }) {
             <TouchableOpacity
               key={type}
               style={styles.radioOption}
-              onPress={() =>
-                setDischargeData({ ...dischargeData, disposition_type: type })
-              }
+              onPress={() => updateRadioState("disposition_type", type)}
             >
               <View
                 style={[
                   styles.radio,
-                  dischargeData.disposition_type === type && styles.radioSelected,
+                  radioStates.disposition_type === type && styles.radioSelected,
                 ]}
               />
               <Text style={styles.radioLabel}>{type}</Text>
@@ -326,14 +347,12 @@ export default function DischargeSummaryScreen({ route, navigation }) {
             <TouchableOpacity
               key={cond}
               style={styles.radioOption}
-              onPress={() =>
-                setDischargeData({ ...dischargeData, condition_at_discharge: cond })
-              }
+              onPress={() => updateRadioState("condition_at_discharge", cond)}
             >
               <View
                 style={[
                   styles.radio,
-                  dischargeData.condition_at_discharge === cond && styles.radioSelected,
+                  radioStates.condition_at_discharge === cond && styles.radioSelected,
                 ]}
               />
               <Text style={styles.radioLabel}>{cond}</Text>
@@ -353,16 +372,8 @@ export default function DischargeSummaryScreen({ route, navigation }) {
                   style={styles.vitalField}
                   placeholder="-"
                   keyboardType="numeric"
-                  value={dischargeData.discharge_vitals[vital]}
-                  onChangeText={(text) =>
-                    setDischargeData({
-                      ...dischargeData,
-                      discharge_vitals: {
-                        ...dischargeData.discharge_vitals,
-                        [vital]: text,
-                      },
-                    })
-                  }
+                  defaultValue={dischargeDataRef.current.discharge_vitals[vital]}
+                  onChangeText={(text) => updateVitalField(vital, text)}
                 />
               </View>
             )
@@ -377,10 +388,8 @@ export default function DischargeSummaryScreen({ route, navigation }) {
           multiline
           numberOfLines={3}
           placeholder="Follow-up instructions, red flags to watch for, when to return to ER..."
-          value={dischargeData.follow_up_advice}
-          onChangeText={(text) =>
-            setDischargeData({ ...dischargeData, follow_up_advice: text })
-          }
+          defaultValue={dischargeDataRef.current.follow_up_advice}
+          onChangeText={(text) => updateTextField("follow_up_advice", text)}
         />
       </Section>
 
@@ -390,19 +399,15 @@ export default function DischargeSummaryScreen({ route, navigation }) {
         <TextInput
           style={styles.input}
           placeholder="Name"
-          value={dischargeData.ed_resident}
-          onChangeText={(text) =>
-            setDischargeData({ ...dischargeData, ed_resident: text })
-          }
+          defaultValue={dischargeDataRef.current.ed_resident}
+          onChangeText={(text) => updateTextField("ed_resident", text)}
         />
         <Text style={[styles.label, { marginTop: 12 }]}>ED Consultant *</Text>
         <TextInput
           style={styles.input}
           placeholder="Name"
-          value={dischargeData.ed_consultant}
-          onChangeText={(text) =>
-            setDischargeData({ ...dischargeData, ed_consultant: text })
-          }
+          defaultValue={dischargeDataRef.current.ed_consultant}
+          onChangeText={(text) => updateTextField("ed_consultant", text)}
         />
       </Section>
 
@@ -441,7 +446,6 @@ export default function DischargeSummaryScreen({ route, navigation }) {
         </TouchableOpacity>
       </View>
 
-      {/* Spacing at bottom */}
       <View style={{ height: 40 }} />
     </ScrollView>
   );
@@ -485,7 +489,6 @@ function buildPrimaryAssessmentText(primary) {
 function buildExaminationText(exam, isPediatric) {
   let text = "";
 
-  // General examination
   const general = [];
   if (exam.general_pallor) general.push("Pallor");
   if (exam.general_icterus) general.push("Icterus");
@@ -558,7 +561,6 @@ function buildPrintableHTML(caseData, dischargeData) {
         .row { display: flex; margin-bottom: 3px; }
         .row-label { font-weight: bold; width: 150px; }
         .row-value { flex: 1; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
         .vitals-line { margin-bottom: 5px; }
         .footer { margin-top: 30px; font-size: 11px; color: #555; border-top: 1px solid #ccc; padding-top: 10px; }
         .signatures { display: flex; justify-content: space-between; margin-top: 40px; }
@@ -570,22 +572,17 @@ function buildPrintableHTML(caseData, dischargeData) {
       <h1>DISCHARGE SUMMARY</h1>
 
       <div class="section">
-        <div class="grid">
-          <div class="row"><span class="row-label">UHID:</span><span class="row-value">${patient.uhid || "N/A"}</span></div>
-          <div class="row"><span class="row-label">Name:</span><span class="row-value">${patient.name || "N/A"}</span></div>
-          <div class="row"><span class="row-label">Age/Sex:</span><span class="row-value">${patient.age || "N/A"} / ${patient.sex || "N/A"}</span></div>
-          <div class="row"><span class="row-label">Admission Date:</span><span class="row-value">${patient.arrival_datetime ? new Date(patient.arrival_datetime).toLocaleDateString("en-IN") : "N/A"}</span></div>
-          <div class="row"><span class="row-label">MLC:</span><span class="row-value">${patient.mlc ? "Yes" : "No"}</span></div>
-          <div class="row"><span class="row-label">Allergy:</span><span class="row-value">${history.allergies?.length > 0 ? history.allergies.join(", ") : "NKDA"}</span></div>
-        </div>
+        <div class="row"><span class="row-label">UHID:</span><span class="row-value">${patient.uhid || "N/A"}</span></div>
+        <div class="row"><span class="row-label">Name:</span><span class="row-value">${patient.name || "N/A"}</span></div>
+        <div class="row"><span class="row-label">Age/Sex:</span><span class="row-value">${patient.age || "N/A"} / ${patient.sex || "N/A"}</span></div>
+        <div class="row"><span class="row-label">Admission Date:</span><span class="row-value">${patient.arrival_datetime ? new Date(patient.arrival_datetime).toLocaleDateString("en-IN") : "N/A"}</span></div>
       </div>
 
       <div class="section">
         <div class="section-title">Vitals at Arrival</div>
         <div class="vitals-line">
           HR: ${vitalsAtArrival.hr || "-"}, BP: ${vitalsAtArrival.bp_systolic || "-"}/${vitalsAtArrival.bp_diastolic || "-"}, 
-          RR: ${vitalsAtArrival.rr || "-"}, SpO2: ${vitalsAtArrival.spo2 || "-"}%, GCS: ${gcsTotal || "-"}, 
-          Pain: ${vitalsAtArrival.pain_score || "-"}, GRBS: ${vitalsAtArrival.grbs || "-"}, Temp: ${vitalsAtArrival.temperature || "-"}°C
+          RR: ${vitalsAtArrival.rr || "-"}, SpO2: ${vitalsAtArrival.spo2 || "-"}%, GCS: ${gcsTotal || "-"}
         </div>
       </div>
 
@@ -595,34 +592,8 @@ function buildPrintableHTML(caseData, dischargeData) {
       </div>
 
       <div class="section">
-        <div class="section-title">History of Present Illness</div>
-        <p>${history.hpi || "N/A"}</p>
-      </div>
-
-      <div class="section">
-        <div class="section-title">Past Medical/Surgical History</div>
-        <p>Medical: ${history.past_medical?.join(", ") || "None"}</p>
-        <p>Surgical: ${history.past_surgical || "None"}</p>
-      </div>
-
-      <div class="section">
-        <div class="section-title">Primary Assessment</div>
-        <p>${buildPrimaryAssessmentText(primaryAssessment).replace(/\n/g, "<br>")}</p>
-      </div>
-
-      <div class="section">
-        <div class="section-title">Systemic Examination</div>
-        <p>${buildExaminationText(examination, isPediatric).replace(/\n/g, "<br>")}</p>
-      </div>
-
-      <div class="section">
-        <div class="section-title">Course in Hospital</div>
-        <p>${treatment.course_in_hospital || treatment.intervention_notes || "N/A"}</p>
-      </div>
-
-      <div class="section">
-        <div class="section-title">Investigations</div>
-        <p>${investigations.results_notes || (investigations.panels_selected?.length > 0 ? `Ordered: ${investigations.panels_selected.join(", ")}` : "Pending")}</p>
+        <div class="section-title">Events / HOPI</div>
+        <p>${history.hpi || history.events_hopi || "N/A"}</p>
       </div>
 
       <div class="section">
@@ -638,19 +609,14 @@ function buildPrintableHTML(caseData, dischargeData) {
       <div class="section">
         <div class="section-title">Disposition</div>
         <p>${dischargeData.disposition_type}</p>
-      </div>
-
-      <div class="section">
-        <div class="section-title">Condition at Discharge</div>
-        <p><strong>${dischargeData.condition_at_discharge}</strong></p>
+        <p>Condition: <strong>${dischargeData.condition_at_discharge}</strong></p>
       </div>
 
       <div class="section">
         <div class="section-title">Vitals at Discharge</div>
         <div class="vitals-line">
           HR: ${dischargeVitals.hr || "-"}, BP: ${dischargeVitals.bp || "-"}, RR: ${dischargeVitals.rr || "-"}, 
-          SpO2: ${dischargeVitals.spo2 || "-"}, GCS: ${dischargeVitals.gcs || "-"}, 
-          Pain: ${dischargeVitals.pain_score || "-"}, GRBS: ${dischargeVitals.grbs || "-"}, Temp: ${dischargeVitals.temp || "-"}
+          SpO2: ${dischargeVitals.spo2 || "-"}, GCS: ${dischargeVitals.gcs || "-"}
         </div>
       </div>
 
@@ -673,17 +639,10 @@ function buildPrintableHTML(caseData, dischargeData) {
       </div>
 
       <div class="footer">
-        <p><strong>General Instructions:</strong></p>
-        <p>This discharge summary provides clinical information to facilitate continuity of patient care.</p>
-        <ul>
-          <li>Keep all medications as prescribed</li>
-          <li>Return to emergency department if symptoms worsen</li>
-          <li>Follow up with your doctor as advised</li>
-        </ul>
-        <p style="text-align: center; margin-top: 15px;">
+        <p style="text-align: center;">
           <strong>In case of emergency, contact your nearest hospital emergency department.</strong>
         </p>
-        <p style="text-align: center; margin-top: 10px; font-size: 10px;">
+        <p style="text-align: center; font-size: 10px;">
           Generated on: ${new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })}
         </p>
       </div>

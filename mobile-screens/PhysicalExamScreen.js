@@ -1,4 +1,5 @@
-import React, { useState, useCallback } from "react";
+// FIXED PhysicalExamScreen.js - useRef for text inputs to prevent lag
+import React, { useState, useCallback, useRef } from "react";
 import {
   View,
   Text,
@@ -16,7 +17,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { Audio } from "expo-av";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-// ⚠️ PRODUCTION API URL - Use this for Render deployment
 const API_URL = "https://er-emr-backend.onrender.com/api";
 
 export default function PhysicalExamScreen({ route, navigation }) {
@@ -32,8 +32,23 @@ export default function PhysicalExamScreen({ route, navigation }) {
   const [isRecording, setIsRecording] = useState(false);
   const [transcriptText, setTranscriptText] = useState("");
 
-  /* ===================== FORM DATA (Single State Object) ===================== */
-  const [formData, setFormData] = useState({
+  /* ===================== FORM DATA - useRef for text inputs ===================== */
+  const formDataRef = useRef({
+    // Notes fields (text inputs)
+    general_notes: "",
+    head_notes: "",
+    cvs_notes: "",
+    respiratory_notes: "",
+    abdomen_notes: "",
+    cns_notes: "",
+    msk_notes: "",
+    skin_notes: "",
+    local_site: "",
+    local_findings: "",
+  });
+
+  /* ===================== SELECT/SWITCH STATE (needs re-render) ===================== */
+  const [selectStates, setSelectStates] = useState({
     // General Examination
     general_appearance: "Well",
     general_build: "Normal",
@@ -45,7 +60,6 @@ export default function PhysicalExamScreen({ route, navigation }) {
     general_lymphadenopathy: false,
     general_edema: false,
     general_dehydration: "None",
-    general_notes: "",
 
     // Head & Neck
     head_scalp: "Normal",
@@ -57,9 +71,8 @@ export default function PhysicalExamScreen({ route, navigation }) {
     head_throat: "Normal",
     head_neck_veins: "Not Distended",
     head_thyroid: "Normal",
-    head_notes: "",
 
-    // Cardiovascular System
+    // CVS
     cvs_inspection: "Normal",
     cvs_palpation: "Normal",
     cvs_apex_beat: "Normal",
@@ -67,9 +80,8 @@ export default function PhysicalExamScreen({ route, navigation }) {
     cvs_murmurs: "None",
     cvs_peripheral_pulses: "Present",
     cvs_capillary_refill: "Normal",
-    cvs_notes: "",
 
-    // Respiratory System
+    // Respiratory
     respiratory_inspection: "Normal",
     respiratory_chest_shape: "Normal",
     respiratory_trachea: "Central",
@@ -77,7 +89,6 @@ export default function PhysicalExamScreen({ route, navigation }) {
     respiratory_percussion: "Resonant",
     respiratory_breath_sounds: "Vesicular",
     respiratory_added_sounds: "None",
-    respiratory_notes: "",
 
     // Abdomen
     abdomen_inspection: "Normal",
@@ -89,7 +100,6 @@ export default function PhysicalExamScreen({ route, navigation }) {
     abdomen_rigidity: false,
     abdomen_organomegaly: "None",
     abdomen_bowel_sounds: "Present",
-    abdomen_notes: "",
 
     // CNS
     cns_consciousness: "Alert",
@@ -102,15 +112,13 @@ export default function PhysicalExamScreen({ route, navigation }) {
     cns_reflexes: "Normal",
     cns_coordination: "Normal",
     cns_gait: "Normal",
-    cns_notes: "",
 
-    // Musculoskeletal
+    // MSK
     msk_inspection: "Normal",
     msk_deformity: "None",
     msk_swelling: "None",
     msk_tenderness: "None",
     msk_range_of_motion: "Full",
-    msk_notes: "",
 
     // Skin
     skin_color: "Normal",
@@ -118,16 +126,15 @@ export default function PhysicalExamScreen({ route, navigation }) {
     skin_moisture: "Normal",
     skin_rashes: false,
     skin_wounds: false,
-    skin_notes: "",
-
-    // Local Examination
-    local_site: "",
-    local_findings: "",
   });
 
-  /* ===================== OPTIMIZED FIELD UPDATE ===================== */
-  const updateField = useCallback((field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+  /* ===================== UPDATE FUNCTIONS ===================== */
+  const updateTextField = useCallback((field, value) => {
+    formDataRef.current[field] = value;
+  }, []);
+
+  const updateSelectField = useCallback((field, value) => {
+    setSelectStates(prev => ({ ...prev, [field]: value }));
   }, []);
 
   /* =========================================================
@@ -172,10 +179,6 @@ export default function PhysicalExamScreen({ route, navigation }) {
     }
   };
 
-  /* =========================================================
-     📤 UPLOAD AUDIO → TRANSCRIBE → AUTO-POPULATE
-     ========================================================= */
-
   const uploadAudio = async (uri) => {
     setLoading(true);
     try {
@@ -185,7 +188,6 @@ export default function PhysicalExamScreen({ route, navigation }) {
         return;
       }
 
-      // Step 1: Transcribe
       const formDataUpload = new FormData();
       formDataUpload.append("file", {
         uri,
@@ -207,8 +209,6 @@ export default function PhysicalExamScreen({ route, navigation }) {
       if (!transcribeData?.transcription) throw new Error("No transcription");
 
       setTranscriptText(transcribeData.transcription);
-
-      // Step 2: Parse & Auto-populate
       await parseExamTranscript(transcribeData.transcription, token);
     } catch (err) {
       console.error("Upload error:", err);
@@ -236,9 +236,6 @@ export default function PhysicalExamScreen({ route, navigation }) {
       if (!res.ok) throw new Error("Parsing failed");
 
       const data = await res.json();
-      console.log("Parsed exam data:", JSON.stringify(data, null, 2));
-
-      // Auto-populate examination fields
       autoPopulateExam(data);
 
       Alert.alert("✅ Success", "Physical exam auto-populated from voice!");
@@ -248,64 +245,58 @@ export default function PhysicalExamScreen({ route, navigation }) {
     }
   };
 
-  /* =========================================================
-     🔄 AUTO-POPULATE FROM PARSED DATA
-     ========================================================= */
-
   const autoPopulateExam = (data) => {
-    setFormData(prev => {
-      const updated = { ...prev };
-
-      // Examination data
-      if (data.examination) {
-        const ex = data.examination;
+    if (data.examination) {
+      const ex = data.examination;
+      
+      // Update select states
+      setSelectStates(prev => {
+        const updated = { ...prev };
         
-        // General
         if (ex.general_pallor !== undefined) updated.general_pallor = ex.general_pallor;
         if (ex.general_icterus !== undefined) updated.general_icterus = ex.general_icterus;
         if (ex.general_cyanosis !== undefined) updated.general_cyanosis = ex.general_cyanosis;
         if (ex.general_clubbing !== undefined) updated.general_clubbing = ex.general_clubbing;
         if (ex.general_lymphadenopathy !== undefined) updated.general_lymphadenopathy = ex.general_lymphadenopathy;
-        if (ex.general_notes) updated.general_notes = ex.general_notes;
-        if (ex.general_additional_notes) updated.general_notes = ex.general_additional_notes;
 
-        // CVS
         if (ex.cvs_status) updated.cvs_inspection = ex.cvs_status;
         if (ex.cvs_s1_s2) updated.cvs_s1_s2 = ex.cvs_s1_s2;
         if (ex.cvs_murmurs) updated.cvs_murmurs = ex.cvs_murmurs;
-        if (ex.cvs_additional_notes) updated.cvs_notes = ex.cvs_additional_notes;
 
-        // Respiratory
         if (ex.respiratory_status) updated.respiratory_inspection = ex.respiratory_status;
         if (ex.respiratory_expansion) updated.respiratory_expansion = ex.respiratory_expansion;
         if (ex.respiratory_percussion) updated.respiratory_percussion = ex.respiratory_percussion;
         if (ex.respiratory_breath_sounds) updated.respiratory_breath_sounds = ex.respiratory_breath_sounds;
         if (ex.respiratory_added_sounds) updated.respiratory_added_sounds = ex.respiratory_added_sounds;
-        if (ex.respiratory_additional_notes) updated.respiratory_notes = ex.respiratory_additional_notes;
 
-        // Abdomen
         if (ex.abdomen_status) updated.abdomen_palpation = ex.abdomen_status;
         if (ex.abdomen_organomegaly) updated.abdomen_organomegaly = ex.abdomen_organomegaly;
         if (ex.abdomen_bowel_sounds) updated.abdomen_bowel_sounds = ex.abdomen_bowel_sounds;
-        if (ex.abdomen_additional_notes) updated.abdomen_notes = ex.abdomen_additional_notes;
 
-        // CNS
         if (ex.cns_status) updated.cns_consciousness = ex.cns_status;
         if (ex.cns_higher_mental) updated.cns_orientation = ex.cns_higher_mental;
         if (ex.cns_cranial_nerves) updated.cns_cranial_nerves = ex.cns_cranial_nerves;
         if (ex.cns_motor_system) updated.cns_motor_power = ex.cns_motor_system;
         if (ex.cns_sensory_system) updated.cns_sensory = ex.cns_sensory_system;
         if (ex.cns_reflexes) updated.cns_reflexes = ex.cns_reflexes;
-        if (ex.cns_additional_notes) updated.cns_notes = ex.cns_additional_notes;
 
-        // Extremities/MSK
         if (ex.extremities_status) updated.msk_inspection = ex.extremities_status;
-        if (ex.extremities_findings) updated.msk_notes = ex.extremities_findings;
-        if (ex.extremities_additional_notes) updated.msk_notes = ex.extremities_additional_notes;
-      }
 
-      return updated;
-    });
+        return updated;
+      });
+
+      // Update text fields in ref
+      if (ex.general_notes || ex.general_additional_notes) {
+        formDataRef.current.general_notes = ex.general_notes || ex.general_additional_notes;
+      }
+      if (ex.cvs_additional_notes) formDataRef.current.cvs_notes = ex.cvs_additional_notes;
+      if (ex.respiratory_additional_notes) formDataRef.current.respiratory_notes = ex.respiratory_additional_notes;
+      if (ex.abdomen_additional_notes) formDataRef.current.abdomen_notes = ex.abdomen_additional_notes;
+      if (ex.cns_additional_notes) formDataRef.current.cns_notes = ex.cns_additional_notes;
+      if (ex.extremities_findings || ex.extremities_additional_notes) {
+        formDataRef.current.msk_notes = ex.extremities_findings || ex.extremities_additional_notes;
+      }
+    }
   };
 
   /* =========================================================
@@ -324,42 +315,42 @@ export default function PhysicalExamScreen({ route, navigation }) {
 
       const payload = {
         examination: {
-          general_pallor: formData.general_pallor,
-          general_icterus: formData.general_icterus,
-          general_cyanosis: formData.general_cyanosis,
-          general_clubbing: formData.general_clubbing,
-          general_lymphadenopathy: formData.general_lymphadenopathy,
-          general_notes: formData.general_notes,
-          general_additional_notes: formData.general_notes,
+          general_pallor: selectStates.general_pallor,
+          general_icterus: selectStates.general_icterus,
+          general_cyanosis: selectStates.general_cyanosis,
+          general_clubbing: selectStates.general_clubbing,
+          general_lymphadenopathy: selectStates.general_lymphadenopathy,
+          general_notes: formDataRef.current.general_notes,
+          general_additional_notes: formDataRef.current.general_notes,
           
-          cvs_status: formData.cvs_inspection,
-          cvs_s1_s2: formData.cvs_s1_s2,
-          cvs_murmurs: formData.cvs_murmurs,
-          cvs_additional_notes: formData.cvs_notes,
+          cvs_status: selectStates.cvs_inspection,
+          cvs_s1_s2: selectStates.cvs_s1_s2,
+          cvs_murmurs: selectStates.cvs_murmurs,
+          cvs_additional_notes: formDataRef.current.cvs_notes,
           
-          respiratory_status: formData.respiratory_inspection,
-          respiratory_expansion: formData.respiratory_expansion,
-          respiratory_percussion: formData.respiratory_percussion,
-          respiratory_breath_sounds: formData.respiratory_breath_sounds,
-          respiratory_added_sounds: formData.respiratory_added_sounds,
-          respiratory_additional_notes: formData.respiratory_notes,
+          respiratory_status: selectStates.respiratory_inspection,
+          respiratory_expansion: selectStates.respiratory_expansion,
+          respiratory_percussion: selectStates.respiratory_percussion,
+          respiratory_breath_sounds: selectStates.respiratory_breath_sounds,
+          respiratory_added_sounds: selectStates.respiratory_added_sounds,
+          respiratory_additional_notes: formDataRef.current.respiratory_notes,
           
-          abdomen_status: formData.abdomen_palpation,
-          abdomen_organomegaly: formData.abdomen_organomegaly,
-          abdomen_bowel_sounds: formData.abdomen_bowel_sounds,
-          abdomen_additional_notes: formData.abdomen_notes,
+          abdomen_status: selectStates.abdomen_palpation,
+          abdomen_organomegaly: selectStates.abdomen_organomegaly,
+          abdomen_bowel_sounds: selectStates.abdomen_bowel_sounds,
+          abdomen_additional_notes: formDataRef.current.abdomen_notes,
           
-          cns_status: formData.cns_consciousness,
-          cns_higher_mental: formData.cns_orientation,
-          cns_cranial_nerves: formData.cns_cranial_nerves,
-          cns_motor_system: formData.cns_motor_power,
-          cns_sensory_system: formData.cns_sensory,
-          cns_reflexes: formData.cns_reflexes,
-          cns_additional_notes: formData.cns_notes,
+          cns_status: selectStates.cns_consciousness,
+          cns_higher_mental: selectStates.cns_orientation,
+          cns_cranial_nerves: selectStates.cns_cranial_nerves,
+          cns_motor_system: selectStates.cns_motor_power,
+          cns_sensory_system: selectStates.cns_sensory,
+          cns_reflexes: selectStates.cns_reflexes,
+          cns_additional_notes: formDataRef.current.cns_notes,
           
-          extremities_status: formData.msk_inspection,
-          extremities_findings: formData.msk_notes,
-          extremities_additional_notes: formData.msk_notes,
+          extremities_status: selectStates.msk_inspection,
+          extremities_findings: formDataRef.current.msk_notes,
+          extremities_additional_notes: formDataRef.current.msk_notes,
         },
       };
 
@@ -386,12 +377,7 @@ export default function PhysicalExamScreen({ route, navigation }) {
     }
   };
 
-  /* =========================================================
-     ➡️ PROCEED TO NEXT SCREEN
-     ========================================================= */
-
   const proceedToTreatment = async () => {
-    // Auto-save before proceeding
     if (caseId) {
       await saveExamination();
     }
@@ -420,8 +406,8 @@ export default function PhysicalExamScreen({ route, navigation }) {
       <Text style={styles.label}>{label}</Text>
       <TextInput
         style={[styles.input, multiline && styles.textArea]}
-        defaultValue={formData[field]}
-        onChangeText={(text) => updateField(field, text)}
+        defaultValue={formDataRef.current[field]}
+        onChangeText={(text) => updateTextField(field, text)}
         placeholder={placeholder}
         placeholderTextColor="#9ca3af"
         multiline={multiline}
@@ -436,10 +422,10 @@ export default function PhysicalExamScreen({ route, navigation }) {
         {options.map((opt) => (
           <TouchableOpacity
             key={opt}
-            style={[styles.selectBtn, formData[field] === opt && styles.selectBtnActive]}
-            onPress={() => updateField(field, opt)}
+            style={[styles.selectBtn, selectStates[field] === opt && styles.selectBtnActive]}
+            onPress={() => updateSelectField(field, opt)}
           >
-            <Text style={[styles.selectBtnText, formData[field] === opt && styles.selectBtnTextActive]}>
+            <Text style={[styles.selectBtnText, selectStates[field] === opt && styles.selectBtnTextActive]}>
               {opt}
             </Text>
           </TouchableOpacity>
@@ -452,10 +438,10 @@ export default function PhysicalExamScreen({ route, navigation }) {
     <View style={styles.switchRow}>
       <Text style={styles.switchLabel}>{label}</Text>
       <Switch
-        value={formData[field]}
-        onValueChange={(v) => updateField(field, v)}
+        value={selectStates[field]}
+        onValueChange={(v) => updateSelectField(field, v)}
         trackColor={{ false: "#d1d5db", true: "#86efac" }}
-        thumbColor={formData[field] ? "#22c55e" : "#f4f3f4"}
+        thumbColor={selectStates[field] ? "#22c55e" : "#f4f3f4"}
       />
     </View>
   );
@@ -575,7 +561,7 @@ export default function PhysicalExamScreen({ route, navigation }) {
         </View>
 
         {/* ==================== CNS ==================== */}
-        <SectionTitle icon="brain" title="Central Nervous System" />
+        <SectionTitle icon="flash" title="Central Nervous System" />
         <View style={styles.card}>
           <SelectButtons label="Consciousness" options={["Alert", "Drowsy", "Obtunded", "Comatose"]} field="cns_consciousness" />
           <SelectButtons label="Orientation" options={["Oriented", "Disoriented", "Confused"]} field="cns_orientation" />
@@ -588,7 +574,7 @@ export default function PhysicalExamScreen({ route, navigation }) {
           <InputField label="Notes" field="cns_notes" placeholder="CNS findings..." multiline />
         </View>
 
-        {/* ==================== MUSCULOSKELETAL ==================== */}
+        {/* ==================== MSK ==================== */}
         <SectionTitle icon="barbell" title="Musculoskeletal" />
         <View style={styles.card}>
           <SelectButtons label="Inspection" options={["Normal", "Abnormal"]} field="msk_inspection" />
@@ -648,10 +634,6 @@ export default function PhysicalExamScreen({ route, navigation }) {
   );
 }
 
-/* =========================================================
-   🎨 HELPERS
-   ========================================================= */
-
 const getPriorityColor = (priority) => {
   switch (priority) {
     case "RED": return "#ef4444";
@@ -662,10 +644,6 @@ const getPriorityColor = (priority) => {
     default: return "#6b7280";
   }
 };
-
-/* =========================================================
-   🎨 STYLES
-   ========================================================= */
 
 const styles = StyleSheet.create({
   container: {

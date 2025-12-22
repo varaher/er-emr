@@ -1,4 +1,4 @@
-// DashboardScreen.js - New home screen with today's patients
+// DashboardScreen.js - Fixed with proper case loading and display
 import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
@@ -16,11 +16,13 @@ import { useFocusEffect } from "@react-navigation/native";
 
 const API_URL = "https://er-emr-backend.onrender.com/api";
 
-export default function DashboardScreen({ navigation }) {
+export default function DashboardScreen({ navigation, onLogout }) {
   const [user, setUser] = useState(null);
+  const [allCases, setAllCases] = useState([]);
   const [todayCases, setTodayCases] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState(null);
   const [stats, setStats] = useState({
     total: 0,
     critical: 0,
@@ -36,11 +38,13 @@ export default function DashboardScreen({ navigation }) {
 
   const loadData = async () => {
     try {
+      setError(null);
       const token = await AsyncStorage.getItem("token");
       const userData = await AsyncStorage.getItem("user");
 
       if (!token) {
-        navigation.replace("Login");
+        if (onLogout) onLogout();
+        else navigation.replace("Login");
         return;
       }
 
@@ -48,27 +52,43 @@ export default function DashboardScreen({ navigation }) {
         setUser(JSON.parse(userData));
       }
 
-      // Fetch cases
+      console.log("Fetching cases from:", `${API_URL}/cases`);
+      
+      // Fetch all cases
       const res = await fetch(`${API_URL}/cases`, {
-        headers: { Authorization: `Bearer ${token}` },
+        method: "GET",
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
       });
 
-      if (!res.ok) throw new Error("Failed to fetch cases");
+      console.log("Response status:", res.status);
 
-      const allCases = await res.json();
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error("API Error:", errorText);
+        throw new Error(`Failed to fetch cases: ${res.status}`);
+      }
+
+      const casesData = await res.json();
+      console.log("Fetched cases count:", casesData.length);
+      
+      // Store all cases
+      setAllCases(casesData);
 
       // Filter today's cases
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      const todaysCases = allCases.filter((c) => {
-        const caseDate = new Date(c.created_at);
+      const todaysCases = casesData.filter((c) => {
+        const caseDate = new Date(c.created_at || c.createdAt);
         caseDate.setHours(0, 0, 0, 0);
         return caseDate.getTime() === today.getTime();
       });
 
       // Sort by most recent first
-      todaysCases.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      todaysCases.sort((a, b) => new Date(b.created_at || b.createdAt) - new Date(a.created_at || a.createdAt));
 
       setTodayCases(todaysCases);
 
@@ -85,8 +105,7 @@ export default function DashboardScreen({ navigation }) {
       });
     } catch (err) {
       console.error("Load data error:", err);
-      // Show more detailed error for debugging
-      Alert.alert("Error", err.message || "Failed to load data");
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -107,7 +126,8 @@ export default function DashboardScreen({ navigation }) {
         onPress: async () => {
           await AsyncStorage.removeItem("token");
           await AsyncStorage.removeItem("user");
-          navigation.replace("Login");
+          if (onLogout) onLogout();
+          else navigation.replace("Login");
         },
       },
     ]);
@@ -162,7 +182,7 @@ export default function DashboardScreen({ navigation }) {
     if (caseItem.triage_priority === 2) {
       return { text: "Urgent", color: "#f97316", bg: "#fff7ed" };
     }
-    if (!caseItem.disposition) {
+    if (!caseItem.disposition || !caseItem.disposition.type) {
       return { text: "In Progress", color: "#3b82f6", bg: "#eff6ff" };
     }
     return { text: "Pending", color: "#eab308", bg: "#fefce8" };
@@ -195,7 +215,7 @@ export default function DashboardScreen({ navigation }) {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color="#2563eb" />
         <Text style={styles.loadingText}>Loading dashboard...</Text>
       </View>
     );
@@ -224,6 +244,17 @@ export default function DashboardScreen({ navigation }) {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         showsVerticalScrollIndicator={false}
       >
+        {/* Error Banner */}
+        {error && (
+          <View style={styles.errorBanner}>
+            <Ionicons name="alert-circle" size={20} color="#dc2626" />
+            <Text style={styles.errorText}>{error}</Text>
+            <TouchableOpacity onPress={loadData}>
+              <Text style={styles.retryText}>Retry</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
         {/* New Patient Button */}
         <TouchableOpacity style={styles.newPatientBtn} onPress={startNewTriage}>
           <View style={styles.newPatientIcon}>
@@ -256,142 +287,126 @@ export default function DashboardScreen({ navigation }) {
           </View>
         </View>
 
-        {/* Today's Patients Header */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Today's Patients</Text>
-          <Text style={styles.dateText}>
-            {new Date().toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" })}
-          </Text>
+        {/* Today's Patients */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Today's Patients</Text>
+            <Text style={styles.sectionCount}>{todayCases.length} cases</Text>
+          </View>
+
+          {todayCases.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Ionicons name="people-outline" size={48} color="#cbd5e1" />
+              <Text style={styles.emptyText}>No patients today</Text>
+              <Text style={styles.emptySubtext}>Tap "New Patient" to start</Text>
+            </View>
+          ) : (
+            todayCases.map((caseItem) => {
+              const time = calculateTimeInER(caseItem.created_at || caseItem.createdAt);
+              const status = getStatusBadge(caseItem);
+              const patient = caseItem.patient || {};
+
+              return (
+                <TouchableOpacity
+                  key={caseItem.id}
+                  style={[
+                    styles.caseCard,
+                    time.exceeds4Hours && status.text !== "Discharged" && styles.caseCardWarning
+                  ]}
+                  onPress={() => openCase(caseItem)}
+                >
+                  {/* Priority Indicator */}
+                  <View style={[styles.priorityBar, { backgroundColor: getPriorityColor(caseItem.triage_priority) }]} />
+
+                  <View style={styles.caseContent}>
+                    {/* Top Row */}
+                    <View style={styles.caseTopRow}>
+                      <View style={styles.caseInfo}>
+                        <Text style={styles.patientName}>{patient.name || "Unknown"}</Text>
+                        <Text style={styles.patientDetails}>
+                          {patient.age || "?"} {patient.age_unit || "yrs"} • {patient.sex || "N/A"}
+                        </Text>
+                      </View>
+                      <View style={[styles.statusBadge, { backgroundColor: status.bg }]}>
+                        <Text style={[styles.statusText, { color: status.color }]}>{status.text}</Text>
+                      </View>
+                    </View>
+
+                    {/* Complaint */}
+                    {caseItem.presenting_complaint?.text && (
+                      <Text style={styles.complaint} numberOfLines={1}>
+                        {caseItem.presenting_complaint.text}
+                      </Text>
+                    )}
+
+                    {/* Bottom Row */}
+                    <View style={styles.caseBottomRow}>
+                      <View style={styles.timeInfo}>
+                        <Ionicons name="time-outline" size={14} color="#64748b" />
+                        <Text style={styles.timeText}>
+                          {formatTime(caseItem.created_at || caseItem.createdAt)} • {time.display}
+                        </Text>
+                        {time.exceeds4Hours && status.text !== "Discharged" && (
+                          <View style={styles.warningBadge}>
+                            <Text style={styles.warningText}>⚠️ >4h</Text>
+                          </View>
+                        )}
+                      </View>
+
+                      <View style={styles.caseActions}>
+                        <TouchableOpacity
+                          style={styles.actionBtn}
+                          onPress={() => goToDischarge(caseItem)}
+                        >
+                          <Ionicons name="document-text-outline" size={18} color="#2563eb" />
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              );
+            })
+          )}
         </View>
 
-        {/* Patient List */}
-        {todayCases.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Ionicons name="people-outline" size={48} color="#cbd5e1" />
-            <Text style={styles.emptyText}>No patients today</Text>
-            <Text style={styles.emptySubtext}>Tap "New Patient" to start</Text>
-          </View>
-        ) : (
-          todayCases.map((item) => {
-            const statusBadge = getStatusBadge(item);
-            const timeInER = calculateTimeInER(item.created_at);
-            const isOverTime = timeInER.exceeds4Hours && statusBadge.text !== "Discharged";
+        {/* All Cases Section */}
+        {allCases.length > todayCases.length && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Previous Cases</Text>
+              <Text style={styles.sectionCount}>{allCases.length - todayCases.length} older</Text>
+            </View>
             
-            return (
-              <TouchableOpacity
-                key={item.id}
-                style={[
-                  styles.patientCard,
-                  isOverTime && styles.patientCardOverTime,
-                ]}
-                onPress={() => openCase(item)}
-              >
-                {/* Priority Bar */}
-                <View
-                  style={[
-                    styles.priorityBar,
-                    { backgroundColor: getPriorityColor(item.triage_priority) },
-                  ]}
-                />
-
-                <View style={styles.cardContent}>
-                  {/* 4+ Hour Warning Banner */}
-                  {isOverTime && (
-                    <View style={styles.overTimeBanner}>
-                      <Ionicons name="warning" size={14} color="#dc2626" />
-                      <Text style={styles.overTimeText}>
-                        Exceeded 4hr target • Needs disposition plan
+            {allCases
+              .filter(c => !todayCases.find(tc => tc.id === c.id))
+              .slice(0, 5)
+              .map((caseItem) => {
+                const patient = caseItem.patient || {};
+                const status = getStatusBadge(caseItem);
+                
+                return (
+                  <TouchableOpacity
+                    key={caseItem.id}
+                    style={styles.caseCardSmall}
+                    onPress={() => openCase(caseItem)}
+                  >
+                    <View style={[styles.priorityDot, { backgroundColor: getPriorityColor(caseItem.triage_priority) }]} />
+                    <View style={styles.caseInfoSmall}>
+                      <Text style={styles.patientNameSmall}>{patient.name || "Unknown"}</Text>
+                      <Text style={styles.dateSmall}>
+                        {new Date(caseItem.created_at || caseItem.createdAt).toLocaleDateString()}
                       </Text>
                     </View>
-                  )}
-
-                  {/* Top Row: Name & Status */}
-                  <View style={styles.cardTopRow}>
-                    <View style={styles.patientInfo}>
-                      <Text style={styles.patientName}>
-                        {item.patient?.name || "Unknown Patient"}
-                      </Text>
-                      <Text style={styles.patientMeta}>
-                        {item.patient?.age || "?"} • {item.patient?.sex || "?"} •{" "}
-                        {item.case_type === "pediatric" ? "Pedia" : "Adult"}
-                      </Text>
+                    <View style={[styles.statusBadgeSmall, { backgroundColor: status.bg }]}>
+                      <Text style={[styles.statusTextSmall, { color: status.color }]}>{status.text}</Text>
                     </View>
-                    <View style={[styles.statusBadge, { backgroundColor: statusBadge.bg }]}>
-                      <Text style={[styles.statusText, { color: statusBadge.color }]}>
-                        {statusBadge.text}
-                      </Text>
-                    </View>
-                  </View>
-
-                  {/* Complaint */}
-                  <Text style={styles.complaint} numberOfLines={1}>
-                    {item.presenting_complaint?.text || "No complaint"}
-                  </Text>
-
-                  {/* Bottom Row: Priority, Time, Actions */}
-                  <View style={styles.cardBottomRow}>
-                    <View style={styles.metaInfo}>
-                      <View
-                        style={[
-                          styles.priorityBadge,
-                          { backgroundColor: getPriorityColor(item.triage_priority) },
-                        ]}
-                      >
-                        <Text style={styles.priorityText}>
-                          {getPriorityName(item.triage_priority)}
-                        </Text>
-                      </View>
-                      <View style={[
-                        styles.timeInfo,
-                        isOverTime && styles.timeInfoOverTime,
-                      ]}>
-                        <Ionicons 
-                          name={isOverTime ? "alert-circle" : "time-outline"} 
-                          size={14} 
-                          color={isOverTime ? "#dc2626" : "#94a3b8"} 
-                        />
-                        <Text style={[
-                          styles.timeText,
-                          isOverTime && styles.timeTextOverTime,
-                        ]}>
-                          {formatTime(item.created_at)} • {timeInER.display}
-                        </Text>
-                      </View>
-                    </View>
-
-                    {/* Quick Actions */}
-                    <View style={styles.quickActions}>
-                      <TouchableOpacity
-                        style={styles.actionBtn}
-                        onPress={() => openCase(item)}
-                      >
-                        <Ionicons name="document-text" size={18} color="#3b82f6" />
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={styles.actionBtn}
-                        onPress={() => goToDischarge(item)}
-                      >
-                        <Ionicons name="exit" size={18} color="#16a34a" />
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                </View>
-              </TouchableOpacity>
-            );
-          })
+                  </TouchableOpacity>
+                );
+              })}
+          </View>
         )}
 
-        {/* View All Logs Button */}
-        {todayCases.length > 0 && (
-          <TouchableOpacity
-            style={styles.viewAllBtn}
-            onPress={() => navigation.navigate("Logs")}
-          >
-            <Text style={styles.viewAllText}>View All Case Logs</Text>
-            <Ionicons name="arrow-forward" size={18} color="#2563eb" />
-          </TouchableOpacity>
-        )}
-
+        {/* Spacer */}
         <View style={{ height: 100 }} />
       </ScrollView>
     </View>
@@ -399,50 +414,40 @@ export default function DashboardScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f8fafc",
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#f8fafc",
-  },
-  loadingText: {
-    marginTop: 12,
-    color: "#64748b",
-  },
+  container: { flex: 1, backgroundColor: "#f8fafc" },
+  loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#f8fafc" },
+  loadingText: { marginTop: 12, fontSize: 14, color: "#64748b" },
+  
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: 16,
+    padding: 20,
     paddingTop: 50,
     backgroundColor: "#fff",
     borderBottomWidth: 1,
     borderBottomColor: "#e2e8f0",
   },
-  greeting: {
-    fontSize: 14,
-    color: "#64748b",
-  },
-  userName: {
-    fontSize: 20,
-    fontWeight: "800",
-    color: "#1e293b",
-  },
-  headerRight: {
+  greeting: { fontSize: 14, color: "#64748b" },
+  userName: { fontSize: 22, fontWeight: "800", color: "#1e293b" },
+  headerRight: { flexDirection: "row", gap: 12 },
+  headerBtn: { padding: 8 },
+
+  scrollView: { flex: 1 },
+
+  errorBanner: {
     flexDirection: "row",
     alignItems: "center",
+    backgroundColor: "#fef2f2",
+    padding: 12,
+    marginHorizontal: 16,
+    marginTop: 16,
+    borderRadius: 8,
     gap: 8,
   },
-  headerBtn: {
-    padding: 8,
-  },
-  scrollView: {
-    flex: 1,
-  },
+  errorText: { flex: 1, fontSize: 13, color: "#dc2626" },
+  retryText: { fontSize: 13, fontWeight: "600", color: "#2563eb" },
+
   newPatientBtn: {
     flexDirection: "row",
     alignItems: "center",
@@ -463,18 +468,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  newPatientText: {
-    flex: 1,
-  },
-  newPatientTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#1e293b",
-  },
-  newPatientSubtitle: {
-    fontSize: 13,
-    color: "#64748b",
-  },
+  newPatientText: { flex: 1 },
+  newPatientTitle: { fontSize: 16, fontWeight: "700", color: "#1e293b" },
+  newPatientSubtitle: { fontSize: 13, color: "#64748b" },
+
   statsRow: {
     flexDirection: "row",
     marginHorizontal: 16,
@@ -489,182 +486,125 @@ const styles = StyleSheet.create({
     borderLeftWidth: 4,
     alignItems: "center",
   },
-  statNumber: {
-    fontSize: 24,
-    fontWeight: "800",
-    color: "#1e293b",
-  },
-  statLabel: {
-    fontSize: 11,
-    color: "#64748b",
-    marginTop: 2,
+  statNumber: { fontSize: 24, fontWeight: "800", color: "#1e293b" },
+  statLabel: { fontSize: 11, color: "#64748b", marginTop: 2 },
+
+  section: {
+    marginTop: 24,
+    marginHorizontal: 16,
   },
   sectionHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 16,
-    paddingTop: 24,
-    paddingBottom: 12,
+    marginBottom: 12,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#1e293b",
-  },
-  dateText: {
-    fontSize: 13,
-    color: "#64748b",
-  },
+  sectionTitle: { fontSize: 18, fontWeight: "700", color: "#1e293b" },
+  sectionCount: { fontSize: 13, color: "#64748b" },
+
   emptyState: {
     alignItems: "center",
-    paddingVertical: 60,
+    paddingVertical: 40,
+    backgroundColor: "#fff",
+    borderRadius: 12,
   },
-  emptyText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#94a3b8",
-    marginTop: 12,
-  },
-  emptySubtext: {
-    fontSize: 13,
-    color: "#cbd5e1",
-    marginTop: 4,
-  },
-  patientCard: {
+  emptyText: { fontSize: 16, fontWeight: "600", color: "#94a3b8", marginTop: 12 },
+  emptySubtext: { fontSize: 13, color: "#cbd5e1", marginTop: 4 },
+
+  caseCard: {
     flexDirection: "row",
     backgroundColor: "#fff",
-    marginHorizontal: 16,
-    marginBottom: 10,
     borderRadius: 12,
+    marginBottom: 10,
     overflow: "hidden",
     borderWidth: 1,
     borderColor: "#e2e8f0",
   },
-  patientCardOverTime: {
-    borderColor: "#fca5a5",
-    backgroundColor: "#fef2f2",
-  },
-  overTimeBanner: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#fee2e2",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-    marginBottom: 8,
-    gap: 6,
-  },
-  overTimeText: {
-    fontSize: 11,
-    fontWeight: "600",
-    color: "#dc2626",
+  caseCardWarning: {
+    borderColor: "#fbbf24",
+    borderWidth: 2,
   },
   priorityBar: {
-    width: 5,
+    width: 6,
   },
-  cardContent: {
+  caseContent: {
     flex: 1,
-    padding: 12,
+    padding: 14,
   },
-  cardTopRow: {
+  caseTopRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    marginBottom: 6,
   },
-  patientInfo: {
-    flex: 1,
-  },
-  patientName: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#1e293b",
-  },
-  patientMeta: {
-    fontSize: 12,
-    color: "#64748b",
-    marginTop: 2,
-  },
+  caseInfo: { flex: 1 },
+  patientName: { fontSize: 16, fontWeight: "700", color: "#1e293b" },
+  patientDetails: { fontSize: 13, color: "#64748b", marginTop: 2 },
   statusBadge: {
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
   },
-  statusText: {
-    fontSize: 11,
-    fontWeight: "700",
-  },
+  statusText: { fontSize: 11, fontWeight: "700" },
   complaint: {
     fontSize: 13,
     color: "#475569",
-    marginBottom: 8,
+    marginTop: 8,
+    fontStyle: "italic",
   },
-  cardBottomRow: {
+  caseBottomRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-  },
-  metaInfo: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  priorityBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-  },
-  priorityText: {
-    color: "#fff",
-    fontSize: 10,
-    fontWeight: "700",
+    marginTop: 10,
   },
   timeInfo: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
   },
-  timeInfoOverTime: {
-    backgroundColor: "#fee2e2",
+  timeText: { fontSize: 12, color: "#64748b" },
+  warningBadge: {
+    backgroundColor: "#fef3c7",
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
+    marginLeft: 6,
   },
-  timeText: {
-    fontSize: 11,
-    color: "#94a3b8",
-  },
-  timeTextOverTime: {
-    color: "#dc2626",
-    fontWeight: "600",
-  },
-  quickActions: {
+  warningText: { fontSize: 10, fontWeight: "600", color: "#d97706" },
+  caseActions: {
     flexDirection: "row",
     gap: 8,
   },
   actionBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "#f1f5f9",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  viewAllBtn: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    marginHorizontal: 16,
-    marginTop: 8,
-    padding: 14,
+    padding: 6,
     backgroundColor: "#eff6ff",
-    borderRadius: 12,
-    gap: 8,
+    borderRadius: 8,
   },
-  viewAllText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#2563eb",
+
+  // Small case card styles
+  caseCardSmall: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    padding: 12,
+    borderRadius: 10,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
   },
+  priorityDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    marginRight: 12,
+  },
+  caseInfoSmall: { flex: 1 },
+  patientNameSmall: { fontSize: 14, fontWeight: "600", color: "#1e293b" },
+  dateSmall: { fontSize: 12, color: "#64748b" },
+  statusBadgeSmall: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+  },
+  statusTextSmall: { fontSize: 10, fontWeight: "600" },
 });

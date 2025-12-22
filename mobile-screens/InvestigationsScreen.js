@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+// FIXED InvestigationsScreen.js - Now navigates to Treatment screen (not directly to Disposition)
+import React, { useState, useRef, useCallback } from "react";
 import {
   View,
   Text,
@@ -8,7 +9,8 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
-  Switch,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -16,15 +18,17 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 const API_URL = "https://er-emr-backend.onrender.com/api";
 
 export default function InvestigationsScreen({ route, navigation }) {
-  const { caseId, patientType, patientInfo, vitals, triageData } = route.params || {};
+  const { caseId, patientType, patient, vitals, triageData } = route.params || {};
 
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  /* ===================== useRef for text inputs (prevents lag) ===================== */
+  const customTestsRef = useRef("");
+  const resultsNotesRef = useRef("");
+
   /* ===================== INVESTIGATION PANELS ===================== */
   const [selectedPanels, setSelectedPanels] = useState([]);
-  const [customTests, setCustomTests] = useState("");
-  const [resultsNotes, setResultsNotes] = useState("");
 
   /* ===================== COMMON PANELS ===================== */
   const investigationPanels = {
@@ -89,8 +93,8 @@ export default function InvestigationsScreen({ route, navigation }) {
       const payload = {
         investigations: {
           panels_selected: selectedPanels,
-          custom_tests: customTests,
-          results_notes: resultsNotes,
+          individual_tests: customTestsRef.current.split(",").map(t => t.trim()).filter(Boolean),
+          results_notes: resultsNotesRef.current,
         },
       };
 
@@ -118,21 +122,22 @@ export default function InvestigationsScreen({ route, navigation }) {
     }
   };
 
-  /* ===================== PROCEED TO DISPOSITION ===================== */
-  const proceedToDisposition = async () => {
+  /* ===================== PROCEED TO TREATMENT (NOT Disposition!) ===================== */
+  const proceedToTreatment = async () => {
     const saved = await saveInvestigations();
     if (!saved) return;
 
-    navigation.navigate("Disposition", {
+    // Navigate to TREATMENT screen with AI features
+    navigation.navigate("Treatment", {
       caseId,
       patientType,
-      patientInfo,
+      patient,
       vitals,
       triageData,
       investigations: {
         panels_selected: selectedPanels,
-        custom_tests: customTests,
-        results_notes: resultsNotes,
+        custom_tests: customTestsRef.current,
+        results_notes: resultsNotesRef.current,
       },
     });
   };
@@ -140,122 +145,127 @@ export default function InvestigationsScreen({ route, navigation }) {
   /* ===================== UI ===================== */
 
   return (
-    <ScrollView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#1e293b" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>🔬 Investigations</Text>
-        <View style={{ width: 24 }} />
-      </View>
-
-      {/* Patient Info Banner */}
-      <View style={styles.patientBanner}>
-        <Text style={styles.patientName}>{patientInfo?.name || "Patient"}</Text>
-        <Text style={styles.patientDetails}>
-          {patientInfo?.age} {patientInfo?.age_unit} • {patientInfo?.sex} • Case ID: {caseId?.slice(0, 8)}...
-        </Text>
-      </View>
-
-      {/* Investigation Panels */}
-      {Object.entries(investigationPanels).map(([category, tests]) => (
-        <View key={category} style={styles.card}>
-          <Text style={styles.categoryTitle}>{category}</Text>
-          <View style={styles.testsGrid}>
-            {tests.map((test) => (
-              <TouchableOpacity
-                key={test}
-                style={[
-                  styles.testChip,
-                  selectedPanels.includes(test) && styles.testChipActive,
-                ]}
-                onPress={() => toggleTest(test)}
-              >
-                <Ionicons
-                  name={selectedPanels.includes(test) ? "checkbox" : "square-outline"}
-                  size={18}
-                  color={selectedPanels.includes(test) ? "#fff" : "#64748b"}
-                />
-                <Text
-                  style={[
-                    styles.testChipText,
-                    selectedPanels.includes(test) && styles.testChipTextActive,
-                  ]}
-                >
-                  {test}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
+      <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={24} color="#1e293b" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>🔬 Investigations</Text>
+          <View style={{ width: 24 }} />
         </View>
-      ))}
 
-      {/* Custom Tests */}
-      <View style={styles.card}>
-        <Text style={styles.categoryTitle}>Other Tests</Text>
-        <TextInput
-          style={styles.textArea}
-          value={customTests}
-          onChangeText={setCustomTests}
-          placeholder="Add any other tests not listed above..."
-          placeholderTextColor="#9ca3af"
-          multiline
-        />
-      </View>
-
-      {/* Results Notes */}
-      <View style={styles.card}>
-        <Text style={styles.categoryTitle}>Results / Findings</Text>
-        <TextInput
-          style={[styles.textArea, { minHeight: 120 }]}
-          value={resultsNotes}
-          onChangeText={setResultsNotes}
-          placeholder="Document investigation results here..."
-          placeholderTextColor="#9ca3af"
-          multiline
-        />
-      </View>
-
-      {/* Selected Tests Summary */}
-      {selectedPanels.length > 0 && (
-        <View style={styles.summaryCard}>
-          <Text style={styles.summaryTitle}>
-            Selected Tests ({selectedPanels.length})
+        {/* Patient Info Banner */}
+        <View style={styles.patientBanner}>
+          <Text style={styles.patientName}>{patient?.name || "Patient"}</Text>
+          <Text style={styles.patientDetails}>
+            {patient?.age} {patient?.age_unit || "yrs"} • {patient?.sex} • Case ID: {caseId?.slice(0, 8)}...
           </Text>
-          <Text style={styles.summaryText}>{selectedPanels.join(", ")}</Text>
         </View>
-      )}
 
-      {/* Action Buttons */}
-      <View style={styles.actionButtons}>
-        <TouchableOpacity
-          style={[styles.saveBtn, saving && styles.btnDisabled]}
-          onPress={saveInvestigations}
-          disabled={saving}
-        >
-          {saving ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <>
-              <Ionicons name="save" size={20} color="#fff" />
-              <Text style={styles.btnText}>Save</Text>
-            </>
-          )}
-        </TouchableOpacity>
+        {/* Investigation Panels */}
+        {Object.entries(investigationPanels).map(([category, tests]) => (
+          <View key={category} style={styles.card}>
+            <Text style={styles.categoryTitle}>{category}</Text>
+            <View style={styles.testsGrid}>
+              {tests.map((test) => (
+                <TouchableOpacity
+                  key={test}
+                  style={[
+                    styles.testChip,
+                    selectedPanels.includes(test) && styles.testChipActive,
+                  ]}
+                  onPress={() => toggleTest(test)}
+                >
+                  <Ionicons
+                    name={selectedPanels.includes(test) ? "checkbox" : "square-outline"}
+                    size={18}
+                    color={selectedPanels.includes(test) ? "#fff" : "#64748b"}
+                  />
+                  <Text
+                    style={[
+                      styles.testChipText,
+                      selectedPanels.includes(test) && styles.testChipTextActive,
+                    ]}
+                  >
+                    {test}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        ))}
 
-        <TouchableOpacity
-          style={[styles.nextBtn, saving && styles.btnDisabled]}
-          onPress={proceedToDisposition}
-          disabled={saving}
-        >
-          <Text style={styles.btnText}>Proceed to Disposition</Text>
-          <Ionicons name="arrow-forward" size={20} color="#fff" />
-        </TouchableOpacity>
-      </View>
+        {/* Custom Tests */}
+        <View style={styles.card}>
+          <Text style={styles.categoryTitle}>Other Tests</Text>
+          <TextInput
+            style={styles.textArea}
+            defaultValue=""
+            onChangeText={(text) => { customTestsRef.current = text; }}
+            placeholder="Add any other tests (comma separated)..."
+            placeholderTextColor="#9ca3af"
+            multiline
+          />
+        </View>
 
-      <View style={{ height: 40 }} />
-    </ScrollView>
+        {/* Results Notes */}
+        <View style={styles.card}>
+          <Text style={styles.categoryTitle}>Results / Findings</Text>
+          <TextInput
+            style={[styles.textArea, { minHeight: 120 }]}
+            defaultValue=""
+            onChangeText={(text) => { resultsNotesRef.current = text; }}
+            placeholder="Document investigation results here..."
+            placeholderTextColor="#9ca3af"
+            multiline
+          />
+        </View>
+
+        {/* Selected Tests Summary */}
+        {selectedPanels.length > 0 && (
+          <View style={styles.summaryCard}>
+            <Text style={styles.summaryTitle}>
+              ✅ Selected Tests ({selectedPanels.length})
+            </Text>
+            <Text style={styles.summaryText}>{selectedPanels.join(", ")}</Text>
+          </View>
+        )}
+
+        {/* Action Buttons */}
+        <View style={styles.actionButtons}>
+          <TouchableOpacity
+            style={[styles.saveBtn, saving && styles.btnDisabled]}
+            onPress={saveInvestigations}
+            disabled={saving}
+          >
+            {saving ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <>
+                <Ionicons name="save" size={20} color="#fff" />
+                <Text style={styles.btnText}>Save</Text>
+              </>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.nextBtn, saving && styles.btnDisabled]}
+            onPress={proceedToTreatment}
+            disabled={saving}
+          >
+            <Text style={styles.btnText}>Treatment & Diagnosis</Text>
+            <Ionicons name="arrow-forward" size={20} color="#fff" />
+          </TouchableOpacity>
+        </View>
+
+        <View style={{ height: 40 }} />
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -276,7 +286,7 @@ const styles = StyleSheet.create({
     borderBottomColor: "#e2e8f0",
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "800",
     color: "#1e293b",
   },
@@ -389,7 +399,7 @@ const styles = StyleSheet.create({
   },
   nextBtn: {
     flex: 2,
-    backgroundColor: "#16a34a",
+    backgroundColor: "#7c3aed",
     padding: 16,
     borderRadius: 12,
     flexDirection: "row",
