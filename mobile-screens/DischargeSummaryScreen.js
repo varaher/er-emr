@@ -641,13 +641,45 @@ function buildExaminationText(exam, isPediatric) {
   return text;
 }
 
-function buildPrintableHTML(caseData, dischargeData) {
+function buildPrintableHTML(caseData, dischargeData, showWatermark = false) {
   const patient = caseData.patient || {};
   const vitalsAtArrival = caseData.vitals_at_arrival || {};
   const history = caseData.history || {};
   const treatment = caseData.treatment || {};
   const investigations = caseData.investigations || {};
   const primaryAssessment = caseData.primary_assessment || {};
+  
+  const watermarkCSS = showWatermark ? `
+    .watermark {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-45deg);
+      font-size: 48px;
+      color: rgba(0, 0, 0, 0.08);
+      white-space: nowrap;
+      pointer-events: none;
+      z-index: 1000;
+    }
+    .watermark-footer {
+      text-align: center;
+      font-size: 10px;
+      color: #666;
+      margin-top: 20px;
+      padding-top: 10px;
+      border-top: 1px solid #ddd;
+    }
+  ` : '';
+  
+  const watermarkHTML = showWatermark ? `
+    <div class="watermark">Generated using ERmate</div>
+  ` : '';
+  
+  const watermarkFooter = showWatermark ? `
+    <div class="watermark-footer">
+      🏥 Generated using ERmate - AI Assisted ER Documentation | www.ermate.app
+    </div>
+  ` : '';
   const examination = caseData.examination || {};
   const isPediatric = caseData.case_type === "pediatric";
 
