@@ -790,6 +790,7 @@ function buildPrintableHTML(caseData, dischargeData, showWatermark = false) {
         <p style="text-align: center; font-size: 10px;">
           Generated on: ${new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })}
         </p>
+        ${watermarkFooter}
       </div>
     </body>
     </html>
