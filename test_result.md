@@ -483,6 +483,21 @@ test_plan:
         agent: "testing"
         comment: "✅ COMPREHENSIVE ABCDE TESTING COMPLETED: Excellent implementation with 95% success rate (38/40 tests passed). All sections properly themed and functional: A-AIRWAY (Red, 6/6 tests ✅), B-BREATHING (Orange, 10/10 tests ✅), C-CIRCULATION (Yellow, 8/9 tests ✅), D-DISABILITY (Green, 8/8 tests ✅), E-EXPOSURE (Blue, 3/4 tests ✅), R-REASSESSMENT (Purple, 3/3 tests ✅). All required dropdowns, inputs, checkboxes working correctly. GCS calculation functional (15/15). Minor issues: Some intervention checkboxes have selector issues, voice input buttons need better detection. Overall: Production-ready with excellent user experience."
 
+  - task: "Web App Case Sheet Layout Updates"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/pages/CaseSheetForm.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Testing updated Web App Case Sheet page layout changes: 1) Primary Assessment (ABCDE) Tab with 6 sections and proper colors, 2) Treatment Tab (NEW ORDER) with correct section ordering, 3) Secondary Survey (History) Tab with SAMPLE format order verification"
+      - working: true
+        agent: "testing"
+        comment: "✅ WEB APP CASE SHEET LAYOUT TESTING COMPLETED: All requested layout changes successfully verified. 1) PRIMARY ASSESSMENT (ABCDE) TAB: All 6 sections present with correct color themes - A-Airway (red), B-Breathing (orange), C-Circulation (yellow), D-Disability (green), E-Exposure (blue), R-Reassessment (purple). Dropdown functionality working correctly. 2) TREATMENT TAB (NEW ORDER): Correct section order confirmed - Interventions Done (blue border), Procedures Done (purple border), Provisional Diagnosis (green border), Treatment Notes at bottom. All checkboxes and input fields functional. 3) SECONDARY SURVEY (HISTORY) TAB: SAMPLE format order correctly implemented - S-Signs/Symptoms (red), A-Allergies (orange), M-Medications (yellow), P-Past History (green), L-Last Meal/LMP (blue), E-Events/HOPI (purple). Events/HOPI section correctly positioned AFTER Last Meal/LMP as requested. All layout changes working perfectly."
+
 agent_communication:
   - agent: "testing"
     message: "Starting comprehensive testing of ER-EMR Case Sheet application. Will test login flow, navigation, triage system, and all new features including voice-enabled fields, adjuvants section, psychological assessment, and Normal/Abnormal examination patterns. Testing will focus on UI functionality, data persistence, and user experience."
