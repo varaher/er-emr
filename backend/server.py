@@ -76,15 +76,93 @@ class Hospital(BaseModel):
 # Subscription Plan Model
 class SubscriptionPlan(BaseModel):
     model_config = ConfigDict(extra="ignore")
-    tier: str  # free, basic, premium, enterprise
+    tier: str  # free, pro_monthly, pro_annual, hospital_basic, hospital_premium
     name: str
     price_monthly: float
     price_yearly: float
     max_users: int
-    max_cases_per_month: int
+    max_patients: int  # -1 for unlimited
     features: List[str] = []
-    ai_credits_per_month: int = 0
+    ai_credits_included: int = 0  # Monthly AI credits included
+    advanced_ai_included: bool = False  # VBG interpretation, differential diagnosis
+    analytics_enabled: bool = False
     support_level: str = "community"  # community, email, priority, dedicated
+
+# Subscription Plans Configuration
+SUBSCRIPTION_PLANS = {
+    "free": {
+        "tier": "free",
+        "name": "Free Trial",
+        "price_monthly": 0,
+        "price_yearly": 0,
+        "max_users": 1,
+        "max_patients": 5,  # 5 patients total, then app locks
+        "features": ["triage", "case_sheet", "discharge_summary", "voice_dictation", "red_flags", "basic_ai"],
+        "ai_credits_included": 5,  # 5 AI uses for free trial
+        "advanced_ai_included": True,  # Full AI for trial
+        "analytics_enabled": False,
+        "support_level": "community"
+    },
+    "pro_monthly": {
+        "tier": "pro_monthly",
+        "name": "ERmate PRO",
+        "price_monthly": 999,
+        "price_yearly": 11988,
+        "max_users": 1,
+        "max_patients": -1,  # Unlimited
+        "features": ["triage", "case_sheet", "discharge_summary", "voice_dictation", "red_flags", "basic_ai", "fair_use_ai"],
+        "ai_credits_included": 100,  # Fair use AI
+        "advanced_ai_included": False,  # Advanced AI is credit-based
+        "analytics_enabled": False,
+        "support_level": "email"
+    },
+    "pro_annual": {
+        "tier": "pro_annual",
+        "name": "ERmate PRO (Annual)",
+        "price_monthly": 833,  # 9999/12
+        "price_yearly": 9999,
+        "max_users": 1,
+        "max_patients": -1,
+        "features": ["triage", "case_sheet", "discharge_summary", "voice_dictation", "red_flags", "basic_ai", "fair_use_ai"],
+        "ai_credits_included": 150,  # More AI for annual
+        "advanced_ai_included": False,
+        "analytics_enabled": False,
+        "support_level": "email"
+    },
+    "hospital_basic": {
+        "tier": "hospital_basic",
+        "name": "Hospital Basic",
+        "price_monthly": 15000,
+        "price_yearly": 150000,
+        "max_users": 10,
+        "max_patients": -1,
+        "features": ["triage", "case_sheet", "discharge_summary", "voice_dictation", "red_flags", "basic_ai", "advanced_ai", "analytics"],
+        "ai_credits_included": 500,
+        "advanced_ai_included": True,
+        "analytics_enabled": True,
+        "support_level": "priority"
+    },
+    "hospital_premium": {
+        "tier": "hospital_premium",
+        "name": "Hospital Premium",
+        "price_monthly": 40000,
+        "price_yearly": 400000,
+        "max_users": -1,  # Unlimited users
+        "max_patients": -1,
+        "features": ["triage", "case_sheet", "discharge_summary", "voice_dictation", "red_flags", "basic_ai", "advanced_ai", "analytics", "audit_logs", "custom_integrations"],
+        "ai_credits_included": -1,  # Unlimited AI
+        "advanced_ai_included": True,
+        "analytics_enabled": True,
+        "support_level": "dedicated"
+    }
+}
+
+# AI Credit Packs
+AI_CREDIT_PACKS = {
+    "pack_10": {"credits": 10, "price": 299, "per_credit": 29.9},
+    "pack_25": {"credits": 25, "price": 699, "per_credit": 27.96},
+    "pack_50": {"credits": 50, "price": 1299, "per_credit": 25.98}
+}
 
 # User Registration Model
 class UserRegister(BaseModel):
