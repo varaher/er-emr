@@ -15,15 +15,15 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Updates from 'expo-updates';
 
-// Import Screens - Using V2 versions with fixes
+// Import Screens (all using original names)
 import LoginScreen from './screens/LoginScreen';
-import DashboardScreen from './screens/DashboardScreen_V2';  // Fixed: Shows saved cases
-import TriageScreen from './screens/TriageScreen_V2';        // Fixed: Voice recording + AI extraction
-import CaseSheetScreen from './screens/CaseSheetScreen_V2';  // Fixed: Normal/Abnormal toggles
+import DashboardScreen from './screens/DashboardScreen';
+import TriageScreen from './screens/TriageScreen';
+import CaseSheetScreen from './screens/CaseSheetScreen';
 import InvestigationsScreen from './screens/InvestigationsScreen';
 import TreatmentScreen from './screens/TreatmentScreen';
 import DispositionScreen from './screens/DispositionScreen';
-import DischargeSummaryScreen from './screens/DischargeSummaryScreen_FIXED';  // Fixed: PDF Export
+import DischargeSummaryScreen from './screens/DischargeSummaryScreen';
 import PhysicalExamScreen from './screens/PhysicalExamScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import LogsScreen from './screens/LogsScreen';
