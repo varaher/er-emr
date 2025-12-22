@@ -1617,7 +1617,64 @@ const styles = StyleSheet.create({
     color: "#166534",
     fontStyle: "italic",
   },
-  checkboxGrid: { paddingHorizontal: 0 },
+  checkboxGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8, paddingHorizontal: 16, marginBottom: 8 },
+  checkboxItem: { flexDirection: "row", alignItems: "center", gap: 6, paddingVertical: 4, minWidth: "45%" },
+  checkboxText: { fontSize: 12, color: "#475569" },
+  checkboxLabel: { fontSize: 12, fontWeight: "600", color: "#475569", marginTop: 12, marginBottom: 6, paddingHorizontal: 16 },
+  
+  // Normal/Abnormal toggle styles
+  statusToggleRow: { flexDirection: "row", gap: 10, paddingHorizontal: 16, marginBottom: 12 },
+  statusToggle: { 
+    flex: 1, 
+    flexDirection: "row", 
+    alignItems: "center", 
+    justifyContent: "center",
+    paddingVertical: 10, 
+    borderRadius: 10, 
+    backgroundColor: "#f1f5f9", 
+    borderWidth: 2, 
+    borderColor: "#e2e8f0",
+    gap: 6,
+  },
+  statusToggleNormalActive: { backgroundColor: "#22c55e", borderColor: "#16a34a" },
+  statusToggleAbnormalActive: { backgroundColor: "#ef4444", borderColor: "#dc2626" },
+  statusToggleText: { fontSize: 14, fontWeight: "700", color: "#64748b" },
+  statusToggleTextActive: { color: "#fff" },
+  
+  abnormalDetails: { 
+    backgroundColor: "#fef2f2", 
+    padding: 12, 
+    marginHorizontal: 16, 
+    marginBottom: 12, 
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#fecaca",
+  },
+  
+  // Compact vitals row
+  vitalsRowCompact: { flexDirection: "row", gap: 8, paddingHorizontal: 16, marginBottom: 12 },
+  vitalItemCompact: { flex: 1 },
+  vitalLabelCompact: { fontSize: 10, fontWeight: "700", color: "#64748b", marginBottom: 4, textAlign: "center" },
+  vitalInputCompact: {
+    backgroundColor: "#f8fafc",
+    padding: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    textAlign: "center",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  
+  // Highlighted field
+  highlightedField: {
+    borderLeftWidth: 4,
+    paddingLeft: 8,
+    marginLeft: 16,
+    marginRight: 16,
+    marginTop: 8,
+  },
+  
   actionRow: { flexDirection: "row", gap: 12, padding: 16 },
   saveBtn: {
     flex: 1,
