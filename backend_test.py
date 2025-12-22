@@ -10,7 +10,7 @@ class EREmrAPITester:
         self.tests_run = 0
         self.tests_passed = 0
         self.test_results = []
-        self.test_user_email = "resident@hospital.com"
+        self.test_user_email = "testnew123@test.com"
         self.test_user_password = "password123"
         self.test_case_id = None
 
