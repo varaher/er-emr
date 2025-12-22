@@ -167,7 +167,7 @@ export default function Dashboard() {
             Start Triage
           </Button>
           <Button 
-            onClick={() => navigate('/case-sheet-new/new')} 
+            onClick={() => navigate('/case/new')} 
             size="lg"
             variant="outline"
             data-testid="create-new-case-button"
