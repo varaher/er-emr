@@ -1197,14 +1197,17 @@ export default function CaseSheetScreen({ route, navigation }) {
             <View style={styles.tabContent}>
               <View style={styles.card}>
                 <Text style={styles.cardTitle}>History (SAMPLE)</Text>
-                <InputWithVoice label="Events / HOPI" field="history_hpi" placeholder="Events and history of present illness..." multiline />
                 <InputWithVoice label="Signs & Symptoms" field="history_signs_symptoms" placeholder="Associated symptoms..." multiline />
                 <InputWithVoice label="Secondary Survey" field="history_secondary_survey" placeholder="Head-to-toe assessment..." multiline />
                 <InputWithVoice label="Allergies" field="history_allergies" placeholder="NKDA or list allergies" />
                 <InputWithVoice label="Medications" field="history_medications" placeholder="Current medications..." />
                 <InputWithVoice label="Past Medical History" field="history_past_medical" placeholder="DM, HTN, Asthma..." />
                 <InputWithVoice label="Past Surgical History" field="history_past_surgical" placeholder="Previous surgeries..." />
-                <InputField label="Last Meal / LMP" field="history_last_meal" placeholder="Time" />
+                <InputField label="Last Meal / LMP" field="history_last_meal" placeholder="Time of last meal/LMP date" />
+                {/* Events / HOPI - Now placed after Last Meal/LMP */}
+                <View style={[styles.highlightedField, { borderLeftColor: '#8b5cf6' }]}>
+                  <InputWithVoice label="Events / HOPI" field="history_hpi" placeholder="Events and history of present illness..." multiline />
+                </View>
                 <InputWithVoice label="Family / Gynae History" field="history_family_gynae" placeholder="Family history..." multiline />
                 <InputWithVoice label="Additional Notes" field="history_additional_notes" placeholder="Any other relevant history..." multiline />
               </View>
