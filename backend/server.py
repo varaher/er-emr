@@ -173,12 +173,26 @@ SUBSCRIPTION_PLANS = {
         "price_yearly": 400000,
         "max_users": -1,  # Unlimited users
         "max_patients": -1,
-        "features": ["triage", "case_sheet", "discharge_summary", "voice_dictation", "red_flags", "basic_ai", "advanced_ai", "analytics", "audit_logs", "custom_integrations"],
+        "features": ["triage", "case_sheet", "discharge_summary", "voice_dictation", "red_flags", "basic_ai", "advanced_ai", "analytics", "audit_logs", "custom_integrations", "pdf_export", "word_export", "custom_letterhead"],
         "ai_credits_included": -1,  # Unlimited AI
         "advanced_ai_included": True,
         "analytics_enabled": True,
-        "support_level": "dedicated"
+        "support_level": "dedicated",
+        # Export features - FULL ACCESS
+        "pdf_export": True,
+        "pdf_watermark": False,
+        "word_export": True,  # Full Word export
+        "custom_letterhead": True,  # Hospital logo & letterhead
+        "export_limit": -1
     }
+}
+
+# Export Pricing (for credit-based users)
+EXPORT_PRICING = {
+    "pdf_single": 0,  # PDF included with AI credit
+    "word_single": 25,  # ₹25 per Word export
+    "word_pack_10": 200,  # ₹200 for 10 Word exports (₹20 each)
+    "word_pack_25": 450,  # ₹450 for 25 Word exports (₹18 each)
 }
 
 # AI Credit Packs
