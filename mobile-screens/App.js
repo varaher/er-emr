@@ -15,18 +15,18 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Updates from 'expo-updates';
 
-// Import Screens (all using original names)
-import LoginScreen from './screens/LoginScreen';
-import DashboardScreen from './screens/DashboardScreen';
-import TriageScreen from './screens/TriageScreen';
-import CaseSheetScreen from './screens/CaseSheetScreen';
-import InvestigationsScreen from './screens/InvestigationsScreen';
-import TreatmentScreen from './screens/TreatmentScreen';
-import DispositionScreen from './screens/DispositionScreen';
-import DischargeSummaryScreen from './screens/DischargeSummaryScreen';
-import PhysicalExamScreen from './screens/PhysicalExamScreen';
-import ProfileScreen from './screens/ProfileScreen';
-import LogsScreen from './screens/LogsScreen';
+// Import Screens (from src/screens folder)
+import LoginScreen from './src/screens/LoginScreen';
+import DashboardScreen from './src/screens/DashboardScreen';
+import TriageScreen from './src/screens/TriageScreen';
+import CaseSheetScreen from './src/screens/CaseSheetScreen';
+import InvestigationsScreen from './src/screens/InvestigationsScreen';
+import TreatmentScreen from './src/screens/TreatmentScreen';
+import DispositionScreen from './src/screens/DispositionScreen';
+import DischargeSummaryScreen from './src/screens/DischargeSummaryScreen';
+import PhysicalExamScreen from './src/screens/PhysicalExamScreen';
+import ProfileScreen from './src/screens/ProfileScreen';
+import LogsScreen from './src/screens/LogsScreen';
 
 const Stack = createNativeStackNavigator();
 
