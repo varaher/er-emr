@@ -2313,14 +2313,30 @@ async def get_ai_usage(current_user: UserResponse = Depends(get_current_user)):
 
 @api_router.post("/ai/generate", response_model=AIResponse)
 async def generate_ai_response(request: AIGenerateRequest, current_user: UserResponse = Depends(get_current_user)):
-    # Check daily AI usage limit for free tier users
-    if current_user.subscription_tier == "free":
-        usage = await check_daily_ai_usage(current_user.id)
-        if usage["remaining"] <= 0:
-            raise HTTPException(
-                status_code=429, 
-                detail=f"Daily AI limit reached ({DAILY_AI_FREE_LIMIT}/day). Upgrade to premium for unlimited AI access."
-            )
+    # Determine AI type based on prompt
+    ai_type = "advanced" if request.prompt_type in ["vbg_interpretation", "differential_diagnosis", "discharge_summary"] else "basic"
+    
+    # Check AI access using new subscription system
+    ai_access = await check_ai_access(current_user.id, ai_type)
+    
+    if not ai_access["allowed"]:
+        raise HTTPException(
+            status_code=429,
+            detail={
+                "error": ai_access["reason"],
+                "message": ai_access.get("message", "AI access denied"),
+                "upgrade_required": True
+            }
+        )
+    
+    # Deduct credit if using credits method
+    if ai_access["method"] == "credits":
+        success = await deduct_ai_credit(current_user.id)
+        if not success:
+            raise HTTPException(status_code=429, detail="Failed to deduct AI credit")
+    
+    # Track AI usage
+    await increment_daily_ai_usage(current_user.id)
     
     case = await db.cases.find_one({"id": request.case_sheet_id}, {"_id": 0})
     if not case:
