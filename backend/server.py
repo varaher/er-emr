@@ -2238,6 +2238,311 @@ async def get_ai_usage(current_user: UserResponse = Depends(get_current_user)):
         "advanced_ai_included": status["advanced_ai_included"]
     }
 
+# ============================================
+# EXPORT ACCESS CONTROL & ENDPOINTS
+# ============================================
+
+async def check_export_access(user_id: str, export_type: str = "pdf") -> dict:
+    """
+    Check if user can export documents
+    export_type: "pdf" or "word"
+    """
+    status = await get_user_subscription_status(user_id)
+    
+    if status.get("error"):
+        return {"allowed": False, "reason": "user_not_found"}
+    
+    tier = status["tier"]
+    plan = SUBSCRIPTION_PLANS.get(tier, SUBSCRIPTION_PLANS["free"])
+    
+    # Get export count for this month
+    current_month = datetime.now(timezone.utc).strftime("%Y-%m")
+    export_count = await db.exports.count_documents({
+        "user_id": user_id,
+        "export_type": export_type,
+        "timestamp": {"$regex": f"^{current_month}"}
+    })
+    
+    # Check export limit
+    export_limit = plan.get("export_limit", 5)
+    
+    if export_type == "pdf":
+        if not plan.get("pdf_export", False):
+            return {
+                "allowed": False,
+                "reason": "pdf_export_not_included",
+                "message": "PDF export not available on your plan. Please upgrade."
+            }
+        
+        if export_limit > 0 and export_count >= export_limit:
+            return {
+                "allowed": False,
+                "reason": "export_limit_reached",
+                "message": f"Export limit reached ({export_limit}/month). Please upgrade for unlimited exports.",
+                "export_count": export_count,
+                "export_limit": export_limit
+            }
+        
+        return {
+            "allowed": True,
+            "watermark": plan.get("pdf_watermark", True),
+            "exports_remaining": export_limit - export_count if export_limit > 0 else -1
+        }
+    
+    elif export_type == "word":
+        # Check if Word export is included in plan
+        if plan.get("word_export", False):
+            return {
+                "allowed": True,
+                "method": "subscription",
+                "custom_letterhead": plan.get("custom_letterhead", False)
+            }
+        
+        # Check if user has word export credits
+        user = await db.users.find_one({"id": user_id}, {"_id": 0})
+        word_credits = user.get("word_export_credits", 0)
+        
+        if word_credits > 0:
+            return {
+                "allowed": True,
+                "method": "credits",
+                "credits_remaining": word_credits
+            }
+        
+        return {
+            "allowed": False,
+            "reason": "word_export_locked",
+            "message": "Word export is a premium feature. Upgrade to Hospital Premium or purchase Word export credits.",
+            "price": EXPORT_PRICING["word_single"]
+        }
+    
+    return {"allowed": False, "reason": "unknown_export_type"}
+
+async def log_export(user_id: str, case_id: str, export_type: str, doc_type: str) -> None:
+    """Log an export event"""
+    await db.exports.insert_one({
+        "id": str(uuid.uuid4()),
+        "user_id": user_id,
+        "case_id": case_id,
+        "export_type": export_type,  # pdf, word
+        "doc_type": doc_type,  # case_sheet, discharge_summary, referral
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    })
+
+async def deduct_word_credit(user_id: str) -> bool:
+    """Deduct one Word export credit"""
+    result = await db.users.find_one_and_update(
+        {"id": user_id, "word_export_credits": {"$gt": 0}},
+        {"$inc": {"word_export_credits": -1}},
+        return_document=True
+    )
+    return result is not None
+
+@api_router.get("/export/check-access")
+async def check_export_access_endpoint(
+    export_type: str = "pdf",
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Check if user can export documents"""
+    access = await check_export_access(current_user.id, export_type)
+    return access
+
+@api_router.post("/export/buy-word-credits")
+async def buy_word_export_credits(
+    pack: str = "single",  # single, pack_10, pack_25
+    payment_id: Optional[str] = None,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Purchase Word export credits"""
+    pricing = {
+        "single": {"credits": 1, "price": 25},
+        "pack_10": {"credits": 10, "price": 200},
+        "pack_25": {"credits": 25, "price": 450}
+    }
+    
+    if pack not in pricing:
+        raise HTTPException(status_code=400, detail="Invalid pack")
+    
+    pack_info = pricing[pack]
+    
+    result = await db.users.find_one_and_update(
+        {"id": current_user.id},
+        {
+            "$inc": {"word_export_credits": pack_info["credits"]},
+            "$push": {
+                "word_credit_history": {
+                    "pack": pack,
+                    "credits": pack_info["credits"],
+                    "price": pack_info["price"],
+                    "payment_id": payment_id,
+                    "timestamp": datetime.now(timezone.utc).isoformat()
+                }
+            }
+        },
+        return_document=True
+    )
+    
+    if result:
+        return {
+            "success": True,
+            "message": f"Added {pack_info['credits']} Word export credits",
+            "credits_added": pack_info["credits"],
+            "new_balance": result.get("word_export_credits", 0)
+        }
+    
+    raise HTTPException(status_code=500, detail="Failed to add credits")
+
+@api_router.post("/export/case-sheet/{case_id}")
+async def export_case_sheet(
+    case_id: str,
+    export_type: str = "pdf",  # pdf or word
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Export case sheet as PDF or Word"""
+    # Check export access
+    access = await check_export_access(current_user.id, export_type)
+    
+    if not access["allowed"]:
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "error": access["reason"],
+                "message": access.get("message", "Export not allowed"),
+                "upgrade_required": True,
+                "price": access.get("price")
+            }
+        )
+    
+    # Get case data
+    case = await db.cases.find_one({"id": case_id}, {"_id": 0})
+    if not case:
+        raise HTTPException(status_code=404, detail="Case not found")
+    
+    # Deduct credit if using credits method (Word)
+    if export_type == "word" and access.get("method") == "credits":
+        success = await deduct_word_credit(current_user.id)
+        if not success:
+            raise HTTPException(status_code=429, detail="Failed to deduct Word export credit")
+    
+    # Log the export
+    await log_export(current_user.id, case_id, export_type, "case_sheet")
+    
+    # Generate export data
+    export_data = {
+        "case_id": case_id,
+        "export_type": export_type,
+        "watermark": access.get("watermark", False),
+        "custom_letterhead": access.get("custom_letterhead", False),
+        "case_data": case,
+        "exported_at": datetime.now(timezone.utc).isoformat(),
+        "exported_by": current_user.name
+    }
+    
+    return {
+        "success": True,
+        "message": f"Case sheet export ({export_type.upper()}) ready",
+        "export_data": export_data
+    }
+
+@api_router.post("/export/discharge-summary/{case_id}")
+async def export_discharge_summary(
+    case_id: str,
+    export_type: str = "pdf",
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Export discharge summary as PDF or Word"""
+    # Check export access
+    access = await check_export_access(current_user.id, export_type)
+    
+    if not access["allowed"]:
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "error": access["reason"],
+                "message": access.get("message", "Export not allowed"),
+                "upgrade_required": True,
+                "price": access.get("price")
+            }
+        )
+    
+    # Get case and discharge data
+    case = await db.cases.find_one({"id": case_id}, {"_id": 0})
+    if not case:
+        raise HTTPException(status_code=404, detail="Case not found")
+    
+    discharge = await db.discharge_summaries.find_one({"case_id": case_id}, {"_id": 0})
+    
+    # Deduct credit if using credits method (Word)
+    if export_type == "word" and access.get("method") == "credits":
+        success = await deduct_word_credit(current_user.id)
+        if not success:
+            raise HTTPException(status_code=429, detail="Failed to deduct Word export credit")
+    
+    # Log the export
+    await log_export(current_user.id, case_id, export_type, "discharge_summary")
+    
+    # Get user/doctor details
+    user = await db.users.find_one({"id": current_user.id}, {"_id": 0})
+    
+    export_data = {
+        "case_id": case_id,
+        "export_type": export_type,
+        "watermark": access.get("watermark", False),
+        "custom_letterhead": access.get("custom_letterhead", False),
+        "case_data": case,
+        "discharge_data": discharge,
+        "doctor": {
+            "name": user.get("name", ""),
+            "registration_number": user.get("medical_license_number", ""),
+            "specialization": user.get("specialization", "Emergency Medicine")
+        },
+        "exported_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    return {
+        "success": True,
+        "message": f"Discharge summary export ({export_type.upper()}) ready",
+        "export_data": export_data
+    }
+
+@api_router.get("/export/stats")
+async def get_export_stats(current_user: UserResponse = Depends(get_current_user)):
+    """Get user's export statistics"""
+    current_month = datetime.now(timezone.utc).strftime("%Y-%m")
+    
+    # Get export counts
+    pdf_count = await db.exports.count_documents({
+        "user_id": current_user.id,
+        "export_type": "pdf",
+        "timestamp": {"$regex": f"^{current_month}"}
+    })
+    
+    word_count = await db.exports.count_documents({
+        "user_id": current_user.id,
+        "export_type": "word",
+        "timestamp": {"$regex": f"^{current_month}"}
+    })
+    
+    # Get user's word credits
+    user = await db.users.find_one({"id": current_user.id}, {"_id": 0})
+    word_credits = user.get("word_export_credits", 0)
+    
+    # Get plan limits
+    tier = user.get("subscription_tier", "free")
+    plan = SUBSCRIPTION_PLANS.get(tier, SUBSCRIPTION_PLANS["free"])
+    
+    return {
+        "tier": tier,
+        "pdf_exports_this_month": pdf_count,
+        "word_exports_this_month": word_count,
+        "word_credits_remaining": word_credits,
+        "pdf_export_enabled": plan.get("pdf_export", False),
+        "pdf_watermark": plan.get("pdf_watermark", True),
+        "word_export_enabled": plan.get("word_export", False),
+        "export_limit": plan.get("export_limit", 5),
+        "custom_letterhead": plan.get("custom_letterhead", False)
+    }
+
 @api_router.post("/ai/generate", response_model=AIResponse)
 async def generate_ai_response(request: AIGenerateRequest, current_user: UserResponse = Depends(get_current_user)):
     # Determine AI type based on prompt
