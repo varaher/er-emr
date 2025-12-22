@@ -697,7 +697,7 @@ function buildPrintableHTML(caseData, dischargeData, showWatermark = false) {
       <meta charset="utf-8">
       <title>Discharge Summary</title>
       <style>
-        body { font-family: Arial, sans-serif; font-size: 12px; line-height: 1.5; padding: 20px; }
+        body { font-family: Arial, sans-serif; font-size: 12px; line-height: 1.5; padding: 20px; position: relative; }
         h1 { text-align: center; font-size: 18px; margin-bottom: 20px; }
         .section { margin-bottom: 15px; }
         .section-title { font-weight: bold; font-size: 13px; margin-bottom: 5px; border-bottom: 1px solid #ccc; }
@@ -709,9 +709,11 @@ function buildPrintableHTML(caseData, dischargeData, showWatermark = false) {
         .signatures { display: flex; justify-content: space-between; margin-top: 40px; }
         .signature-box { text-align: center; width: 45%; }
         .signature-line { border-top: 1px solid #000; margin-top: 50px; padding-top: 5px; }
+        ${watermarkCSS}
       </style>
     </head>
     <body>
+      ${watermarkHTML}
       <h1>DISCHARGE SUMMARY</h1>
 
       <div class="section">
