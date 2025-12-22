@@ -101,7 +101,13 @@ SUBSCRIPTION_PLANS = {
         "ai_credits_included": 5,  # 5 AI uses for free trial
         "advanced_ai_included": True,  # Full AI for trial
         "analytics_enabled": False,
-        "support_level": "community"
+        "support_level": "community",
+        # Export features
+        "pdf_export": True,  # With watermark
+        "pdf_watermark": True,  # "Generated using ERmate - AI Assisted Documentation"
+        "word_export": False,
+        "custom_letterhead": False,
+        "export_limit": 5  # Same as patient limit
     },
     "pro_monthly": {
         "tier": "pro_monthly",
@@ -110,11 +116,17 @@ SUBSCRIPTION_PLANS = {
         "price_yearly": 11988,
         "max_users": 1,
         "max_patients": -1,  # Unlimited
-        "features": ["triage", "case_sheet", "discharge_summary", "voice_dictation", "red_flags", "basic_ai", "fair_use_ai"],
+        "features": ["triage", "case_sheet", "discharge_summary", "voice_dictation", "red_flags", "basic_ai", "fair_use_ai", "pdf_export"],
         "ai_credits_included": 100,  # Fair use AI
         "advanced_ai_included": False,  # Advanced AI is credit-based
         "analytics_enabled": False,
-        "support_level": "email"
+        "support_level": "email",
+        # Export features
+        "pdf_export": True,
+        "pdf_watermark": False,  # No watermark for PRO
+        "word_export": False,  # Locked - upsell to Hospital
+        "custom_letterhead": False,
+        "export_limit": -1  # Unlimited
     },
     "pro_annual": {
         "tier": "pro_annual",
@@ -123,11 +135,17 @@ SUBSCRIPTION_PLANS = {
         "price_yearly": 9999,
         "max_users": 1,
         "max_patients": -1,
-        "features": ["triage", "case_sheet", "discharge_summary", "voice_dictation", "red_flags", "basic_ai", "fair_use_ai"],
+        "features": ["triage", "case_sheet", "discharge_summary", "voice_dictation", "red_flags", "basic_ai", "fair_use_ai", "pdf_export"],
         "ai_credits_included": 150,  # More AI for annual
         "advanced_ai_included": False,
         "analytics_enabled": False,
-        "support_level": "email"
+        "support_level": "email",
+        # Export features
+        "pdf_export": True,
+        "pdf_watermark": False,
+        "word_export": False,  # Can be purchased per-document
+        "custom_letterhead": False,
+        "export_limit": -1
     },
     "hospital_basic": {
         "tier": "hospital_basic",
@@ -136,11 +154,17 @@ SUBSCRIPTION_PLANS = {
         "price_yearly": 150000,
         "max_users": 10,
         "max_patients": -1,
-        "features": ["triage", "case_sheet", "discharge_summary", "voice_dictation", "red_flags", "basic_ai", "advanced_ai", "analytics"],
+        "features": ["triage", "case_sheet", "discharge_summary", "voice_dictation", "red_flags", "basic_ai", "advanced_ai", "analytics", "pdf_export"],
         "ai_credits_included": 500,
         "advanced_ai_included": True,
         "analytics_enabled": True,
-        "support_level": "priority"
+        "support_level": "priority",
+        # Export features
+        "pdf_export": True,
+        "pdf_watermark": False,
+        "word_export": False,  # Upsell to Premium
+        "custom_letterhead": False,
+        "export_limit": -1
     },
     "hospital_premium": {
         "tier": "hospital_premium",
