@@ -27,6 +27,9 @@ import DischargeSummaryScreen from './src/screens/DischargeSummaryScreen';
 import PhysicalExamScreen from './src/screens/PhysicalExamScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import LogsScreen from './src/screens/LogsScreen';
+import UpgradeScreen from './src/screens/UpgradeScreen';
+
+const API_URL = "https://er-emr-backend.onrender.com/api";
 
 const Stack = createNativeStackNavigator();
 
