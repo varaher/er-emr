@@ -262,6 +262,8 @@ export default function CaseSheetForm() {
     },
     treatment: {
       interventions: [],
+      procedures: [],
+      procedure_notes: '',
       intervention_notes: '',
       provisional_diagnoses: [],
       differential_diagnoses: []
