@@ -418,9 +418,84 @@ export default function CaseSheetScreen({ route, navigation }) {
     setLoading(false);
   };
 
+  /* ===================== DEFAULT VALUES ===================== */
+  const DEFAULT_NORMAL_VALUES = {
+    // Primary Assessment
+    airway_status: "Patent",
+    breathing_wob: "Normal",
+    breathing_air_entry: "Equal",
+    circulation_status: "Normal",
+    circulation_crt: "Normal",
+    circulation_pulse: "Regular",
+    circulation_jvp: "Normal",
+    disability_avpu: "Alert",
+    disability_pupils: "Equal, Reactive",
+    exposure_status: "Normal",
+    // Examination defaults
+    general_appearance: "Conscious, alert, oriented",
+    general_pallor: "Absent",
+    general_icterus: "Absent",
+    general_cyanosis: "Absent",
+    general_clubbing: "Absent",
+    general_lymphadenopathy: "Absent",
+    general_edema: "Absent",
+    cvs_s1_s2: "Normal",
+    cvs_murmur: "Absent",
+    resp_percussion: "Resonant",
+    resp_breath_sounds: "Vesicular",
+    abd_inspection: "Normal",
+    abd_tenderness: "Absent",
+    abd_guarding_rigidity: "Absent",
+    abd_organomegaly: "Absent",
+    abd_bowel_sounds: "Present",
+    cns_gcs: "15/15",
+    cns_pupils: "Equal, reactive",
+    cns_tone: "Normal",
+    cns_power: "5/5",
+    cns_reflexes: "Normal",
+    cns_sensation: "Intact",
+    cns_motor: "Normal",
+    ext_inspection: "Normal",
+    ext_deformity: "Nil",
+    ext_swelling: "Nil",
+    ext_tenderness: "Nil",
+    ext_movement: "Full ROM",
+    ext_pulses: "Present",
+    ext_sensation: "Intact",
+  };
+
+  const applyDefaultValues = () => {
+    const fd = formDataRef.current;
+    
+    // Apply defaults only if fields are empty
+    Object.entries(DEFAULT_NORMAL_VALUES).forEach(([key, value]) => {
+      if (!fd[key] || fd[key] === "") {
+        fd[key] = value;
+      }
+    });
+    
+    // Ensure arrays have defaults
+    if (!fd.airway_interventions || fd.airway_interventions.length === 0) {
+      fd.airway_interventions = [];
+    }
+    if (!fd.breathing_interventions || fd.breathing_interventions.length === 0) {
+      fd.breathing_interventions = [];
+    }
+    if (!fd.circulation_interventions || fd.circulation_interventions.length === 0) {
+      fd.circulation_interventions = [];
+    }
+    if (!fd.exposure_logroll || fd.exposure_logroll.length === 0) {
+      fd.exposure_logroll = [];
+    }
+  };
+
   /* ===================== SAVE ===================== */
   const saveCaseSheet = async () => {
     setSaving(true);
+    
+    // Apply default values to empty fields before saving
+    applyDefaultValues();
+    
     try {
       const token = await AsyncStorage.getItem("token");
       const user = JSON.parse(await AsyncStorage.getItem("user") || "{}");
