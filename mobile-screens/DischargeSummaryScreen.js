@@ -140,19 +140,44 @@ export default function DischargeSummaryScreen({ route, navigation }) {
   const generatePDF = async () => {
     if (!caseData) return;
 
-    const html = buildPrintableHTML(caseData, {
-      ...dischargeDataRef.current,
-      disposition_type: radioStates.disposition_type,
-      condition_at_discharge: radioStates.condition_at_discharge,
-    });
-
     try {
+      // Check export access first
+      const token = await AsyncStorage.getItem("token");
+      const accessRes = await fetch(`${API_URL}/export/check-access?export_type=pdf`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const access = await accessRes.json();
+      
+      if (!access.allowed) {
+        Alert.alert(
+          "Export Limit Reached",
+          access.message || "Please upgrade to continue exporting.",
+          [
+            { text: "Cancel", style: "cancel" },
+            { text: "Upgrade", onPress: () => navigation.navigate("Upgrade") }
+          ]
+        );
+        return;
+      }
+
+      const html = buildPrintableHTML(caseData, {
+        ...dischargeDataRef.current,
+        disposition_type: radioStates.disposition_type,
+        condition_at_discharge: radioStates.condition_at_discharge,
+      }, access.watermark);
+
       const { uri } = await Print.printToFileAsync({ html });
+
+      // Log export on backend
+      await fetch(`${API_URL}/export/discharge-summary/${caseId}?export_type=pdf`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       if (Platform.OS === "ios") {
         await Sharing.shareAsync(uri);
       } else {
-        Alert.alert("PDF Generated", `File saved at: ${uri}`, [
+        Alert.alert("PDF Generated", "Discharge summary ready!", [
           { text: "Share", onPress: () => Sharing.shareAsync(uri) },
           { text: "OK" },
         ]);
@@ -160,6 +185,57 @@ export default function DischargeSummaryScreen({ route, navigation }) {
     } catch (err) {
       console.log("PDF ERROR:", err);
       Alert.alert("Error", "Unable to generate PDF");
+    }
+  };
+
+  const generateWord = async () => {
+    if (!caseData) return;
+
+    try {
+      const token = await AsyncStorage.getItem("token");
+      const accessRes = await fetch(`${API_URL}/export/check-access?export_type=word`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const access = await accessRes.json();
+      
+      if (!access.allowed) {
+        Alert.alert(
+          "🔒 Premium Feature",
+          "Word export is available with:\n\n• Hospital Premium Plan\n• Or purchase at ₹25/document\n\nWould you like to upgrade?",
+          [
+            { text: "Cancel", style: "cancel" },
+            { text: "Buy Credits", onPress: () => navigation.navigate("Upgrade", { tab: "credits" }) },
+            { text: "View Plans", onPress: () => navigation.navigate("Upgrade") }
+          ]
+        );
+        return;
+      }
+
+      // For now, generate HTML that can be opened in Word
+      const html = buildPrintableHTML(caseData, {
+        ...dischargeDataRef.current,
+        disposition_type: radioStates.disposition_type,
+        condition_at_discharge: radioStates.condition_at_discharge,
+      }, false);
+
+      const { uri } = await Print.printToFileAsync({ 
+        html,
+        // Word-compatible format hint
+      });
+
+      // Log export on backend
+      await fetch(`${API_URL}/export/discharge-summary/${caseId}?export_type=word`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      Alert.alert("Word Export", "Document ready for sharing!", [
+        { text: "Share", onPress: () => Sharing.shareAsync(uri) },
+        { text: "OK" },
+      ]);
+    } catch (err) {
+      console.log("WORD ERROR:", err);
+      Alert.alert("Error", "Unable to generate Word document");
     }
   };
 
