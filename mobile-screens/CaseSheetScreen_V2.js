@@ -818,67 +818,312 @@ export default function CaseSheetScreen({ route, navigation }) {
           {/* ==================== PRIMARY ASSESSMENT TAB ==================== */}
           {activeTab === "primary" && (
             <View style={styles.tabContent}>
-              {/* Airway */}
-              <View style={styles.card}>
-                <CollapsibleHeader title="A - Airway" icon="medical" section="airway" color="#ef4444" />
+              {/* A - Airway */}
+              <View style={[styles.card, { borderLeftWidth: 4, borderLeftColor: '#ef4444' }]}>
+                <CollapsibleHeader title="A - AIRWAY" icon="medical" section="airway" color="#ef4444" />
                 {!collapsed.airway && (
                   <View style={styles.collapsibleContent}>
-                    <SelectButtons label="Status" options={["Patent", "Threatened", "Compromised"]} field="airway_status" />
-                    <InputWithVoice label="Additional Notes" field="airway_notes" placeholder="Airway findings..." multiline />
+                    {/* Normal/Abnormal Toggle */}
+                    <View style={styles.statusToggleRow}>
+                      <TouchableOpacity
+                        style={[styles.statusToggle, formDataRef.current.airway_status === 'Patent' && styles.statusToggleNormalActive]}
+                        onPress={() => { updateTextField('airway_status', 'Patent'); forceUpdate(); }}
+                      >
+                        <Ionicons name="checkmark-circle" size={16} color={formDataRef.current.airway_status === 'Patent' ? '#fff' : '#22c55e'} />
+                        <Text style={[styles.statusToggleText, formDataRef.current.airway_status === 'Patent' && styles.statusToggleTextActive]}>Normal</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.statusToggle, formDataRef.current.airway_status !== 'Patent' && styles.statusToggleAbnormalActive]}
+                        onPress={() => { updateTextField('airway_status', 'Compromised'); forceUpdate(); }}
+                      >
+                        <Ionicons name="alert-circle" size={16} color={formDataRef.current.airway_status !== 'Patent' ? '#fff' : '#ef4444'} />
+                        <Text style={[styles.statusToggleText, formDataRef.current.airway_status !== 'Patent' && styles.statusToggleTextActive]}>Abnormal</Text>
+                      </TouchableOpacity>
+                    </View>
+                    
+                    {/* Expanded options when Abnormal */}
+                    {formDataRef.current.airway_status !== 'Patent' && (
+                      <View style={styles.abnormalDetails}>
+                        <SelectButtons label="Position" options={["Self-maintained", "Head tilt/Chin lift", "Jaw thrust"]} field="airway_position" />
+                        <SelectButtons label="Patency" options={["Partial obstruction", "Complete obstruction"]} field="airway_patency" />
+                        <SelectButtons label="Cause" options={["Tongue fall", "Secretions", "Blood/Vomitus", "Foreign body", "Edema"]} field="airway_obstruction_cause" />
+                        <SelectButtons label="Speech" options={["Hoarse", "Stridor", "Gurgling", "Unable to speak"]} field="airway_speech" />
+                        <Text style={styles.checkboxLabel}>Interventions Done:</Text>
+                        <View style={styles.checkboxGrid}>
+                          {['Suction', 'OPA', 'NPA', 'LMA', 'ETT', 'Cricothyrotomy'].map(item => (
+                            <TouchableOpacity key={item} style={styles.checkboxItem} onPress={() => toggleIntervention('airway_interventions', item)}>
+                              <Ionicons name={formDataRef.current.airway_interventions?.includes(item) ? 'checkbox' : 'square-outline'} size={20} color="#ef4444" />
+                              <Text style={styles.checkboxText}>{item}</Text>
+                            </TouchableOpacity>
+                          ))}
+                        </View>
+                      </View>
+                    )}
+                    <InputWithVoice label="Notes" field="airway_notes" placeholder="Additional airway observations..." multiline />
                   </View>
                 )}
               </View>
 
-              {/* Breathing */}
-              <View style={styles.card}>
-                <CollapsibleHeader title="B - Breathing" icon="fitness" section="breathing" color="#f97316" />
+              {/* B - Breathing */}
+              <View style={[styles.card, { borderLeftWidth: 4, borderLeftColor: '#f97316' }]}>
+                <CollapsibleHeader title="B - BREATHING" icon="fitness" section="breathing" color="#f97316" />
                 {!collapsed.breathing && (
                   <View style={styles.collapsibleContent}>
-                    <SelectButtons label="Work of Breathing" options={["Normal", "Increased", "Severe"]} field="breathing_wob" />
-                    <SelectButtons label="Air Entry" options={["Equal", "Decreased", "Absent"]} field="breathing_air_entry" />
-                    <InputWithVoice label="Additional Notes" field="breathing_notes" placeholder="Breathing findings..." multiline />
+                    {/* Normal/Abnormal Toggle */}
+                    <View style={styles.statusToggleRow}>
+                      <TouchableOpacity
+                        style={[styles.statusToggle, formDataRef.current.breathing_wob === 'Normal' && styles.statusToggleNormalActive]}
+                        onPress={() => { updateTextField('breathing_wob', 'Normal'); forceUpdate(); }}
+                      >
+                        <Ionicons name="checkmark-circle" size={16} color={formDataRef.current.breathing_wob === 'Normal' ? '#fff' : '#22c55e'} />
+                        <Text style={[styles.statusToggleText, formDataRef.current.breathing_wob === 'Normal' && styles.statusToggleTextActive]}>Normal</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.statusToggle, formDataRef.current.breathing_wob !== 'Normal' && styles.statusToggleAbnormalActive]}
+                        onPress={() => { updateTextField('breathing_wob', 'Increased'); forceUpdate(); }}
+                      >
+                        <Ionicons name="alert-circle" size={16} color={formDataRef.current.breathing_wob !== 'Normal' ? '#fff' : '#ef4444'} />
+                        <Text style={[styles.statusToggleText, formDataRef.current.breathing_wob !== 'Normal' && styles.statusToggleTextActive]}>Abnormal</Text>
+                      </TouchableOpacity>
+                    </View>
+                    
+                    {/* Vitals Row */}
+                    <View style={styles.vitalsRowCompact}>
+                      <View style={styles.vitalItemCompact}>
+                        <Text style={styles.vitalLabelCompact}>RR</Text>
+                        <TextInput style={styles.vitalInputCompact} defaultValue={formDataRef.current.breathing_rr} onChangeText={(t) => updateTextField('breathing_rr', t)} placeholder="/min" keyboardType="numeric" />
+                      </View>
+                      <View style={styles.vitalItemCompact}>
+                        <Text style={styles.vitalLabelCompact}>SpO2</Text>
+                        <TextInput style={styles.vitalInputCompact} defaultValue={formDataRef.current.breathing_spo2} onChangeText={(t) => updateTextField('breathing_spo2', t)} placeholder="%" keyboardType="numeric" />
+                      </View>
+                      <View style={styles.vitalItemCompact}>
+                        <Text style={styles.vitalLabelCompact}>O2 Flow</Text>
+                        <TextInput style={styles.vitalInputCompact} defaultValue={formDataRef.current.breathing_o2_flow} onChangeText={(t) => updateTextField('breathing_o2_flow', t)} placeholder="L/min" keyboardType="numeric" />
+                      </View>
+                    </View>
+                    
+                    {/* Expanded options when Abnormal */}
+                    {formDataRef.current.breathing_wob !== 'Normal' && (
+                      <View style={styles.abnormalDetails}>
+                        <SelectButtons label="Effort" options={["Mild ↑", "Moderate ↑", "Severe ↑", "Exhaustion"]} field="breathing_effort" />
+                        <SelectButtons label="O2 Device" options={["Room air", "Nasal prongs", "Face mask", "NRM", "NIV", "Ventilator"]} field="breathing_o2_device" />
+                        <SelectButtons label="Pattern" options={["Tachypneic", "Bradypneic", "Kussmaul", "Cheyne-Stokes"]} field="breathing_pattern" />
+                        <SelectButtons label="Chest Expansion" options={["Equal", "Reduced L", "Reduced R", "Reduced both"]} field="breathing_expansion" />
+                        <SelectButtons label="Air Entry" options={["Reduced L", "Reduced R", "Reduced both", "Absent L", "Absent R"]} field="breathing_air_entry" />
+                        <SelectButtons label="Added Sounds" options={["Wheeze", "Crackles", "Rhonchi", "Stridor"]} field="breathing_added_sounds" />
+                        <Text style={styles.checkboxLabel}>Interventions:</Text>
+                        <View style={styles.checkboxGrid}>
+                          {['Nebulization', 'ICD', 'Needle decomp', 'BVM', 'Intubation'].map(item => (
+                            <TouchableOpacity key={item} style={styles.checkboxItem} onPress={() => toggleIntervention('breathing_interventions', item)}>
+                              <Ionicons name={formDataRef.current.breathing_interventions?.includes(item) ? 'checkbox' : 'square-outline'} size={20} color="#f97316" />
+                              <Text style={styles.checkboxText}>{item}</Text>
+                            </TouchableOpacity>
+                          ))}
+                        </View>
+                      </View>
+                    )}
+                    <InputWithVoice label="Notes" field="breathing_notes" placeholder="Additional breathing observations..." multiline />
                   </View>
                 )}
               </View>
 
-              {/* Circulation */}
-              <View style={styles.card}>
-                <CollapsibleHeader title="C - Circulation" icon="heart" section="circulation" color="#eab308" />
+              {/* C - Circulation */}
+              <View style={[styles.card, { borderLeftWidth: 4, borderLeftColor: '#eab308' }]}>
+                <CollapsibleHeader title="C - CIRCULATION" icon="heart" section="circulation" color="#eab308" />
                 {!collapsed.circulation && (
                   <View style={styles.collapsibleContent}>
-                    <SelectButtons label="CRT" options={["Normal", "Delayed"]} field="circulation_crt" />
-                    <SelectButtons label="Pulse" options={["Regular", "Irregular", "Weak"]} field="circulation_pulse" />
-                    <InputWithVoice label="Additional Notes" field="circulation_notes" placeholder="Circulation findings..." multiline />
+                    {/* Normal/Abnormal Toggle */}
+                    <View style={styles.statusToggleRow}>
+                      <TouchableOpacity
+                        style={[styles.statusToggle, formDataRef.current.circulation_status === 'Normal' && styles.statusToggleNormalActive]}
+                        onPress={() => { updateTextField('circulation_status', 'Normal'); forceUpdate(); }}
+                      >
+                        <Ionicons name="checkmark-circle" size={16} color={formDataRef.current.circulation_status === 'Normal' ? '#fff' : '#22c55e'} />
+                        <Text style={[styles.statusToggleText, formDataRef.current.circulation_status === 'Normal' && styles.statusToggleTextActive]}>Normal</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.statusToggle, formDataRef.current.circulation_status !== 'Normal' && styles.statusToggleAbnormalActive]}
+                        onPress={() => { updateTextField('circulation_status', 'Abnormal'); forceUpdate(); }}
+                      >
+                        <Ionicons name="alert-circle" size={16} color={formDataRef.current.circulation_status !== 'Normal' ? '#fff' : '#ef4444'} />
+                        <Text style={[styles.statusToggleText, formDataRef.current.circulation_status !== 'Normal' && styles.statusToggleTextActive]}>Abnormal</Text>
+                      </TouchableOpacity>
+                    </View>
+                    
+                    {/* Vitals Row */}
+                    <View style={styles.vitalsRowCompact}>
+                      <View style={styles.vitalItemCompact}>
+                        <Text style={styles.vitalLabelCompact}>HR</Text>
+                        <TextInput style={styles.vitalInputCompact} defaultValue={formDataRef.current.circulation_hr} onChangeText={(t) => updateTextField('circulation_hr', t)} placeholder="bpm" keyboardType="numeric" />
+                      </View>
+                      <View style={styles.vitalItemCompact}>
+                        <Text style={styles.vitalLabelCompact}>BP</Text>
+                        <TextInput style={styles.vitalInputCompact} defaultValue={formDataRef.current.circulation_bp} onChangeText={(t) => updateTextField('circulation_bp', t)} placeholder="Sys/Dia" />
+                      </View>
+                    </View>
+                    
+                    {/* Expanded options when Abnormal */}
+                    {formDataRef.current.circulation_status !== 'Normal' && (
+                      <View style={styles.abnormalDetails}>
+                        <SelectButtons label="Rhythm" options={["Regular", "Irregular", "Irreg irregular"]} field="circulation_rhythm" />
+                        <SelectButtons label="CRT" options={["<2 sec", "2-3 sec", ">3 sec"]} field="circulation_crt" />
+                        <SelectButtons label="Skin" options={["Warm dry", "Cool dry", "Cool clammy", "Mottled"]} field="circulation_skin" />
+                        <SelectButtons label="Pulses" options={["Present", "Weak", "Absent", "Asymmetric"]} field="circulation_pulse" />
+                        <SelectButtons label="JVP" options={["Normal", "Raised", "Flat"]} field="circulation_jvp" />
+                        <View style={styles.checkboxGrid}>
+                          <TouchableOpacity style={styles.checkboxItem} onPress={() => { formDataRef.current.circulation_external_bleed = !formDataRef.current.circulation_external_bleed; forceUpdate(); }}>
+                            <Ionicons name={formDataRef.current.circulation_external_bleed ? 'checkbox' : 'square-outline'} size={20} color="#eab308" />
+                            <Text style={styles.checkboxText}>External Bleeding</Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity style={styles.checkboxItem} onPress={() => { formDataRef.current.circulation_long_bone = !formDataRef.current.circulation_long_bone; forceUpdate(); }}>
+                            <Ionicons name={formDataRef.current.circulation_long_bone ? 'checkbox' : 'square-outline'} size={20} color="#eab308" />
+                            <Text style={styles.checkboxText}>Long Bone Deformity</Text>
+                          </TouchableOpacity>
+                        </View>
+                        <Text style={styles.checkboxLabel}>Interventions:</Text>
+                        <View style={styles.checkboxGrid}>
+                          {['IV access', 'IO access', 'Fluid bolus', 'Blood', 'Vasopressors', 'CPR'].map(item => (
+                            <TouchableOpacity key={item} style={styles.checkboxItem} onPress={() => toggleIntervention('circulation_interventions', item)}>
+                              <Ionicons name={formDataRef.current.circulation_interventions?.includes(item) ? 'checkbox' : 'square-outline'} size={20} color="#eab308" />
+                              <Text style={styles.checkboxText}>{item}</Text>
+                            </TouchableOpacity>
+                          ))}
+                        </View>
+                      </View>
+                    )}
+                    <InputWithVoice label="Notes" field="circulation_notes" placeholder="Additional circulation observations..." multiline />
                   </View>
                 )}
               </View>
 
-              {/* Disability */}
-              <View style={styles.card}>
-                <CollapsibleHeader title="D - Disability" icon="brain" section="disability" color="#22c55e" />
+              {/* D - Disability */}
+              <View style={[styles.card, { borderLeftWidth: 4, borderLeftColor: '#22c55e' }]}>
+                <CollapsibleHeader title="D - DISABILITY (Neuro)" icon="brain" section="disability" color="#22c55e" />
                 {!collapsed.disability && (
                   <View style={styles.collapsibleContent}>
-                    <SelectButtons label="AVPU" options={["Alert", "Verbal", "Pain", "Unresponsive"]} field="disability_avpu" />
-                    <SelectButtons label="Pupils" options={["Equal, Reactive", "Unequal", "Fixed"]} field="disability_pupils" />
-                    <InputWithVoice label="Additional Notes" field="disability_notes" placeholder="Neurological findings..." multiline />
+                    {/* Normal/Abnormal Toggle */}
+                    <View style={styles.statusToggleRow}>
+                      <TouchableOpacity
+                        style={[styles.statusToggle, formDataRef.current.disability_avpu === 'Alert' && styles.statusToggleNormalActive]}
+                        onPress={() => { updateTextField('disability_avpu', 'Alert'); forceUpdate(); }}
+                      >
+                        <Ionicons name="checkmark-circle" size={16} color={formDataRef.current.disability_avpu === 'Alert' ? '#fff' : '#22c55e'} />
+                        <Text style={[styles.statusToggleText, formDataRef.current.disability_avpu === 'Alert' && styles.statusToggleTextActive]}>Normal</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.statusToggle, formDataRef.current.disability_avpu !== 'Alert' && styles.statusToggleAbnormalActive]}
+                        onPress={() => { updateTextField('disability_avpu', 'Verbal'); forceUpdate(); }}
+                      >
+                        <Ionicons name="alert-circle" size={16} color={formDataRef.current.disability_avpu !== 'Alert' ? '#fff' : '#ef4444'} />
+                        <Text style={[styles.statusToggleText, formDataRef.current.disability_avpu !== 'Alert' && styles.statusToggleTextActive]}>Abnormal</Text>
+                      </TouchableOpacity>
+                    </View>
+                    
+                    {/* GCS Row */}
+                    <View style={styles.vitalsRowCompact}>
+                      <View style={styles.vitalItemCompact}>
+                        <Text style={styles.vitalLabelCompact}>GCS E</Text>
+                        <TextInput style={styles.vitalInputCompact} defaultValue={formDataRef.current.disability_gcs_e} onChangeText={(t) => updateTextField('disability_gcs_e', t)} placeholder="1-4" keyboardType="numeric" />
+                      </View>
+                      <View style={styles.vitalItemCompact}>
+                        <Text style={styles.vitalLabelCompact}>V</Text>
+                        <TextInput style={styles.vitalInputCompact} defaultValue={formDataRef.current.disability_gcs_v} onChangeText={(t) => updateTextField('disability_gcs_v', t)} placeholder="1-5" keyboardType="numeric" />
+                      </View>
+                      <View style={styles.vitalItemCompact}>
+                        <Text style={styles.vitalLabelCompact}>M</Text>
+                        <TextInput style={styles.vitalInputCompact} defaultValue={formDataRef.current.disability_gcs_m} onChangeText={(t) => updateTextField('disability_gcs_m', t)} placeholder="1-6" keyboardType="numeric" />
+                      </View>
+                      <View style={styles.vitalItemCompact}>
+                        <Text style={styles.vitalLabelCompact}>GRBS</Text>
+                        <TextInput style={styles.vitalInputCompact} defaultValue={formDataRef.current.disability_grbs} onChangeText={(t) => updateTextField('disability_grbs', t)} placeholder="mg/dL" keyboardType="numeric" />
+                      </View>
+                    </View>
+                    
+                    {/* Expanded options when Abnormal */}
+                    {formDataRef.current.disability_avpu !== 'Alert' && (
+                      <View style={styles.abnormalDetails}>
+                        <SelectButtons label="AVPU" options={["Verbal", "Pain", "Unresponsive"]} field="disability_avpu" />
+                        <SelectButtons label="Pupils Size" options={["Equal", "Unequal", "Dilated", "Constricted"]} field="disability_pupils_size" />
+                        <SelectButtons label="Pupils Reaction" options={["Brisk", "Sluggish", "Non-reactive", "Fixed"]} field="disability_pupils_reaction" />
+                        <SelectButtons label="Lateralizing" options={["None", "Left hemiparesis", "Right hemiparesis", "Facial droop"]} field="disability_lateralizing" />
+                        <TouchableOpacity style={styles.checkboxItem} onPress={() => { formDataRef.current.disability_seizure = !formDataRef.current.disability_seizure; forceUpdate(); }}>
+                          <Ionicons name={formDataRef.current.disability_seizure ? 'checkbox' : 'square-outline'} size={20} color="#22c55e" />
+                          <Text style={styles.checkboxText}>Seizure Observed</Text>
+                        </TouchableOpacity>
+                      </View>
+                    )}
+                    <InputWithVoice label="Notes" field="disability_notes" placeholder="Additional neuro observations..." multiline />
                   </View>
                 )}
               </View>
 
-              {/* Exposure */}
-              <View style={styles.card}>
-                <CollapsibleHeader title="E - Exposure" icon="body" section="exposure" color="#3b82f6" />
+              {/* E - Exposure */}
+              <View style={[styles.card, { borderLeftWidth: 4, borderLeftColor: '#3b82f6' }]}>
+                <CollapsibleHeader title="E - EXPOSURE" icon="body" section="exposure" color="#3b82f6" />
                 {!collapsed.exposure && (
                   <View style={styles.collapsibleContent}>
-                    <InputWithVoice label="Findings" field="exposure_findings" placeholder="Exposure findings..." multiline />
-                    <InputWithVoice label="Additional Notes" field="exposure_notes" placeholder="Additional notes..." multiline />
+                    {/* Normal/Abnormal Toggle */}
+                    <View style={styles.statusToggleRow}>
+                      <TouchableOpacity
+                        style={[styles.statusToggle, formDataRef.current.exposure_status === 'Normal' && styles.statusToggleNormalActive]}
+                        onPress={() => { updateTextField('exposure_status', 'Normal'); forceUpdate(); }}
+                      >
+                        <Ionicons name="checkmark-circle" size={16} color={formDataRef.current.exposure_status === 'Normal' ? '#fff' : '#22c55e'} />
+                        <Text style={[styles.statusToggleText, formDataRef.current.exposure_status === 'Normal' && styles.statusToggleTextActive]}>Normal</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.statusToggle, formDataRef.current.exposure_status !== 'Normal' && styles.statusToggleAbnormalActive]}
+                        onPress={() => { updateTextField('exposure_status', 'Abnormal'); forceUpdate(); }}
+                      >
+                        <Ionicons name="alert-circle" size={16} color={formDataRef.current.exposure_status !== 'Normal' ? '#fff' : '#ef4444'} />
+                        <Text style={[styles.statusToggleText, formDataRef.current.exposure_status !== 'Normal' && styles.statusToggleTextActive]}>Abnormal</Text>
+                      </TouchableOpacity>
+                    </View>
+                    
+                    {/* Temperature */}
+                    <View style={styles.vitalsRowCompact}>
+                      <View style={styles.vitalItemCompact}>
+                        <Text style={styles.vitalLabelCompact}>Temp</Text>
+                        <TextInput style={styles.vitalInputCompact} defaultValue={formDataRef.current.exposure_temperature} onChangeText={(t) => updateTextField('exposure_temperature', t)} placeholder="°C" keyboardType="decimal-pad" />
+                      </View>
+                    </View>
+                    
+                    {/* Expanded options when Abnormal */}
+                    {formDataRef.current.exposure_status !== 'Normal' && (
+                      <View style={styles.abnormalDetails}>
+                        <SelectButtons label="Rashes" options={["None", "Petechiae", "Purpura", "Urticaria", "Vesicular"]} field="exposure_rashes" />
+                        <SelectButtons label="Bruises" options={["None", "Head/Face", "Chest", "Abdomen", "Extremities", "Multiple"]} field="exposure_bruises" />
+                        <Text style={styles.checkboxLabel}>Logroll Findings:</Text>
+                        <View style={styles.checkboxGrid}>
+                          {['Spinal tenderness', 'Deformity', 'Sacral edema', 'Pressure sores'].map(item => (
+                            <TouchableOpacity key={item} style={styles.checkboxItem} onPress={() => toggleIntervention('exposure_logroll', item)}>
+                              <Ionicons name={formDataRef.current.exposure_logroll?.includes(item) ? 'checkbox' : 'square-outline'} size={20} color="#3b82f6" />
+                              <Text style={styles.checkboxText}>{item}</Text>
+                            </TouchableOpacity>
+                          ))}
+                        </View>
+                      </View>
+                    )}
+                    <InputWithVoice label="Local Exam / Notes" field="exposure_notes" placeholder="Local examination findings..." multiline />
+                  </View>
+                )}
+              </View>
+
+              {/* R - Reassessment */}
+              <View style={[styles.card, { borderLeftWidth: 4, borderLeftColor: '#8b5cf6' }]}>
+                <CollapsibleHeader title="R - REASSESSMENT" icon="refresh" section="reassessment" color="#8b5cf6" />
+                {!collapsed.reassessment && (
+                  <View style={styles.collapsibleContent}>
+                    <SelectButtons label="Status After Resuscitation" options={["Improving", "Stable", "Deteriorating", "Critical"]} field="reassessment_status" />
+                    <InputWithVoice label="Reassessment Notes" field="reassessment_notes" placeholder="Response to interventions..." multiline />
                   </View>
                 )}
               </View>
 
               {/* Adjuvants to Primary */}
               <View style={styles.card}>
-                <CollapsibleHeader title="Adjuvants to Primary" icon="analytics" section="adjuvants" color="#8b5cf6" />
+                <CollapsibleHeader title="Adjuvants to Primary" icon="analytics" section="adjuvants" color="#6b7280" />
                 {!collapsed.adjuvants && (
                   <View style={styles.collapsibleContent}>
                     <InputWithVoice label="ECG Findings" field="ecg_findings" placeholder="ECG interpretation..." multiline />
