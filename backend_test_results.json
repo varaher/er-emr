@@ -1,76 +1,106 @@
 {
   "summary": {
-    "total_tests": 11,
-    "passed_tests": 9,
-    "success_rate": 81.81818181818183,
-    "timestamp": "2025-11-28T06:01:24.492883"
+    "total_tests": 16,
+    "passed_tests": 14,
+    "success_rate": 87.5,
+    "timestamp": "2025-12-22T17:29:25.314769"
   },
   "detailed_results": [
+    {
+      "test_name": "Get Subscription Plans",
+      "success": true,
+      "details": "Status: 200",
+      "timestamp": "2025-12-22T17:27:43.605891"
+    },
     {
       "test_name": "User Login",
       "success": true,
       "details": "Status: 200",
-      "timestamp": "2025-11-28T06:00:53.800710"
+      "timestamp": "2025-12-22T17:27:43.868830"
     },
     {
       "test_name": "Get Current User",
       "success": true,
       "details": "Status: 200",
-      "timestamp": "2025-11-28T06:00:53.840279"
+      "timestamp": "2025-12-22T17:27:43.912926"
     },
     {
       "test_name": "User Registration",
       "success": true,
       "details": "Status: 200",
-      "timestamp": "2025-11-28T06:00:54.100221"
+      "timestamp": "2025-12-22T17:27:44.198356"
+    },
+    {
+      "test_name": "Get Subscription Status",
+      "success": true,
+      "details": "Status: 200",
+      "timestamp": "2025-12-22T17:27:44.241331"
+    },
+    {
+      "test_name": "Check Subscription Access",
+      "success": true,
+      "details": "Status: 200",
+      "timestamp": "2025-12-22T17:27:44.283701"
+    },
+    {
+      "test_name": "Check AI Access",
+      "success": true,
+      "details": "Status: 200",
+      "timestamp": "2025-12-22T17:27:44.324262"
+    },
+    {
+      "test_name": "Get AI Usage Stats",
+      "success": true,
+      "details": "Status: 200",
+      "timestamp": "2025-12-22T17:27:44.365901"
     },
     {
       "test_name": "Get Existing Case",
       "success": true,
       "details": "Status: 200",
-      "timestamp": "2025-11-28T06:00:54.137115"
+      "timestamp": "2025-12-22T17:27:44.403667"
     },
     {
       "test_name": "Get All Cases",
       "success": true,
       "details": "Status: 200",
-      "timestamp": "2025-11-28T06:00:54.179455"
+      "timestamp": "2025-12-22T17:27:44.444921"
     },
     {
       "test_name": "Get Case by ID",
       "success": true,
       "details": "Status: 200",
-      "timestamp": "2025-11-28T06:00:54.218044"
+      "timestamp": "2025-12-22T17:27:44.481899"
     },
     {
       "test_name": "Update Case",
       "success": true,
       "details": "Status: 200",
-      "timestamp": "2025-11-28T06:00:54.254621"
+      "timestamp": "2025-12-22T17:27:44.520001"
     },
     {
       "test_name": "AI Generate Red Flags",
       "success": true,
       "details": "Status: 200",
-      "timestamp": "2025-11-28T06:01:09.130252"
+      "timestamp": "2025-12-22T17:28:12.045757"
     },
     {
       "test_name": "AI Generate Diagnosis",
-      "success": true,
-      "details": "Status: 200",
-      "timestamp": "2025-11-28T06:01:24.388055"
+      "success": false,
+      "details": "Exception: HTTPSConnectionPool(host='aidoc.preview.emergentagent.com', port=443): Read timed out. (read timeout=30)",
+      "timestamp": "2025-12-22T17:28:42.113866"
     },
     {
       "test_name": "Create Discharge Summary",
       "success": false,
-      "details": "Expected 200, got 500 - Internal Server Error",
-      "timestamp": "2025-11-28T06:01:24.448930"
+      "details": "Exception: HTTPSConnectionPool(host='aidoc.preview.emergentagent.com', port=443): Read timed out. (read timeout=30)",
+      "timestamp": "2025-12-22T17:29:12.220604"
     },
     {
       "test_name": "Get Discharge Summary",
-      "success": false,
-      "details": "Expected 200, got 404 - {'detail': 'Discharge summary not found'}",
-      "timestamp": "2025-11-28T06:01:24.492160"
+      "success": true,
+      "details": "Status: 200",
+      "timestamp": "2025-12-22T17:29:25.313904"
     }
   ]
 }
