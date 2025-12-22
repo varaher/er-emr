@@ -3765,14 +3765,15 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
               <Card>
                 <CardHeader>
                   <CardTitle>Treatment in ER</CardTitle>
-                  <CardDescription>Document interventions and medications</CardDescription>
+                  <CardDescription>Document interventions, procedures, and diagnoses</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-6">
-                    <div className="space-y-2">
-                      <Label>Interventions</Label>
+                    {/* Interventions Done */}
+                    <div className="space-y-2 p-4 border-l-4 border-blue-400 bg-blue-50/50 rounded-r-lg">
+                      <Label className="text-lg font-semibold text-blue-900">Interventions Done</Label>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                        {['Oxygen', 'Nebulisation', 'Antiplatelets', 'Anticoagulant', 'Thrombolysis', 'Antibiotics', 'Analgesics', 'Antiemetics', 'Anticonvulsants', 'IV Fluids', 'Vasopressors'].map(item => (
+                        {['Oxygen', 'Nebulisation', 'Antiplatelets', 'Anticoagulant', 'Thrombolysis', 'Antibiotics', 'Analgesics', 'Antiemetics', 'Anticonvulsants', 'IV Fluids', 'Vasopressors', 'Blood Transfusion'].map(item => (
                           <div key={item} className="flex items-center space-x-2">
                             <Checkbox
                               id={`treatment-${item}`}
@@ -3785,10 +3786,58 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
                       </div>
                     </div>
 
+                    {/* Procedures Done */}
+                    <div className="space-y-2 p-4 border-l-4 border-purple-400 bg-purple-50/50 rounded-r-lg">
+                      <Label className="text-lg font-semibold text-purple-900">Procedures Done</Label>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                        {['IV Cannulation', 'Foley Catheter', 'NG Tube', 'Central Line', 'Arterial Line', 'Intubation', 'ICD Insertion', 'Lumbar Puncture', 'Wound Suturing', 'Splinting', 'CPR', 'Cardioversion/Defibrillation'].map(item => (
+                          <div key={item} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`procedure-${item}`}
+                              checked={formData.treatment.procedures?.includes(item)}
+                              onCheckedChange={() => toggleArrayField('treatment', 'procedures', item)}
+                            />
+                            <Label htmlFor={`procedure-${item}`} className="text-sm">{item}</Label>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="mt-3">
+                        <Label htmlFor="procedure-notes" className="flex items-center gap-2">
+                          <Mic className="h-4 w-4 text-blue-600" />
+                          Procedure Notes
+                        </Label>
+                        <VoiceTextarea
+                          id="procedure-notes"
+                          value={formData.treatment.procedure_notes || ''}
+                          onChange={(e) => updateNestedField('treatment', 'procedure_notes', e.target.value)}
+                          placeholder="Details of procedures performed..."
+                          rows={2}
+                          className="mt-1"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Provisional Diagnosis */}
+                    <div className="space-y-2 p-4 border-l-4 border-green-400 bg-green-50/50 rounded-r-lg">
+                      <Label htmlFor="provisional-diagnoses" className="text-lg font-semibold text-green-900">Provisional Diagnosis</Label>
+                      <Input
+                        id="provisional-diagnoses"
+                        data-testid="input-provisional-diagnoses"
+                        value={formData.treatment.provisional_diagnoses.join(', ')}
+                        onChange={(e) => updateNestedField('treatment', 'provisional_diagnoses', e.target.value.split(',').map(s => s.trim()).filter(s => s))}
+                        placeholder="Enter provisional diagnoses separated by commas"
+                        className="text-base"
+                      />
+                      <p className="text-xs text-slate-500">
+                        💡 Differential diagnoses will be documented in the discharge summary
+                      </p>
+                    </div>
+
+                    {/* Treatment Notes */}
                     <div className="space-y-2">
                       <Label htmlFor="intervention-notes" className="flex items-center gap-2">
-                        Treatment Notes
-                        <Mic className="h-3 w-3 text-slate-400" />
+                        <Mic className="h-4 w-4 text-blue-600" />
+                        Treatment Notes / Medications Given
                       </Label>
                       <VoiceTextarea
                         id="intervention-notes"
@@ -3798,20 +3847,6 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
                         placeholder="Detailed treatment plan, medications, dosages..."
                         rows={5}
                       />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="provisional-diagnoses">Provisional Diagnosis</Label>
-                      <Input
-                        id="provisional-diagnoses"
-                        data-testid="input-provisional-diagnoses"
-                        value={formData.treatment.provisional_diagnoses.join(', ')}
-                        onChange={(e) => updateNestedField('treatment', 'provisional_diagnoses', e.target.value.split(',').map(s => s.trim()).filter(s => s))}
-                        placeholder="Enter provisional diagnoses separated by commas"
-                      />
-                      <p className="text-xs text-slate-500">
-                        💡 Differential diagnoses will be documented in the discharge summary
-                      </p>
                     </div>
                   </div>
                 </CardContent>
