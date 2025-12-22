@@ -39,6 +39,7 @@ export default function CaseSheetScreen({ route, navigation }) {
     circulation: false,
     disability: false,
     exposure: false,
+    reassessment: false,
     adjuvants: true,
     generalExam: false,
     cvs: true,
