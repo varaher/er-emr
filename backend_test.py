@@ -314,6 +314,131 @@ class EREmrAPITester:
         )
         return success
 
+    def test_subscription_plans(self):
+        """Test GET /api/subscription/plans (no auth required)"""
+        # Temporarily remove token for this test
+        temp_token = self.token
+        self.token = None
+        
+        success, response = self.run_test(
+            "Get Subscription Plans",
+            "GET",
+            "subscription/plans",
+            200
+        )
+        
+        # Restore token
+        self.token = temp_token
+        
+        if success and isinstance(response, dict):
+            # Check for expected subscription plans
+            expected_plans = ["free", "pro_monthly", "pro_annual", "hospital_basic", "hospital_premium"]
+            expected_packs = ["pack_10", "pack_25", "pack_50"]
+            
+            plans_found = response.get("plans", {})
+            packs_found = response.get("credit_packs", {})
+            
+            plans_check = all(plan in plans_found for plan in expected_plans)
+            packs_check = all(pack in packs_found for pack in expected_packs)
+            
+            if plans_check and packs_check:
+                print(f"   ✅ Found all expected plans and credit packs")
+                return True
+            else:
+                missing_plans = [p for p in expected_plans if p not in plans_found]
+                missing_packs = [p for p in expected_packs if p not in packs_found]
+                self.log_test("Get Subscription Plans", False, f"Missing plans: {missing_plans}, Missing packs: {missing_packs}")
+                return False
+        return success
+
+    def test_subscription_status(self):
+        """Test GET /api/subscription/status (requires auth)"""
+        success, response = self.run_test(
+            "Get Subscription Status",
+            "GET",
+            "subscription/status",
+            200
+        )
+        
+        if success and isinstance(response, dict):
+            # Check for expected fields
+            expected_fields = ["tier", "plan_name", "patient_count", "ai_credits"]
+            fields_found = all(field in response for field in expected_fields)
+            
+            if fields_found:
+                print(f"   ✅ Status contains expected fields: tier={response.get('tier')}, plan={response.get('plan_name')}")
+                return True
+            else:
+                missing_fields = [f for f in expected_fields if f not in response]
+                self.log_test("Get Subscription Status", False, f"Missing fields: {missing_fields}")
+                return False
+        return success
+
+    def test_subscription_check_access(self):
+        """Test GET /api/subscription/check-access (requires auth)"""
+        success, response = self.run_test(
+            "Check Subscription Access",
+            "GET",
+            "subscription/check-access",
+            200
+        )
+        
+        if success and isinstance(response, dict):
+            # Check for expected fields
+            expected_fields = ["allowed", "tier"]
+            fields_found = all(field in response for field in expected_fields)
+            
+            if fields_found:
+                allowed = response.get("allowed")
+                tier = response.get("tier")
+                print(f"   ✅ Access check: allowed={allowed}, tier={tier}")
+                return True
+            else:
+                missing_fields = [f for f in expected_fields if f not in response]
+                self.log_test("Check Subscription Access", False, f"Missing fields: {missing_fields}")
+                return False
+        return success
+
+    def test_subscription_check_ai_access(self):
+        """Test GET /api/subscription/check-ai-access?ai_type=basic (requires auth)"""
+        success, response = self.run_test(
+            "Check AI Access",
+            "GET",
+            "subscription/check-ai-access?ai_type=basic",
+            200
+        )
+        
+        if success and isinstance(response, dict):
+            # Check for expected fields
+            expected_fields = ["allowed", "method", "remaining"]
+            fields_found = all(field in response for field in expected_fields)
+            
+            if fields_found:
+                allowed = response.get("allowed")
+                method = response.get("method")
+                remaining = response.get("remaining")
+                print(f"   ✅ AI Access: allowed={allowed}, method={method}, remaining={remaining}")
+                return True
+            else:
+                missing_fields = [f for f in expected_fields if f not in response]
+                self.log_test("Check AI Access", False, f"Missing fields: {missing_fields}")
+                return False
+        return success
+
+    def test_ai_usage(self):
+        """Test GET /api/ai/usage (requires auth)"""
+        success, response = self.run_test(
+            "Get AI Usage Stats",
+            "GET",
+            "ai/usage",
+            200
+        )
+        
+        if success and isinstance(response, dict):
+            print(f"   ✅ AI Usage stats retrieved successfully")
+            return True
+        return success
+
     def test_existing_case(self):
         """Test with existing case ID from context"""
         existing_case_id = "1b804ae5-9395-4edd-be6f-6b49a8b1e3b8"
