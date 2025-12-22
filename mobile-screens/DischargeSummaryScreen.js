@@ -428,20 +428,55 @@ export default function DischargeSummaryScreen({ route, navigation }) {
       </Section>
 
       {/* Action Buttons */}
-      <View style={styles.buttonRow}>
+      <View style={styles.exportSection}>
+        <Text style={styles.exportTitle}>📄 Export Options</Text>
+        
+        {/* PDF Export */}
         <TouchableOpacity
-          style={[styles.btn, styles.btnOutline]}
+          style={[styles.exportBtn, styles.exportBtnPdf]}
           onPress={generatePDF}
         >
-          <Text style={styles.btnOutlineText}>Export PDF</Text>
+          <View style={styles.exportBtnContent}>
+            <Text style={styles.exportBtnIcon}>📄</Text>
+            <View style={styles.exportBtnInfo}>
+              <Text style={styles.exportBtnTitle}>Export PDF</Text>
+              <Text style={styles.exportBtnSubtitle}>Standard medical format</Text>
+            </View>
+          </View>
+          <Text style={styles.exportBtnBadge}>FREE</Text>
         </TouchableOpacity>
+        
+        {/* Word Export (Premium) */}
+        <TouchableOpacity
+          style={[styles.exportBtn, styles.exportBtnWord]}
+          onPress={generateWord}
+        >
+          <View style={styles.exportBtnContent}>
+            <Text style={styles.exportBtnIcon}>📝</Text>
+            <View style={styles.exportBtnInfo}>
+              <Text style={styles.exportBtnTitle}>Export Word</Text>
+              <Text style={styles.exportBtnSubtitle}>Editable document</Text>
+            </View>
+          </View>
+          <View style={styles.premiumBadge}>
+            <Text style={styles.premiumBadgeIcon}>🔒</Text>
+            <Text style={styles.premiumBadgeText}>PRO</Text>
+          </View>
+        </TouchableOpacity>
+        
+        <Text style={styles.exportNote}>
+          Word export available with Hospital Premium or ₹25/document
+        </Text>
+      </View>
+      
+      <View style={styles.buttonRow}>
         <TouchableOpacity
           style={[styles.btn, styles.btnPrimary]}
           onPress={handleSave}
           disabled={saving}
         >
           <Text style={styles.btnPrimaryText}>
-            {saving ? "Saving..." : "Save"}
+            {saving ? "Saving..." : "💾 Save Discharge Summary"}
           </Text>
         </TouchableOpacity>
       </View>
