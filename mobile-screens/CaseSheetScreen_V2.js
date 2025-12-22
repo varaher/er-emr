@@ -227,6 +227,9 @@ export default function CaseSheetScreen({ route, navigation }) {
   });
 
   /* ===================== HELPERS ===================== */
+  const [, setForceRender] = useState(0);
+  const forceUpdate = () => setForceRender(prev => prev + 1);
+
   const toggleCollapse = (section) => {
     setCollapsed(prev => ({ ...prev, [section]: !prev[section] }));
   };
@@ -242,6 +245,17 @@ export default function CaseSheetScreen({ route, navigation }) {
 
   const updateExamStatus = (exam, status) => {
     setExamStatus(prev => ({ ...prev, [exam]: status }));
+  };
+
+  // Toggle intervention in array field
+  const toggleIntervention = (field, item) => {
+    const current = formDataRef.current[field] || [];
+    if (current.includes(item)) {
+      formDataRef.current[field] = current.filter(i => i !== item);
+    } else {
+      formDataRef.current[field] = [...current, item];
+    }
+    forceUpdate();
   };
 
   /* ===================== VOICE RECORDING ===================== */
