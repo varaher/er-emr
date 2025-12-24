@@ -1,164 +1,218 @@
-<analysis>An analysis of the conversation history has been completed. Here is the summary to assist the next agent.
+<analysis>**original_problem_statement:**
+The user wants to enhance their **ErMate** full-stack application. The initial request was to overhaul the web app's Primary Assessment UI with a detailed, dropdown-based format.
 
-### original_problem_statement
-The user wants to build a full-stack application named **ER-EMR** for Emergency Room doctors. The primary goal is to simplify and automate ER workflows. The current focus is on implementing a robust, continuous voice-to-text system with AI-powered data extraction to auto-populate all forms (Triage, Case Sheets, Discharge Summary) from a single, long dictation. This includes cleaning messy transcripts, extracting vitals and clinical findings, and providing real-time clinical decision support like red-flag warnings.
+This expanded to include several major new requirements and fixes during the session:
+1.  **Subscription Model:** Implement a comprehensive, multi-tiered subscription model for the entire application (not just AI features), gating access to core workflows and features like PDF/Word export.
+2.  **Mobile UI/UX Overhaul:**
+    *   Replicate the detailed Primary Assessment on mobile, using a space-saving Normal/Abnormal toggle UI.
+    *   Reorganize the case sheet forms on both web and mobile to improve clinical workflow (moving Events/HOPI and Interventions/Procedures).
+    *   Fix the mobile dashboard so it correctly displays saved cases.
+    *   Add a Save to Case Sheet button to the mobile Triage screen to auto-populate fields from voice transcription.
+    *   Implement logic to auto-fill blank fields with normal default values upon saving a case sheet.
+3.  **Export Feature:** Implement a core PDF & Word export feature for case sheets and discharge summaries, with access controlled by the new subscription tiers (e.g., watermarks for free users, Word export for premium).
+4.  **Bug Fixes:**
+    *   Resolve a mobile app build failure caused by incorrect screen import paths in .
+    *   Fix a JSX parsing error on the mobile dashboard.
+    *   Address a new, critical issue where the user is unable to log into the mobile app.
 
-**PRODUCT REQUIREMENTS:**
-1.  **AI-Powered Data Entry:** A seamless voice-to-form workflow where doctors can dictate patient encounters, and the system automatically transcribes, cleans, and populates the entire case sheet.
-2.  **Enterprise Authentication:** A full authentication system supporting individual users and hospital/institutional accounts.
-3.  **Advanced Voice Features:** A continuous, stable voice recording system.
-4.  **Clinical Decision Support:** The system should automatically identify and flag abnormal vital signs (red flags).
-5.  **Mobile App Sync:** The user's React Native mobile app must be fully integrated with the web app and backend, sharing the same data and authentication.
+**User's preferred language**: English
 
-### **User's preferred language**:
-English
+**what currently exists?**
+A full-stack application (React frontend, FastAPI backend, MongoDB) and a React Native mobile app.
 
-### **what currently exists?**
-A full-stack ER-EMR application with a React frontend and a FastAPI backend. The current session has been exclusively focused on debugging and fixing the user's local React Native mobile application. The user is able to build an APK, but it suffers from critical performance problems. The agent has diagnosed the issues and has begun providing refactored code for the mobile app screens. The user has also configured their project for Over-the-Air (OTA) updates with the agent's guidance.
+**Backend:** A sophisticated, multi-tiered subscription and access control system has been implemented in . This includes new database models, API endpoints for checking subscription status and feature access (, ), and logic to gate features based on user plan (Free, Pro, Hospital).
 
-### **Last working item**:
-*   **Last item agent was working:** The agent was addressing severe performance issues (5-8 minute load times, extreme typing lag) in the user's freshly built React Native APK. The root cause of the typing lag was identified as excessive re-renders from using  for text inputs. The agent proposed a fix using the  hook and has already provided the complete, refactored code for , , , and . The user then requested to fork the session before receiving the remaining fixed files.
-*   **Status:** IN PROGRESS
-*   **Agent Testing Done:** N
-*   **Which testing method agent to use?** The user is testing manually by building an APK. The next agent should guide the user to test locally using **Expo Go** () for a much faster feedback loop before building a new APK or pushing an OTA update.
-*   **User Testing Done:** N (User has not yet tested the new -based code provided by the agent).
+**Web App:** The Primary Assessment (ABCDE) section of the  has been completely overhauled with a detailed, dropdown-based UI. The Treatment tab has also been reorganized. These changes have been tested and verified.
 
-### **All Pending/In progress Issue list**:
-*   **Issue 1: Critical Performance Issues in Mobile App APK (P0)**
-*   **Issue 2: Voice Auto-Population Not Working (P1)**
+**Mobile App:** The app has undergone significant changes. Key screens like , , and  were heavily modified to implement the new UI/UX requirements and the subscription-gated export feature. A new  has been created for paywalls. All temporary file names (, ) have been cleaned up. However, the app is currently in a broken state due to a login issue and potential build problems.
+
+**Last working item**:
+- Last item agent was working: Investigating a critical mobile app login failure reported by the user. The agent viewed  but was interrupted before implementing a fix.
+- Status: IN PROGRESS
+- Agent Testing Done: N
+- Which testing method agent to use? Frontend testing agent to perform a full login and navigation test on the mobile app once a fix is attempted.
+- User Testing Done: N (User reported the issue)
+
+**All Pending/In progress Issue list**:
+- Issue 1: Mobile App Login Failure (P0 - CRITICAL BLOCKER)
+- Issue 2: Triage Voice Data Does Not Auto-Populate (P1)
+- Issue 3: Mobile App OTA Updates and Build Stability (P2 - BLOCKER)
 
 **Issues Detail:**
-*   **Issue 1: Critical Performance Issues in Mobile App APK**
-    *   **Description:** The user-built APK takes 5-8 minutes to load past the login screen and has severe typing lag, making the app unusable. The agent diagnosed the  library was forcing New Architecture on, causing overhead. The typing lag is due to  re-rendering on every keystroke in text inputs.
-    *   **Attempted fixes:**
-        *   The agent guided the user to fix the initial build error by setting  in .
-        *   The agent provided a refactoring strategy: replace  with  for all text inputs to prevent re-renders on typing.
-        *   Code for 4 screens (, , , ) has been provided.
-    *   **Next debug checklist:**
-        1.  Provide the user with the complete, refactored code for the remaining screens, applying the  pattern.
-        2.  Guide the user to replace all their screen files with the new versions.
-        3.  Strongly advise the user to test locally first using  and the Expo Go app to confirm the typing lag is resolved.
-        4.  Once local testing passes, guide the user to push an OTA update using .
-    *   **Why fix this issue and what will be achieved with the fix?** The application is currently unusable. This fix will make the app responsive and functional.
-    *   **Status:** IN PROGRESS
-    *   **Is recurring issue?** Y
-    *   **Should Test frontend/backend/both after fix?** Frontend (user's mobile app).
-    *   **Blocked on other issue:** None.
+- **Issue 1: Mobile App Login Failure**
+  - **Description:** The user is unable to log in to the mobile app, blocking all further testing and verification of mobile features.
+  - **Attempted fixes:** The agent viewed  to begin diagnosis but has not yet implemented a fix.
+  - **Next debug checklist:**
+    1.  Examine  and the  function.
+    2.  Check the API call being made to  and verify the payload format.
+    3.  Inspect backend logs for any errors during the login attempt.
+    4.  Verify that  is being used correctly to store the authentication token.
+  - **Why fix this issue and what will be achieved with the fix?** This is a critical blocker. Fixing it will allow the user to access and test all the newly implemented mobile features.
+  - **Status:** IN PROGRESS
+  - **Is recurring issue?** N
+  - **Should Test frontend/backend/both after fix?** Frontend (Mobile App)
+  - **Blocked on other issue:** None
 
-*   **Issue 2: Voice Auto-Population Not Working**
-    *   **Description:** The user reported that the voice-to-form auto-population feature is not working. The transcript is generated, but the form fields are not filled.
-    *   **Attempted fixes:** An earlier version of  was provided by a previous agent, but the issue persists.
-    *   **Next debug checklist:**
-        1.  This issue should be addressed *after* the typing lag is fixed across all screens.
-        2.  Verify the logic in the refactored  that updates the form fields after the  API call.
-        3.  Since  doesn't trigger UI re-renders, the screen may need a mechanism (e.g., a dedicated state variable) to force a refresh *only* after the API call completes, to display the populated data.
-    *   **Why fix this issue and what will be achieved with the fix?** This is a core feature of the ER-EMR application.
-    *   **Status:** NOT STARTED
-    *   **Is recurring issue?** Y
-    *   **Should Test frontend/backend/both after fix?** Frontend (user's mobile app).
-    *   **Blocked on other issue:** Issue 1: Critical Performance Issues in Mobile App APK.
+- **Issue 2: Triage Voice Data Does Not Auto-Populate**
+  - **Description:** On the mobile Triage screen, the voice-to-text transcription works, but the extracted data does not automatically fill the form fields. The user suggested adding a Save to Case Sheet button to trigger this action.
+  - **Attempted fixes:** The agent viewed  to plan the implementation but was interrupted.
+  - **Next debug checklist:**
+    1.  In , add a Save to Case Sheet button below the transcription display.
+    2.  Create an  handler for the button that takes the AI-extracted data ( state).
+    3.  Update the parent component's state (or navigation params) to pass this data to , which should then populate the relevant fields.
+  - **Why fix this issue and what will be achieved with the fix?** This will complete a core AI workflow on mobile, making the voice feature useful.
+  - **Status:** NOT STARTED
+  - **Is recurring issue?** N
+  - **Should Test frontend/backend/both after fix?** Frontend (Mobile App)
+  - **Blocked on other issue:** Mobile App Login Failure
 
-### **In progress Task List**:
-*   **Task 1: Refactor All Mobile App Screens to Fix Typing Lag (P0)**
-    *   **Where to resume:** The user has received 4 out of ~10+ screen files. The next agent must provide the complete code for the remaining screens: , , , , , , , and /.
-    *   **What will be achieved with this?** A responsive and usable mobile application, resolving the primary user complaint.
-    *   **Status:** IN PROGRESS
-    *   **Should Test frontend/backend/both after fix?** Frontend.
-    *   **Blocked on something:** Nothing.
+- **Issue 3: Mobile App OTA Updates and Build Stability**
+  - **Description:** This is a persistent issue from the previous session. The user has been unable to receive Over-the-Air (OTA) updates. Although the agent provided a new  with  logic and fixed a subsequent build error related to file paths, it's unconfirmed if the user has successfully rebuilt the APK.
+  - **Attempted fixes:** Provided a new  with OTA logic. Fixed import paths in  from  to .
+  - **Next debug checklist:**
+    1.  After the login issue is fixed, confirm with the user if they can successfully build a new APK.
+    2.  Instruct the user to make a small, visible test change (e.g., text on the login screen) and push it via  to confirm if OTA is finally working.
+  - **Why fix this issue and what will be achieved with the fix?** Unblocks the entire mobile development and testing cycle, preventing the need for constant APK rebuilds.
+  - **Status:** BLOCKED (on user confirmation of a successful build)
+  - **Is recurring issue?** Y
+  - **Should Test frontend/backend/both after fix?** Frontend (Mobile App)
+  - **Blocked on other issue:** Mobile App Login Failure
 
-### **Upcoming and Future Tasks**
+**In progress Task List**:
+- None.
+
+**Upcoming and Future Tasks**
 **Upcoming Tasks:**
-*   **P1: Integrate Structured Vitals Voice Input**: Implement the conversational AI feature from the placeholder component  and integrate it into the Triage page.
-*   **P2: Implement AI Extraction for Discharge Summary**: Apply the AI auto-extraction workflow to the  page.
-*   **P3: Enhance Red Flag Warnings**: Implement a more prominent, persistent UI element to display critical red flag warnings on the case sheets.
+*   **P0: Finalize and Test Mobile App:** After fixing the login and auto-population bugs, conduct a full verification of all recent mobile changes, including the subscription flow, paywall screen, and gated export functionality.
+*   **P1: Confirm Mobile Build/OTA Stability:** Guide the user through a definitive test to ensure their build process and OTA updates are working reliably.
 
 **Future Tasks:**
-*   **P4: Upgrade to Live Streaming Whisper**: Upgrade the voice system to a real-time streaming API for infinite recording.
-*   **P5: AI-powered Interpretation**: Implement AI interpretation for clinical data like ABG, ECG, and POCUS.
-*   **P6: Implement Documentation Score**: Develop a feature to score the completeness of case sheets.
-*   **P7: Auto-generate Referral Letters**.
+*   Implement Link Your Device feature (QR code sync).
+*   Implement Structured Vitals Voice Input.
+*   Enhance Red Flag Warnings.
+*   Upgrade the voice system to a real-time streaming API.
+*   Implement Documentation Score.
+*   Auto-generate Referral Letters.
+*   Integrate ErPrana patient-centric wellness documentation.
 
-### **Completed work in this session**
-- Diagnosed and guided the user to fix a critical  failure related to  and New Architecture.
-- Successfully guided the user to build their first APK.
-- Diagnosed severe performance issues (slow load, typing lag) in the built APK.
-- Identified the root cause of typing lag ( on text inputs) and implemented a  based solution.
-- Provided fully refactored, performance-optimized code for , , , and .
-- Guided the user on configuring their  and installing  for Over-the-Air (OTA) updates.
+**Completed work in this session**
+- **Subscription & Export System (Backend & Mobile):**
+  - Implemented a full-stack, multi-tiered subscription model (Free, Pro, Hospital) with AI credit packs.
+  - Created backend endpoints to gate features (AI usage, PDF/Word export) based on subscription status.
+  - Implemented subscription-aware UI on the mobile  with locked/unlocked export buttons.
+  - Created a new  on mobile to act as a paywall.
+- **Web App UI Overhaul:**
+  - Deployed and tested a new, detailed dropdown-based UI for the Primary Assessment section in .
+  - Reorganized the Treatment tab layout for better clinical flow.
+- **Mobile App Enhancements & Fixes:**
+  - Redesigned the Primary Assessment in  with a Normal/Abnormal toggle UI.
+  - Added logic to auto-fill blank case sheet fields with default normal values.
+  - Fixed the mobile dashboard to correctly fetch and display saved patient cases.
+  - Resolved a critical mobile build error by correcting import paths in .
+  - Standardized all mobile screen filenames, removing  and  suffixes.
+  - Fixed a JSX parsing error on the .
 
-### **Code Architecture**
-The user's project is a standard Expo React Native application.
+**Earlier issues found/mentioned but not fixed**
+- The Link Your Device feature has been consistently deferred.
+
+**Known issue recurrence from previous fork**
+- **Issue recurrence in previous fork:** Mobile App OTA Updates Not Working.
+- **Recurrence count:** 2+
+- **Status:** BLOCKED. A fix was provided ( with ), but its effectiveness is unverified as the user is facing new build/login issues.
+
+**Code Architecture**
 
 
-### **Key Technical Concepts**
-*   **React Native Development:** State management (),  for performance, navigation ().
-*   **Expo & EAS:**
-    *   Building APKs using .
-    *   Debugging Gradle and build failures from EAS logs.
-    *   Expo New Architecture ().
-    *   Configuring and using Over-the-Air (OTA) updates via  and .
+**Key Technical Concepts**
+- **Subscription-Based Access Control (Backend):** The core of this session's work. A robust system using FastAPI dependencies was built to check user subscription tiers, patient counts, and AI credits before granting access to protected API endpoints. Plans are defined in a central dictionary, acting as feature flags.
+- **Conditional UI Rendering (Mobile):** The mobile app now fetches user access rights from the backend and dynamically renders UI elements, such as showing a lock icon on the Word export button for users on a lower subscription tier.
+- **Expo Build Configuration:** The session highlighted the critical importance of correct import paths in  (e.g.,  vs. ) for the Expo build process to succeed.
+- **State Management for Complex Forms (React/React Native):** Extensive use of , , and controlled/uncontrolled components to manage large, complex forms like the case sheet.
 
-### **key DB schema**
-No changes made to the database schema in this session.
+**key DB schema**
+- **users:** Heavily modified to support the subscription model. Added fields:
+  -  (e.g., 'free', 'pro_monthly')
+  -  (e.g., 'active', 'trial_ended')
+  - 
+  - 
+  - 
+  - 
+  - 
 
-### **changes in tech stack**
-*   User installed  to enable OTA updates.
+**changes in tech stack**
+- No changes to the core tech stack.
 
-### **All files of reference**
-*   **User's local project files:**
-    *    (modified for new arch and OTA)
-    *    (modified for APK build)
-    *   
-    *   All files under G:\ErEmr\ERmateApp\src\screens`
+**All files of reference**
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
 
-### **Areas that need refactoring**:
-*   All screens containing  components must be refactored to use the  pattern to prevent typing lag. This task is currently in progress.
+**Areas that need refactoring**:
+- The  directory has served its purpose as a staging area. Once the mobile app is stable, the user should be guided to maintain a clean  directory structure in their local project, removing the need for the agent to manage this remote folder.
 
-### **key api endpoints**
-*   No new endpoints were added. The focus was on the client-side mobile app.
+**key api endpoints**
+- ****: Needs to be debugged for the mobile app issue.
+- ****: (New) Checks the current user's subscription plan and access limits.
+- ****: (New) Returns all available subscription plans and credit packs.
+- ****: (New) Endpoint to simulate purchasing AI credits.
+- ****: (New) Checks if the user has rights to perform PDF or Word exports.
+- ****: Modified to use the new subscription access control logic.
 
-### **Critical Info for New Agent**
-*   **Focus is entirely on the user's local React Native project.** You do not have direct file access. You must provide complete, copy-paste-ready code for any file modifications.
-*   **The immediate task is to provide the remaining refactored screen files.** The user is waiting for the code for , , , etc., all updated with the  pattern to fix typing lag.
-*   **Guide the user on testing.** Strongly encourage the user to test locally with  and the Expo Go app. This is much faster than building an APK for every change.
-*   **The user is set up for OTA updates.** After all screens are fixed and tested locally, the final step should be to guide the user to push an update with .
+**Critical Info for New Agent**
+- **MOBILE APP IS BROKEN AND BLOCKED.** Your immediate priority is to fix the mobile login issue (). The user cannot test or verify *any* of the extensive mobile changes made in this session until they can log in.
+- **Subscription Model is Central:** The entire application logic now revolves around the new subscription model. All new features and fixes must respect this logic. Refer to the  functions in .
+- **Verify User's Local Environment:** The user has had build issues related to file paths (). Be prepared to guide them on structuring their local project folder correctly. Do not assume the files you've placed in  are correctly integrated on their machine.
+- **Follow the Priority:** Fix the login blocker (P0), then the Triage auto-population (P1), then confirm the build/OTA stability (P2).
 
-### **documents created in this job**
-*   /app/mobile-screens/PhysicalExamScreen.js
-*   /app/mobile-screens/DispositionScreen_FIXED.js
-*   /app/mobile-screens/CaseSheetScreen_FIXED.js
+**documents and test_reports created in this job**
+- 
 
-### **Last 10 User Messages and any pending user messages**
-1.  **User:** Reports  is failing. - **Status: Resolved.**
-2.  **User:** Provides Gradle logs for the failed build. - **Status: Resolved.**
-3.  **User:** Confirms APK was downloaded but reports it's very slow and typing doesn't work. - **Status: In Progress.**
-4.  **User:** Provides  code as requested for debugging the typing lag. - **Status: Completed.**
-5.  **User:** Asks for the full code for the fix. - **Status: In Progress.**
-6.  **User:** Asks if changes will auto-reflect in the downloaded app. - **Status: Completed.** (Agent explained APKs need rebuilds, introduced OTA updates).
-7.  **User:** Asks if testing in Android Studio is a good option. - **Status: Completed.** (Agent provided guidance on local testing).
-8.  **User:** Asks agent to update its memory and fork the session. - **Status: Acknowledged.**
-9.  **User:** Provides updated  with OTA configuration. - **Status: Acknowledged.**
-10. **Pending User Action:** The user is waiting for the agent to provide the complete, refactored code for the remaining screens.
+**Last 10 User Messages and any pending HUMAN messages**
+10. i think mobile version login is an issue . im not able to login.
+9. please update ur knowldege /memory before forking
+8. the voice record function is functioning in triage but it doest autopopulate . i would suggest a button like save to case sheet  under voice record .
+7. a CORE VALUE FEATURE for ERmate / ErPrana... (Long message detailing a premium export strategy).
+6. [Agent thought visible to user]
+5. ERmate should be a FULL APP subscription, not “AI-only”... (Long message detailing a full-app subscription strategy).
+4. i think i have made only the ai use as subscription model .. please change that... (User request to pivot to a full subscription model with pricing tables).
+3. [Agent message visible to user]
+2. [Agent message visible to user]
+1. this happened after the latest updates .. so far it was working well . check the pic attached with this char (User provides screenshot of their local file structure, revealing the  path).
 
-### **Project Health Check:**
-*   **Broken:** The user's mobile app is unusable due to severe performance issues (typing lag, slow loading). The core auto-populate feature is also broken.
+**Project Health Check:**
+- **Broken:**
+  - Mobile App Login
+  - Mobile App build process (user is experiencing errors).
+  - Mobile App OTA update mechanism (status unconfirmed, likely still not working for the user).
+- **Mocked:** None.
 
-### **3rd Party Integrations**
-*   **OpenAI (via emergentintegrations)** — uses Emergent LLM Key
-*   **Sarvam AI (via httpx)** — requires User API Key
-*   **Expo Print**
-*   **Expo Sharing**
-*   **Expo Updates (NEW)** - For Over-the-Air updates.
+**3rd Party Integrations**
+- **OpenAI (via emergentintegrations)** — uses Emergent LLM Key
+- **Sarvam AI (via httpx)** — requires User API Key
+- **Expo Print** - For PDF generation on mobile.
+- **Expo Sharing** - For sharing exported files.
+- **Expo Updates** - For Over-the-Air (OTA) updates.
+- **@react-native-async-storage/async-storage** - For persistent login on mobile.
 
-### **Testing status**
-*   **Testing agent used after significant changes:** NO
-*   **Troubleshoot agent used after agent stuck in loop:** NO
-*   **Test files created:** None.
-*   **Known regressions:** The mobile app is currently in a non-functional state due to performance bugs that surfaced after a successful (but problematic) APK build.
+**Testing status**
+- **Testing agent used after significant changes:** YES (for both web and backend changes).
+- **Troubleshoot agent used after agent stuck in loop:** NO
+- **Test files created:** None.
+- **Known regressions:** Mobile App Login is a new, major regression.
 
-### **Credentials to test flow:**
-*   **Email:** 
-*   **Password:** 
+**Credentials to test flow:**
+- A new user was registered during the session for testing.
+- **Email:** 
+- **Password:** 
+(Note: The original  credentials failed).
 
-### **What agent forgot to execute**
-*   The agent was in the process of providing the full code for all refactored screens when the user requested to fork. The task was interrupted, not forgotten. The next agent must resume this immediately.</analysis>
+**What agent forgot to execute**
+The agent was repeatedly interrupted by the user with new high-priority requests or reports of blocking issues. The main forgotten items are actually pending tasks that were superseded:
+- The agent started to implement the Save to Case Sheet button on the mobile Triage screen but was stopped to address the critical login failure. This is now .
+- The broader task of guiding the user to confirm their APK build and OTA update functionality remains unresolved. This is now .</analysis>
