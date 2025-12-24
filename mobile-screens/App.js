@@ -158,20 +158,48 @@ export default function App() {
         </View>
         <ActivityIndicator size="large" color="#2563eb" style={styles.spinner} />
         {updateStatus ? (
-          <Text style={styles.updateText}>{updateStatus}</Text>
+          <View style={styles.updateStatusBox}>
+            <Text style={styles.updateStatusIcon}>🔄</Text>
+            <Text style={styles.updateText}>{updateStatus}</Text>
+          </View>
         ) : (
           <Text style={styles.loadingText}>Loading...</Text>
         )}
         
-        {/* Manual update check button */}
-        {!isCheckingUpdate && (
+        {/* App version info */}
+        <Text style={styles.versionText}>v1.0.0</Text>
+      </View>
+    );
+  }
+
+  // Show update modal overlay if update is available
+  if (showUpdateModal) {
+    return (
+      <View style={styles.updateModalContainer}>
+        <View style={styles.updateModal}>
+          <Text style={styles.updateModalIcon}>🎉</Text>
+          <Text style={styles.updateModalTitle}>UPDATE AVAILABLE!</Text>
+          <Text style={styles.updateModalMessage}>
+            A new version of ErMate is ready with the latest features and bug fixes.
+          </Text>
           <TouchableOpacity 
-            style={styles.checkUpdateBtn}
-            onPress={checkForUpdates}
+            style={styles.updateNowBtn}
+            onPress={async () => {
+              await Updates.reloadAsync();
+            }}
           >
-            <Text style={styles.checkUpdateText}>Check for Updates</Text>
+            <Text style={styles.updateNowBtnText}>🚀 Update Now</Text>
           </TouchableOpacity>
-        )}
+          <TouchableOpacity 
+            style={styles.updateLaterBtn}
+            onPress={() => {
+              setShowUpdateModal(false);
+              setIsCheckingUpdate(false);
+            }}
+          >
+            <Text style={styles.updateLaterBtnText}>Later</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   }
