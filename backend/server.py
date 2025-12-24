@@ -1764,6 +1764,23 @@ async def get_case(case_id: str, current_user: UserResponse = Depends(get_curren
     if isinstance(case['updated_at'], str):
         case['updated_at'] = datetime.fromisoformat(case['updated_at'])
     
+    # Sanitize discharge_vitals - convert empty strings to None
+    if 'disposition' in case and case['disposition']:
+        dv = case['disposition'].get('discharge_vitals')
+        if dv:
+            for key in ['hr', 'rr', 'spo2', 'grbs', 'temperature', 'bp_systolic', 'bp_diastolic', 'gcs_e', 'gcs_v', 'gcs_m']:
+                if key in dv and dv[key] == "":
+                    dv[key] = None
+            if 'pain_score' in dv and dv['pain_score'] == "":
+                dv['pain_score'] = None
+    
+    # Also sanitize vitals_at_arrival
+    if 'vitals_at_arrival' in case and case['vitals_at_arrival']:
+        va = case['vitals_at_arrival']
+        for key in ['hr', 'rr', 'spo2', 'grbs', 'temperature', 'bp_systolic', 'bp_diastolic', 'gcs_e', 'gcs_v', 'gcs_m', 'pain_score']:
+            if key in va and va[key] == "":
+                va[key] = None
+    
     return case
 
 @api_router.put("/cases/{case_id}", response_model=CaseSheet)
