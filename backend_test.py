@@ -179,6 +179,58 @@ class EREmrAPITester:
             return True
         return False
 
+    def test_mobile_case_creation(self):
+        """Test mobile app specific case creation with exact data structure from review request"""
+        mobile_case_data = {
+            "patient": {
+                "name": "Test Mobile Patient",
+                "age": "35",
+                "sex": "Male",
+                "phone": "1234567890",
+                "address": "Test Address",
+                "arrival_datetime": "2024-12-24T00:00:00Z",
+                "mode_of_arrival": "Walk-in",
+                "brought_by": "Self",
+                "mlc": False
+            },
+            "vitals_at_arrival": {
+                "hr": 80,
+                "bp_systolic": 120,
+                "bp_diastolic": 80,
+                "rr": 16,
+                "spo2": 98,
+                "temperature": 36.8,
+                "gcs_e": 4,
+                "gcs_v": 5,
+                "gcs_m": 6,
+                "grbs": 100
+            },
+            "presenting_complaint": {
+                "text": "Voice transcript: Patient came in with chest pain",
+                "duration": "",
+                "onset_type": "Sudden",
+                "course": "Progressive"
+            },
+            "triage_priority": 4,
+            "triage_color": "green",
+            "em_resident": "Test Doctor",
+            "case_type": "adult"
+        }
+        
+        success, response = self.run_test(
+            "Mobile Case Creation",
+            "POST",
+            "cases",
+            200,
+            data=mobile_case_data
+        )
+        
+        if success and 'id' in response:
+            self.test_case_id = response['id']
+            print(f"   ✅ Mobile case created with ID: {self.test_case_id}")
+            return True
+        return False
+
     def test_get_cases(self):
         """Test get all cases"""
         success, response = self.run_test(
