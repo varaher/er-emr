@@ -246,6 +246,7 @@ export default function App() {
             </Stack.Screen>
             <Stack.Screen name="Logs" component={LogsScreen} />
             <Stack.Screen name="Upgrade" component={UpgradeScreen} />
+            <Stack.Screen name="ViewCaseSheet" component={ViewCaseSheetScreen} />
           </>
         )}
       </Stack.Navigator>
