@@ -1,28 +1,28 @@
 {
   "summary": {
     "total_tests": 3,
-    "passed_tests": 2,
-    "success_rate": 66.66666666666666,
-    "timestamp": "2025-12-24T00:50:23.004536"
+    "passed_tests": 3,
+    "success_rate": 100.0,
+    "timestamp": "2025-12-24T00:50:40.792378"
   },
   "detailed_results": [
     {
       "test_name": "User Login",
       "success": true,
       "details": "Status: 200",
-      "timestamp": "2025-12-24T00:50:22.906400"
+      "timestamp": "2025-12-24T00:50:40.701966"
     },
     {
       "test_name": "Mobile Case Creation",
-      "success": false,
-      "details": "Expected 200, got 422 - {'detail': [{'type': 'missing', 'loc': ['body', 'patient', 'informant_name'], 'msg': 'Field required', 'input': {'name': 'Test Mobile Patient', 'age': '35', 'sex': 'Male', 'phone': '1234567890', 'address': 'Test Address', 'arrival_datetime': '2024-12-24T00:00:00Z', 'mode_of_arrival': 'Walk-in', 'brought_by': 'Self', 'mlc': False}, 'url': 'https://errors.pydantic.dev/2.12/v/missing'}, {'type': 'missing', 'loc': ['body', 'patient', 'informant_reliability'], 'msg': 'Field required', 'input': {'name': 'Test Mobile Patient', 'age': '35', 'sex': 'Male', 'phone': '1234567890', 'address': 'Test Address', 'arrival_datetime': '2024-12-24T00:00:00Z', 'mode_of_arrival': 'Walk-in', 'brought_by': 'Self', 'mlc': False}, 'url': 'https://errors.pydantic.dev/2.12/v/missing'}, {'type': 'missing', 'loc': ['body', 'patient', 'identification_mark'], 'msg': 'Field required', 'input': {'name': 'Test Mobile Patient', 'age': '35', 'sex': 'Male', 'phone': '1234567890', 'address': 'Test Address', 'arrival_datetime': '2024-12-24T00:00:00Z', 'mode_of_arrival': 'Walk-in', 'brought_by': 'Self', 'mlc': False}, 'url': 'https://errors.pydantic.dev/2.12/v/missing'}]}",
-      "timestamp": "2025-12-24T00:50:22.952971"
+      "success": true,
+      "details": "Status: 200",
+      "timestamp": "2025-12-24T00:50:40.745691"
     },
     {
       "test_name": "Get All Cases",
       "success": true,
       "details": "Status: 200",
-      "timestamp": "2025-12-24T00:50:23.003054"
+      "timestamp": "2025-12-24T00:50:40.790909"
     }
   ]
 }
