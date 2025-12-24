@@ -250,6 +250,54 @@ export default function TriageScreen({ route, navigation }) {
     }
   };
 
+  // Auto-apply extracted data (called automatically after voice processing)
+  const autoApplyExtractedData = (data) => {
+    if (!data) return;
+
+    console.log("🔄 Auto-applying extracted data:", data);
+
+    // Apply vitals
+    if (data.vitals) {
+      const v = data.vitals;
+      if (v.hr) formDataRef.current.hr = String(v.hr);
+      if (v.bp_systolic) formDataRef.current.bp_systolic = String(v.bp_systolic);
+      if (v.bp_diastolic) formDataRef.current.bp_diastolic = String(v.bp_diastolic);
+      if (v.rr) formDataRef.current.rr = String(v.rr);
+      if (v.spo2) formDataRef.current.spo2 = String(v.spo2);
+      if (v.temperature) formDataRef.current.temperature = String(v.temperature);
+      if (v.gcs_e) formDataRef.current.gcs_e = String(v.gcs_e);
+      if (v.gcs_v) formDataRef.current.gcs_v = String(v.gcs_v);
+      if (v.gcs_m) formDataRef.current.gcs_m = String(v.gcs_m);
+    }
+
+    // Apply symptoms
+    if (data.symptoms) {
+      const newSymptoms = { ...symptoms };
+      Object.keys(data.symptoms).forEach(key => {
+        if (newSymptoms.hasOwnProperty(key)) {
+          newSymptoms[key] = data.symptoms[key];
+        }
+      });
+      setSymptoms(newSymptoms);
+    }
+
+    // Apply patient info if present
+    if (data.patient) {
+      const p = data.patient;
+      if (p.name) formDataRef.current.name = p.name;
+      if (p.age) formDataRef.current.age = String(p.age);
+      if (p.sex) setSex(p.sex);
+    }
+
+    if (data.chief_complaint) {
+      formDataRef.current.chief_complaint = data.chief_complaint;
+    }
+
+    // Force UI re-render
+    forceUpdate(n => n + 1);
+    console.log("✅ Data auto-applied successfully");
+  };
+
   const applyExtractedData = () => {
     if (!extractedData) return;
 
