@@ -81,6 +81,7 @@ export default function DashboardScreen({ navigation, onLogout }) {
       }
 
       console.log("Fetching cases from:", `${API_URL}/cases`);
+      console.log("Using token:", token ? `${token.substring(0, 20)}...` : "NO TOKEN!");
       
       // Fetch all cases
       const res = await fetch(`${API_URL}/cases`, {
@@ -96,7 +97,24 @@ export default function DashboardScreen({ navigation, onLogout }) {
       if (!res.ok) {
         const errorText = await res.text();
         console.error("API Error:", errorText);
-        throw new Error(`Failed to fetch cases: ${res.status}`);
+        
+        // Show more helpful error message
+        if (res.status === 500) {
+          throw new Error("Server error (500). Please check your Render backend logs or try logging in again.");
+        } else if (res.status === 401) {
+          // Token expired - force re-login
+          Alert.alert(
+            "Session Expired",
+            "Please log in again.",
+            [{ text: "OK", onPress: () => {
+              if (onLogout) onLogout();
+              else navigation.replace("Login");
+            }}]
+          );
+          return;
+        } else {
+          throw new Error(`Failed to fetch cases: ${res.status} - ${errorText}`);
+        }
       }
 
       const casesData = await res.json();
