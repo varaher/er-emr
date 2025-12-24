@@ -575,6 +575,17 @@ export default function TriageScreen({ route, navigation }) {
               <Text style={styles.transcriptText}>{voiceText}</Text>
             </View>
           ) : null}
+
+          {/* Save to Case Sheet Button */}
+          {(voiceText || extractedData) && (
+            <TouchableOpacity
+              style={styles.saveToCaseSheetBtn}
+              onPress={saveToCaseSheet}
+            >
+              <Ionicons name="save" size={20} color="#fff" />
+              <Text style={styles.saveToCaseSheetBtnText}>Save to Case Sheet</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Patient Info Card */}
