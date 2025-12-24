@@ -320,6 +320,15 @@ export default function DischargeSummaryScreen({ route, navigation }) {
         <Text style={styles.headerSubtitle}>
           {patient.name || "N/A"} - {patient.uhid || "N/A"}
         </Text>
+        {/* Edit Mode Toggle */}
+        <TouchableOpacity 
+          style={[styles.editToggle, editMode && styles.editToggleActive]}
+          onPress={() => setEditMode(!editMode)}
+        >
+          <Text style={[styles.editToggleText, editMode && styles.editToggleTextActive]}>
+            {editMode ? "✓ Editing" : "✏️ Edit"}
+          </Text>
+        </TouchableOpacity>
       </View>
 
       {/* Patient Info */}
