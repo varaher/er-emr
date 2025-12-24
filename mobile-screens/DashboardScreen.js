@@ -14,7 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 
-const API_URL = "https://erpro-mobile.preview.emergentagent.com/api";
+const API_URL = "https://er-emr-backend.onrender.com/api";
 
 export default function DashboardScreen({ navigation, onLogout }) {
   const [user, setUser] = useState(null);

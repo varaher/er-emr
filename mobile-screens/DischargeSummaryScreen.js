@@ -15,7 +15,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 
-const API_URL = "https://erpro-mobile.preview.emergentagent.com/api";
+const API_URL = "https://er-emr-backend.onrender.com/api";
 
 export default function DischargeSummaryScreen({ route, navigation }) {
   const { caseId } = route.params;
