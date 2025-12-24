@@ -968,6 +968,21 @@ const styles = StyleSheet.create({
   },
   transcriptLabel: { fontSize: 12, fontWeight: "600", color: "#64748b" },
   transcriptText: { fontSize: 14, color: "#1e293b", marginTop: 4 },
+  saveToCaseSheetBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#22c55e",
+    padding: 14,
+    borderRadius: 10,
+    marginTop: 12,
+    gap: 8,
+  },
+  saveToCaseSheetBtnText: { 
+    color: "#fff", 
+    fontWeight: "700", 
+    fontSize: 15 
+  },
 
   // Card
   card: {
