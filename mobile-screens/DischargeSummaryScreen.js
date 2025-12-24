@@ -368,60 +368,158 @@ export default function DischargeSummaryScreen({ route, navigation }) {
 
       {/* Presenting Complaints */}
       <Section title="Presenting Complaints">
-        <Text style={styles.text}>
-          {caseData.presenting_complaint?.text || "N/A"}
-        </Text>
+        {editMode ? (
+          <TextInput
+            style={styles.editableTextArea}
+            multiline
+            numberOfLines={3}
+            defaultValue={editableFieldsRef.current.presenting_complaint}
+            onChangeText={(text) => updateEditableField("presenting_complaint", text)}
+            placeholder="Presenting complaints..."
+          />
+        ) : (
+          <Text style={styles.text}>
+            {editableFieldsRef.current.presenting_complaint || caseData.presenting_complaint?.text || "N/A"}
+          </Text>
+        )}
       </Section>
 
       {/* History of Present Illness / Events */}
       <Section title="Events / HOPI">
-        <Text style={styles.text}>{history.hpi || history.events_hopi || "N/A"}</Text>
+        {editMode ? (
+          <TextInput
+            style={styles.editableTextArea}
+            multiline
+            numberOfLines={4}
+            defaultValue={editableFieldsRef.current.hopi}
+            onChangeText={(text) => updateEditableField("hopi", text)}
+            placeholder="History of present illness..."
+          />
+        ) : (
+          <Text style={styles.text}>{editableFieldsRef.current.hopi || history.hpi || history.events_hopi || "N/A"}</Text>
+        )}
       </Section>
 
       {/* Past Medical/Surgical History */}
       <Section title="Past Medical/Surgical History">
-        <Text style={styles.text}>
-          Medical: {history.past_medical?.join(", ") || "None"}
-        </Text>
-        <Text style={styles.text}>
-          Surgical: {history.past_surgical || "None"}
-        </Text>
+        {editMode ? (
+          <>
+            <Text style={styles.editLabel}>Medical:</Text>
+            <TextInput
+              style={styles.editableInput}
+              defaultValue={editableFieldsRef.current.past_medical}
+              onChangeText={(text) => updateEditableField("past_medical", text)}
+              placeholder="Past medical history..."
+            />
+            <Text style={styles.editLabel}>Surgical:</Text>
+            <TextInput
+              style={styles.editableInput}
+              defaultValue={editableFieldsRef.current.past_surgical}
+              onChangeText={(text) => updateEditableField("past_surgical", text)}
+              placeholder="Past surgical history..."
+            />
+          </>
+        ) : (
+          <>
+            <Text style={styles.text}>
+              Medical: {editableFieldsRef.current.past_medical || history.past_medical?.join(", ") || "None"}
+            </Text>
+            <Text style={styles.text}>
+              Surgical: {editableFieldsRef.current.past_surgical || history.past_surgical || "None"}
+            </Text>
+          </>
+        )}
       </Section>
 
       {/* Primary Assessment */}
       <Section title="Primary Assessment">
-        <Text style={styles.text}>{buildPrimaryAssessmentText(primaryAssessment)}</Text>
+        {editMode ? (
+          <TextInput
+            style={styles.editableTextArea}
+            multiline
+            numberOfLines={4}
+            defaultValue={editableFieldsRef.current.primary_assessment}
+            onChangeText={(text) => updateEditableField("primary_assessment", text)}
+            placeholder="Primary assessment findings..."
+          />
+        ) : (
+          <Text style={styles.text}>{editableFieldsRef.current.primary_assessment || buildPrimaryAssessmentText(primaryAssessment)}</Text>
+        )}
       </Section>
 
       {/* Systemic Examination */}
       <Section title="Systemic Examination">
-        <Text style={styles.text}>{buildExaminationText(examination, isPediatric)}</Text>
+        {editMode ? (
+          <TextInput
+            style={styles.editableTextArea}
+            multiline
+            numberOfLines={4}
+            defaultValue={editableFieldsRef.current.examination}
+            onChangeText={(text) => updateEditableField("examination", text)}
+            placeholder="Examination findings..."
+          />
+        ) : (
+          <Text style={styles.text}>{editableFieldsRef.current.examination || buildExaminationText(examination, isPediatric)}</Text>
+        )}
       </Section>
 
       {/* Course in Hospital */}
       <Section title="Course in Hospital">
-        <Text style={styles.text}>
-          {treatment.course_in_hospital || treatment.intervention_notes || "N/A"}
-        </Text>
+        {editMode ? (
+          <TextInput
+            style={styles.editableTextArea}
+            multiline
+            numberOfLines={4}
+            defaultValue={editableFieldsRef.current.course_in_hospital}
+            onChangeText={(text) => updateEditableField("course_in_hospital", text)}
+            placeholder="Course in hospital..."
+          />
+        ) : (
+          <Text style={styles.text}>
+            {editableFieldsRef.current.course_in_hospital || treatment.course_in_hospital || treatment.intervention_notes || "N/A"}
+          </Text>
+        )}
       </Section>
 
       {/* Investigations */}
       <Section title="Investigations">
-        <Text style={styles.text}>
-          {investigations.results_notes ||
-            (investigations.panels_selected?.length > 0
-              ? `Ordered: ${investigations.panels_selected.join(", ")}`
-              : "Pending")}
-        </Text>
+        {editMode ? (
+          <TextInput
+            style={styles.editableTextArea}
+            multiline
+            numberOfLines={3}
+            defaultValue={editableFieldsRef.current.investigations}
+            onChangeText={(text) => updateEditableField("investigations", text)}
+            placeholder="Investigation results..."
+          />
+        ) : (
+          <Text style={styles.text}>
+            {editableFieldsRef.current.investigations ||
+              investigations.results_notes ||
+              (investigations.panels_selected?.length > 0
+                ? `Ordered: ${investigations.panels_selected.join(", ")}`
+                : "Pending")}
+          </Text>
+        )}
       </Section>
 
       {/* Diagnosis */}
       <Section title="Diagnosis at Discharge">
-        <Text style={styles.text}>
-          {treatment.differential_diagnoses?.join(", ") ||
-            treatment.provisional_diagnoses?.join(", ") ||
-            "N/A"}
-        </Text>
+        {editMode ? (
+          <TextInput
+            style={styles.editableInput}
+            defaultValue={editableFieldsRef.current.diagnosis}
+            onChangeText={(text) => updateEditableField("diagnosis", text)}
+            placeholder="Final diagnosis..."
+          />
+        ) : (
+          <Text style={styles.text}>
+            {editableFieldsRef.current.diagnosis ||
+              treatment.differential_diagnoses?.join(", ") ||
+              treatment.provisional_diagnoses?.join(", ") ||
+              "N/A"}
+          </Text>
+        )}
       </Section>
 
       {/* ========== EDITABLE SECTIONS ========== */}
