@@ -619,7 +619,9 @@ class EREmrAPITester:
 
 def main():
     tester = EREmrAPITester()
-    success = tester.run_all_tests()
+    
+    # Run mobile app specific tests
+    success = tester.run_mobile_app_tests()
     
     # Save detailed results
     with open('/app/backend_test_results.json', 'w') as f:
