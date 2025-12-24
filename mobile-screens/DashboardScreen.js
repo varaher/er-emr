@@ -454,6 +454,14 @@ export default function DashboardScreen({ navigation, onLogout }) {
                         {new Date(caseItem.created_at || caseItem.createdAt).toLocaleDateString()}
                       </Text>
                     </View>
+                    <View style={styles.smallCaseActions}>
+                      <TouchableOpacity
+                        style={styles.smallActionBtn}
+                        onPress={() => navigation.navigate("ViewCaseSheet", { caseId: caseItem.id })}
+                      >
+                        <Ionicons name="eye-outline" size={16} color="#22c55e" />
+                      </TouchableOpacity>
+                    </View>
                     <View style={[styles.statusBadgeSmall, { backgroundColor: status.bg }]}>
                       <Text style={[styles.statusTextSmall, { color: status.color }]}>{status.text}</Text>
                     </View>
