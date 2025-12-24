@@ -23,6 +23,7 @@ export default function DischargeSummaryScreen({ route, navigation }) {
   const [caseData, setCaseData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [editMode, setEditMode] = useState(false); // NEW: Edit mode toggle
 
   // useRef for text inputs to prevent lag
   const dischargeDataRef = useRef({
@@ -31,6 +32,19 @@ export default function DischargeSummaryScreen({ route, navigation }) {
     ed_resident: "",
     ed_consultant: "",
     discharge_vitals: { hr: "", bp: "", rr: "", spo2: "", gcs: "", pain_score: "", grbs: "", temp: "" },
+  });
+
+  // Editable auto-populated fields
+  const editableFieldsRef = useRef({
+    presenting_complaint: "",
+    hopi: "",
+    past_medical: "",
+    past_surgical: "",
+    primary_assessment: "",
+    examination: "",
+    course_in_hospital: "",
+    investigations: "",
+    diagnosis: "",
   });
 
   // useState only for radio buttons that need visual feedback
