@@ -251,11 +251,16 @@ export default function DashboardScreen({ navigation, onLogout }) {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
+      {/* Header with ErMate Logo */}
       <View style={styles.header}>
-        <View>
-          <Text style={styles.greeting}>Welcome back,</Text>
-          <Text style={styles.userName}>{user?.name || "Doctor"}</Text>
+        <View style={styles.headerLeft}>
+          <View style={styles.logoContainer}>
+            <Ionicons name="medical" size={28} color="#2563eb" />
+          </View>
+          <View>
+            <Text style={styles.logoText}>ErMate</Text>
+            <Text style={styles.greeting}>Welcome, {user?.name || "Doctor"}</Text>
+          </View>
         </View>
         <View style={styles.headerRight}>
           <TouchableOpacity style={styles.headerBtn} onPress={() => navigation.navigate("Logs")}>
