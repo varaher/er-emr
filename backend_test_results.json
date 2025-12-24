@@ -1,106 +1,28 @@
 {
   "summary": {
-    "total_tests": 16,
-    "passed_tests": 14,
-    "success_rate": 87.5,
-    "timestamp": "2025-12-22T17:29:25.314769"
+    "total_tests": 3,
+    "passed_tests": 2,
+    "success_rate": 66.66666666666666,
+    "timestamp": "2025-12-24T00:50:23.004536"
   },
   "detailed_results": [
-    {
-      "test_name": "Get Subscription Plans",
-      "success": true,
-      "details": "Status: 200",
-      "timestamp": "2025-12-22T17:27:43.605891"
-    },
     {
       "test_name": "User Login",
       "success": true,
       "details": "Status: 200",
-      "timestamp": "2025-12-22T17:27:43.868830"
+      "timestamp": "2025-12-24T00:50:22.906400"
     },
     {
-      "test_name": "Get Current User",
-      "success": true,
-      "details": "Status: 200",
-      "timestamp": "2025-12-22T17:27:43.912926"
-    },
-    {
-      "test_name": "User Registration",
-      "success": true,
-      "details": "Status: 200",
-      "timestamp": "2025-12-22T17:27:44.198356"
-    },
-    {
-      "test_name": "Get Subscription Status",
-      "success": true,
-      "details": "Status: 200",
-      "timestamp": "2025-12-22T17:27:44.241331"
-    },
-    {
-      "test_name": "Check Subscription Access",
-      "success": true,
-      "details": "Status: 200",
-      "timestamp": "2025-12-22T17:27:44.283701"
-    },
-    {
-      "test_name": "Check AI Access",
-      "success": true,
-      "details": "Status: 200",
-      "timestamp": "2025-12-22T17:27:44.324262"
-    },
-    {
-      "test_name": "Get AI Usage Stats",
-      "success": true,
-      "details": "Status: 200",
-      "timestamp": "2025-12-22T17:27:44.365901"
-    },
-    {
-      "test_name": "Get Existing Case",
-      "success": true,
-      "details": "Status: 200",
-      "timestamp": "2025-12-22T17:27:44.403667"
+      "test_name": "Mobile Case Creation",
+      "success": false,
+      "details": "Expected 200, got 422 - {'detail': [{'type': 'missing', 'loc': ['body', 'patient', 'informant_name'], 'msg': 'Field required', 'input': {'name': 'Test Mobile Patient', 'age': '35', 'sex': 'Male', 'phone': '1234567890', 'address': 'Test Address', 'arrival_datetime': '2024-12-24T00:00:00Z', 'mode_of_arrival': 'Walk-in', 'brought_by': 'Self', 'mlc': False}, 'url': 'https://errors.pydantic.dev/2.12/v/missing'}, {'type': 'missing', 'loc': ['body', 'patient', 'informant_reliability'], 'msg': 'Field required', 'input': {'name': 'Test Mobile Patient', 'age': '35', 'sex': 'Male', 'phone': '1234567890', 'address': 'Test Address', 'arrival_datetime': '2024-12-24T00:00:00Z', 'mode_of_arrival': 'Walk-in', 'brought_by': 'Self', 'mlc': False}, 'url': 'https://errors.pydantic.dev/2.12/v/missing'}, {'type': 'missing', 'loc': ['body', 'patient', 'identification_mark'], 'msg': 'Field required', 'input': {'name': 'Test Mobile Patient', 'age': '35', 'sex': 'Male', 'phone': '1234567890', 'address': 'Test Address', 'arrival_datetime': '2024-12-24T00:00:00Z', 'mode_of_arrival': 'Walk-in', 'brought_by': 'Self', 'mlc': False}, 'url': 'https://errors.pydantic.dev/2.12/v/missing'}]}",
+      "timestamp": "2025-12-24T00:50:22.952971"
     },
     {
       "test_name": "Get All Cases",
       "success": true,
       "details": "Status: 200",
-      "timestamp": "2025-12-22T17:27:44.444921"
-    },
-    {
-      "test_name": "Get Case by ID",
-      "success": true,
-      "details": "Status: 200",
-      "timestamp": "2025-12-22T17:27:44.481899"
-    },
-    {
-      "test_name": "Update Case",
-      "success": true,
-      "details": "Status: 200",
-      "timestamp": "2025-12-22T17:27:44.520001"
-    },
-    {
-      "test_name": "AI Generate Red Flags",
-      "success": true,
-      "details": "Status: 200",
-      "timestamp": "2025-12-22T17:28:12.045757"
-    },
-    {
-      "test_name": "AI Generate Diagnosis",
-      "success": false,
-      "details": "Exception: HTTPSConnectionPool(host='aidoc.preview.emergentagent.com', port=443): Read timed out. (read timeout=30)",
-      "timestamp": "2025-12-22T17:28:42.113866"
-    },
-    {
-      "test_name": "Create Discharge Summary",
-      "success": false,
-      "details": "Exception: HTTPSConnectionPool(host='aidoc.preview.emergentagent.com', port=443): Read timed out. (read timeout=30)",
-      "timestamp": "2025-12-22T17:29:12.220604"
-    },
-    {
-      "test_name": "Get Discharge Summary",
-      "success": true,
-      "details": "Status: 200",
-      "timestamp": "2025-12-22T17:29:25.313904"
+      "timestamp": "2025-12-24T00:50:23.003054"
     }
   ]
 }
