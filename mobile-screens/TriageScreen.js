@@ -222,7 +222,14 @@ export default function TriageScreen({ route, navigation }) {
       }
     } catch (err) {
       console.error("Voice processing error:", err);
-      Alert.alert("Error", err.message || "Voice processing failed");
+      // Properly format error message
+      let errorMsg = "Voice processing failed";
+      if (err && typeof err === 'object') {
+        errorMsg = err.message || JSON.stringify(err);
+      } else if (typeof err === 'string') {
+        errorMsg = err;
+      }
+      Alert.alert("Error", errorMsg);
     } finally {
       setIsTranscribing(false);
       setIsExtracting(false);
