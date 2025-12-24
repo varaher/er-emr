@@ -254,20 +254,26 @@ export default function TriageScreen({ route, navigation }) {
   const autoApplyExtractedData = (data) => {
     if (!data) return;
 
-    console.log("🔄 Auto-applying extracted data:", data);
+    console.log("🔄 Auto-applying extracted data:", JSON.stringify(data, null, 2));
 
-    // Apply vitals
+    // Apply vitals (from data.vitals)
     if (data.vitals) {
       const v = data.vitals;
       if (v.hr) formDataRef.current.hr = String(v.hr);
-      if (v.bp_systolic) formDataRef.current.bp_systolic = String(v.bp_systolic);
-      if (v.bp_diastolic) formDataRef.current.bp_diastolic = String(v.bp_diastolic);
+      if (v.bp_sys || v.bp_systolic) formDataRef.current.bp_systolic = String(v.bp_sys || v.bp_systolic);
+      if (v.bp_dia || v.bp_diastolic) formDataRef.current.bp_diastolic = String(v.bp_dia || v.bp_diastolic);
       if (v.rr) formDataRef.current.rr = String(v.rr);
       if (v.spo2) formDataRef.current.spo2 = String(v.spo2);
-      if (v.temperature) formDataRef.current.temperature = String(v.temperature);
+      if (v.temp || v.temperature) formDataRef.current.temperature = String(v.temp || v.temperature);
       if (v.gcs_e) formDataRef.current.gcs_e = String(v.gcs_e);
       if (v.gcs_v) formDataRef.current.gcs_v = String(v.gcs_v);
       if (v.gcs_m) formDataRef.current.gcs_m = String(v.gcs_m);
+      if (v.grbs) formDataRef.current.grbs = String(v.grbs);
+    }
+
+    // Apply age from top-level (backend returns age at top level, not in patient object)
+    if (data.age) {
+      formDataRef.current.age = String(data.age);
     }
 
     // Apply symptoms
@@ -281,7 +287,7 @@ export default function TriageScreen({ route, navigation }) {
       setSymptoms(newSymptoms);
     }
 
-    // Apply patient info if present
+    // Apply patient info if present (for future compatibility)
     if (data.patient) {
       const p = data.patient;
       if (p.name) formDataRef.current.name = p.name;
@@ -289,8 +295,23 @@ export default function TriageScreen({ route, navigation }) {
       if (p.sex) setSex(p.sex);
     }
 
+    // Apply chief complaint from transcript if present
     if (data.chief_complaint) {
       formDataRef.current.chief_complaint = data.chief_complaint;
+    }
+
+    // Apply suggested triage priority
+    if (data.suggested_priority) {
+      const sp = data.suggested_priority;
+      if (sp.level) {
+        // Auto-set triage result
+        setTriageResult({
+          priority_level: sp.level,
+          priority_color: sp.color || "green",
+          priority_name: sp.name || "Standard",
+          reasons: sp.reasons || []
+        });
+      }
     }
 
     // Force UI re-render
