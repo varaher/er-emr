@@ -684,6 +684,16 @@ const styles = StyleSheet.create({
   caseInfoSmall: { flex: 1 },
   patientNameSmall: { fontSize: 14, fontWeight: "600", color: "#1e293b" },
   dateSmall: { fontSize: 12, color: "#64748b" },
+  smallCaseActions: {
+    flexDirection: "row",
+    gap: 6,
+    marginRight: 8,
+  },
+  smallActionBtn: {
+    padding: 4,
+    backgroundColor: "#f0fdf4",
+    borderRadius: 6,
+  },
   statusBadgeSmall: {
     paddingHorizontal: 8,
     paddingVertical: 3,
