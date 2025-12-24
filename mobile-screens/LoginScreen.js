@@ -18,7 +18,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const API_URL = "https://er-emr-backend.onrender.com/api";
 
-export default function LoginScreen({ navigation }) {
+export default function LoginScreen({ navigation, onLoginSuccess }) {
   // Use refs for text inputs to prevent lag
   const emailRef = useRef("");
   const passwordRef = useRef("");
@@ -54,11 +54,17 @@ export default function LoginScreen({ navigation }) {
       await AsyncStorage.setItem("token", data.access_token);
       await AsyncStorage.setItem("user", JSON.stringify(data.user));
 
-      // Navigate to Dashboard instead of Triage
-      navigation.reset({
-        index: 0,
-        routes: [{ name: "Dashboard" }],
-      });
+      // Call onLoginSuccess callback if provided (used by App.js)
+      // This updates the App state to show the main stack
+      if (onLoginSuccess) {
+        onLoginSuccess();
+      } else {
+        // Fallback: Navigate to Dashboard directly
+        navigation.reset({
+          index: 0,
+          routes: [{ name: "Dashboard" }],
+        });
+      }
     } catch (error) {
       console.log("Login error:", error);
       Alert.alert("Login Failed", error.message);
