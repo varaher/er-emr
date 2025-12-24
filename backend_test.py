@@ -508,6 +508,51 @@ class EREmrAPITester:
             return True
         return False
 
+    def run_mobile_app_tests(self):
+        """Run specific mobile app backend API tests as requested"""
+        print("🚀 Starting Mobile App Backend API Test Suite")
+        print("=" * 50)
+        
+        # Test 1: Login Endpoint
+        print("\n📋 TEST 1: MOBILE LOGIN API")
+        print("-" * 30)
+        
+        if not self.test_auth_login():
+            print("❌ Mobile login failed - CRITICAL ISSUE")
+            return False
+        
+        # Test 2: Create Case Endpoint (authenticated)
+        print("\n📋 TEST 2: MOBILE CASE CREATION API")
+        print("-" * 35)
+        
+        mobile_case_success = self.test_mobile_case_creation()
+        if not mobile_case_success:
+            print("❌ Mobile case creation failed")
+        
+        # Test 3: Get Cases (authenticated)
+        print("\n📋 TEST 3: MOBILE CASE RETRIEVAL API")
+        print("-" * 35)
+        
+        get_cases_success = self.test_get_cases()
+        if not get_cases_success:
+            print("❌ Mobile case retrieval failed")
+        
+        # Print final results
+        print("\n" + "=" * 50)
+        print(f"📊 MOBILE APP TEST RESULTS: {self.tests_passed}/{self.tests_run} tests passed")
+        print(f"Success Rate: {(self.tests_passed/self.tests_run)*100:.1f}%")
+        
+        # Detailed results for each test
+        print("\n📋 DETAILED RESULTS:")
+        print("-" * 20)
+        for result in self.test_results:
+            status = "✅ PASS" if result['success'] else "❌ FAIL"
+            print(f"{status} - {result['test_name']}")
+            if result['details']:
+                print(f"    Details: {result['details']}")
+        
+        return self.tests_passed == self.tests_run
+
     def run_all_tests(self):
         """Run comprehensive API test suite"""
         print("🚀 Starting ER-EMR API Test Suite")
