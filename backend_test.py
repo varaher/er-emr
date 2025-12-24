@@ -191,6 +191,9 @@ class EREmrAPITester:
                 "arrival_datetime": "2024-12-24T00:00:00Z",
                 "mode_of_arrival": "Walk-in",
                 "brought_by": "Self",
+                "informant_name": "Self",
+                "informant_reliability": "Good",
+                "identification_mark": "None",
                 "mlc": False
             },
             "vitals_at_arrival": {
@@ -213,8 +216,7 @@ class EREmrAPITester:
             },
             "triage_priority": 4,
             "triage_color": "green",
-            "em_resident": "Test Doctor",
-            "case_type": "adult"
+            "em_resident": "Test Doctor"
         }
         
         success, response = self.run_test(
