@@ -38,6 +38,7 @@ export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [updateStatus, setUpdateStatus] = useState('');
   const [isCheckingUpdate, setIsCheckingUpdate] = useState(true);
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
 
   // Check for OTA Updates
   const checkForUpdates = useCallback(async () => {
@@ -50,31 +51,40 @@ export default function App() {
 
     try {
       setUpdateStatus('Checking for updates...');
-      console.log('Checking for updates...');
+      console.log('🔍 Checking for updates...');
+      console.log('📱 Current channel:', Updates.channel);
+      console.log('📱 Runtime version:', Updates.runtimeVersion);
       
       const update = await Updates.checkForUpdateAsync();
+      console.log('📦 Update check result:', update);
       
       if (update.isAvailable) {
         setUpdateStatus('Downloading update...');
-        console.log('Update available, downloading...');
+        console.log('✅ Update available! Downloading...');
         
         await Updates.fetchUpdateAsync();
+        console.log('✅ Update downloaded successfully!');
         
-        // Show alert to user
+        // Show prominent popup
+        setShowUpdateModal(true);
+        
+        // Also show alert
         Alert.alert(
-          '🎉 Update Available',
-          'A new version of ErMate has been downloaded. Restart the app to apply the update.',
+          '🎉 UPDATE AVAILABLE!',
+          'A new version of ErMate is ready!\n\nPlease tap "Update Now" to get the latest features and fixes.',
           [
             {
               text: 'Later',
               style: 'cancel',
               onPress: () => {
+                setShowUpdateModal(false);
                 setIsCheckingUpdate(false);
               }
             },
             {
-              text: 'Restart Now',
+              text: '🚀 Update Now',
               onPress: async () => {
+                console.log('🔄 Reloading app with new update...');
                 await Updates.reloadAsync();
               }
             }
@@ -82,12 +92,12 @@ export default function App() {
           { cancelable: false }
         );
       } else {
-        console.log('App is up to date');
+        console.log('✅ App is up to date - no updates available');
         setUpdateStatus('');
         setIsCheckingUpdate(false);
       }
     } catch (error) {
-      console.log('Error checking for updates:', error);
+      console.log('❌ Error checking for updates:', error.message);
       setUpdateStatus('');
       setIsCheckingUpdate(false);
     }
