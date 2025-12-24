@@ -132,6 +132,10 @@ export default function DischargeSummaryScreen({ route, navigation }) {
     dischargeDataRef.current[field] = value;
   }, []);
 
+  const updateEditableField = useCallback((field, value) => {
+    editableFieldsRef.current[field] = value;
+  }, []);
+
   const updateVitalField = useCallback((vital, value) => {
     dischargeDataRef.current.discharge_vitals[vital] = value;
   }, []);
