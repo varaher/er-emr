@@ -1032,6 +1032,38 @@ const styles = StyleSheet.create({
   editToggleTextActive: {
     color: "#fff",
   },
+  editSection: {
+    marginHorizontal: 12,
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  editToggleBtn: {
+    backgroundColor: "#f1f5f9",
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    alignItems: "center",
+  },
+  editToggleBtnActive: {
+    backgroundColor: "#22c55e",
+    borderColor: "#22c55e",
+  },
+  editToggleBtnText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#64748b",
+  },
+  editToggleBtnTextActive: {
+    color: "#fff",
+  },
+  editHint: {
+    fontSize: 12,
+    color: "#f59e0b",
+    textAlign: "center",
+    marginTop: 8,
+  },
   editableTextArea: {
     backgroundColor: "#fffbeb",
     borderWidth: 1,
