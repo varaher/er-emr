@@ -217,8 +217,22 @@ export default function TriageScreen({ route, navigation }) {
         const extractData = await extractRes.json();
         if (extractData.success && extractData.data) {
           setExtractedData(extractData.data);
-          setShowExtractedModal(true);
+          // AUTO-APPLY the extracted data immediately
+          autoApplyExtractedData(extractData.data);
+          Alert.alert(
+            "✅ Voice Data Captured",
+            "Patient info has been auto-filled from voice. Review and click 'Save to Case Sheet' when ready.",
+            [{ text: "OK" }]
+          );
         }
+      } else {
+        console.log("Extract endpoint failed:", extractRes.status);
+        // Even if extract fails, we have the transcript
+        Alert.alert(
+          "ℹ️ Voice Recorded",
+          "Transcript saved. Auto-extraction unavailable - please fill details manually.",
+          [{ text: "OK" }]
+        );
       }
     } catch (err) {
       console.error("Voice processing error:", err);
