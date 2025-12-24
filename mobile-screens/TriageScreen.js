@@ -384,7 +384,14 @@ export default function TriageScreen({ route, navigation }) {
       );
     } catch (err) {
       console.error("Save to case sheet error:", err);
-      Alert.alert("Error", err.message || "Failed to save to case sheet");
+      // Properly format error message
+      let errorMsg = "Failed to save to case sheet";
+      if (err && typeof err === 'object') {
+        errorMsg = err.message || JSON.stringify(err);
+      } else if (typeof err === 'string') {
+        errorMsg = err;
+      }
+      Alert.alert("Error", errorMsg);
     } finally {
       setLoading(false);
     }
