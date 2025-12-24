@@ -682,6 +682,23 @@ export default function DischargeSummaryScreen({ route, navigation }) {
         </Text>
       </View>
       
+      {/* Edit Mode Toggle - At Bottom */}
+      <View style={styles.editSection}>
+        <TouchableOpacity 
+          style={[styles.editToggleBtn, editMode && styles.editToggleBtnActive]}
+          onPress={() => setEditMode(!editMode)}
+        >
+          <Text style={[styles.editToggleBtnText, editMode && styles.editToggleBtnTextActive]}>
+            {editMode ? "✓ Done Editing" : "✏️ Edit Discharge Summary"}
+          </Text>
+        </TouchableOpacity>
+        {editMode && (
+          <Text style={styles.editHint}>
+            Yellow fields are editable. Tap "Done Editing" when finished.
+          </Text>
+        )}
+      </View>
+      
       <View style={styles.buttonRow}>
         <TouchableOpacity
           style={[styles.btn, styles.btnPrimary]}
