@@ -407,6 +407,12 @@ export default function DashboardScreen({ navigation, onLogout }) {
                       <View style={styles.caseActions}>
                         <TouchableOpacity
                           style={styles.actionBtn}
+                          onPress={() => navigation.navigate("ViewCaseSheet", { caseId: caseItem.id })}
+                        >
+                          <Ionicons name="eye-outline" size={18} color="#22c55e" />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={styles.actionBtn}
                           onPress={() => goToDischarge(caseItem)}
                         >
                           <Ionicons name="document-text-outline" size={18} color="#2563eb" />
