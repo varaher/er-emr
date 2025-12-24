@@ -84,6 +84,27 @@ export default function DischargeSummaryScreen({ route, navigation }) {
         follow_up_advice: data.disposition?.advice || "",
       };
 
+      // Pre-fill editable auto-populated fields
+      const history = data.history || {};
+      const treatment = data.treatment || {};
+      const investigations = data.investigations || {};
+      const primaryAssessment = data.primary_assessment || {};
+      const examination = data.examination || {};
+      const isPediatric = data.case_type === "pediatric";
+
+      editableFieldsRef.current = {
+        presenting_complaint: data.presenting_complaint?.text || "",
+        hopi: history.hpi || history.events_hopi || "",
+        past_medical: history.past_medical?.join(", ") || "None",
+        past_surgical: history.past_surgical || "None",
+        primary_assessment: buildPrimaryAssessmentText(primaryAssessment),
+        examination: buildExaminationText(examination, isPediatric),
+        course_in_hospital: treatment.course_in_hospital || treatment.intervention_notes || "",
+        investigations: investigations.results_notes || 
+          (investigations.panels_selected?.length > 0 ? `Ordered: ${investigations.panels_selected.join(", ")}` : "Pending"),
+        diagnosis: treatment.differential_diagnoses?.join(", ") || treatment.provisional_diagnoses?.join(", ") || "",
+      };
+
       // Update radio states
       setRadioStates({
         disposition_type: mapDispositionType(data.disposition?.type),
