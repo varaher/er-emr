@@ -221,8 +221,8 @@ Hospital Premium: Everything + custom letterhead
 ## TESTING STATUS
 - Backend subscription endpoints: ✅ Tested (87.5% pass)
 - Web app ABCDE UI: ✅ Tested via screenshot
-- Mobile login: ❌ BROKEN - needs fix
-- Mobile voice auto-populate: ❌ Needs "Save to Case Sheet" button
+- Mobile login: ✅ FIXED - added onLoginSuccess callback support
+- Mobile voice auto-populate: ✅ FIXED - added "Save to Case Sheet" button
 
 ---
 
