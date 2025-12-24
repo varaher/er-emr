@@ -17,7 +17,7 @@ import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Audio } from "expo-av";
 
-const API_URL = "https://er-emr-backend.onrender.com/api";
+const API_URL = "https://erpro-mobile.preview.emergentagent.com/api";
 
 // Default normal values for auto-fill
 const DEFAULT_VITALS = {

@@ -16,7 +16,7 @@ import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // ⚠️ PRODUCTION API URL
-const API_URL = "https://er-emr-backend.onrender.com/api";
+const API_URL = "https://erpro-mobile.preview.emergentagent.com/api";
 
 export default function DispositionScreen({ route, navigation }) {
   const { caseId, patientType = "adult", patientName = "", triageData = {} } = route.params || {};
