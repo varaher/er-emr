@@ -62,23 +62,21 @@ All files use **ORIGINAL names** (no _V2 suffix):
 
 ## 🔴 PENDING ISSUES (ACTIVE)
 
-### Issue 1: Mobile Login Not Working (P0 - CRITICAL)
-**Status:** User reports unable to login on mobile
+### Issue 1: Mobile Login Not Working (P0 - CRITICAL) - ✅ FIXED
+**Status:** FIXED
 **File:** `/app/mobile-screens/LoginScreen.js`
-**Potential Causes:**
-1. Using `useRef` for email/password - may not capture input correctly
-2. Navigation issue - `navigation.reset()` may fail if not in navigation context
-3. `onLoginSuccess` prop not being passed from App.js
-**Debug Steps:**
-1. Check if LoginScreen receives `onLoginSuccess` prop from App.js
-2. The current LoginScreen uses `navigation.reset()` but App.js passes `onLoginSuccess`
-3. Fix: Update LoginScreen to call `onLoginSuccess()` instead of `navigation.reset()`
+**Fix Applied:**
+- Added `onLoginSuccess` prop to LoginScreen component signature
+- Now correctly calls `onLoginSuccess()` callback from App.js after successful login
+- This updates the `isLoggedIn` state in App.js, triggering navigation to Dashboard
 
-### Issue 2: Voice Recording Doesn't Auto-Populate (P1)
-**Status:** Voice works in Triage but doesn't fill form fields
-**User Request:** Add "Save to Case Sheet" button under voice recording
+### Issue 2: Voice Recording Doesn't Auto-Populate (P1) - ✅ FIXED
+**Status:** FIXED
 **File:** `/app/mobile-screens/TriageScreen.js`
-**Fix Needed:** After transcription, show extracted data preview and add button to apply to form
+**Fix Applied:**
+- Added "Save to Case Sheet" button that appears after voice transcription
+- Button auto-fills defaults for blank vitals, creates a case in backend
+- Navigates to CaseSheetScreen with all patient data, vitals, and voice transcript pre-populated
 
 ### Issue 3: Mobile OTA Updates (P1)
 **Status:** User needs to rebuild APK with new App.js
