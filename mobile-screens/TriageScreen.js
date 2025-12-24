@@ -271,6 +271,114 @@ export default function TriageScreen({ route, navigation }) {
     Alert.alert("✅ Applied", "Voice data has been applied to the form");
   };
 
+  /* ===================== SAVE TO CASE SHEET ===================== */
+  const saveToCaseSheet = async () => {
+    const fd = formDataRef.current;
+
+    // Auto-fill defaults for any blank vital fields
+    fillWithDefaults();
+
+    // Require at least patient name to save
+    if (!fd.name) {
+      Alert.alert("Required", "Please enter at least the patient name before saving to case sheet");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const token = await AsyncStorage.getItem("token");
+      const user = JSON.parse(await AsyncStorage.getItem("user") || "{}");
+
+      // Build the patient data object to pass to CaseSheet
+      const patientData = {
+        name: fd.name || "",
+        age: fd.age || "",
+        sex: sex,
+        phone: fd.phone || "",
+        address: fd.address || "",
+        arrival_datetime: new Date().toISOString(),
+        mode_of_arrival: modeOfArrival,
+        brought_by: fd.brought_by || "",
+        mlc: mlc,
+      };
+
+      const vitalsData = {
+        hr: fd.hr ? parseFloat(fd.hr) : parseFloat(DEFAULT_VITALS.hr),
+        bp_systolic: fd.bp_systolic ? parseFloat(fd.bp_systolic) : parseFloat(DEFAULT_VITALS.bp_systolic),
+        bp_diastolic: fd.bp_diastolic ? parseFloat(fd.bp_diastolic) : parseFloat(DEFAULT_VITALS.bp_diastolic),
+        rr: fd.rr ? parseFloat(fd.rr) : parseFloat(DEFAULT_VITALS.rr),
+        spo2: fd.spo2 ? parseFloat(fd.spo2) : parseFloat(DEFAULT_VITALS.spo2),
+        temperature: fd.temperature ? parseFloat(fd.temperature) : parseFloat(DEFAULT_VITALS.temperature),
+        gcs_e: fd.gcs_e ? parseInt(fd.gcs_e) : parseInt(DEFAULT_VITALS.gcs_e),
+        gcs_v: fd.gcs_v ? parseInt(fd.gcs_v) : parseInt(DEFAULT_VITALS.gcs_v),
+        gcs_m: fd.gcs_m ? parseInt(fd.gcs_m) : parseInt(DEFAULT_VITALS.gcs_m),
+        grbs: fd.grbs ? parseFloat(fd.grbs) : parseFloat(DEFAULT_VITALS.grbs),
+      };
+
+      const presentingComplaint = {
+        text: fd.chief_complaint || voiceText || "",
+        duration: "",
+        onset_type: "Sudden",
+        course: "Progressive",
+      };
+
+      // First create a case in the backend
+      const payload = {
+        patient: patientData,
+        vitals_at_arrival: vitalsData,
+        presenting_complaint: presentingComplaint,
+        triage_priority: triageResult?.priority_level || 4,
+        triage_color: triageResult?.priority_color || "green",
+        em_resident: user.name || "",
+        case_type: patientType,
+      };
+
+      const response = await fetch(`${API_URL}/cases`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.detail || "Failed to create case");
+      }
+
+      const newCase = await response.json();
+
+      Alert.alert(
+        "✅ Saved to Case Sheet",
+        `Patient "${patientData.name}" has been saved. Continue editing the case sheet?`,
+        [
+          {
+            text: "Yes, Continue",
+            onPress: () => navigation.navigate("CaseSheet", {
+              caseId: newCase.id,
+              patientType,
+              patient: patientData,
+              vitals: vitalsData,
+              presentingComplaint: presentingComplaint,
+              voiceTranscript: voiceText,
+            }),
+          },
+          {
+            text: "Go to Dashboard",
+            onPress: () => navigation.navigate("Dashboard"),
+            style: "cancel",
+          },
+        ]
+      );
+    } catch (err) {
+      console.error("Save to case sheet error:", err);
+      Alert.alert("Error", err.message || "Failed to save to case sheet");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   /* ===================== AUTO-FILL DEFAULTS ===================== */
   const fillWithDefaults = () => {
     const fd = formDataRef.current;
