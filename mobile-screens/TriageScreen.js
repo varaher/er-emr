@@ -135,6 +135,10 @@ export default function TriageScreen({ route, navigation }) {
         return;
       }
 
+      // Clear previous transcript when starting new recording in Triage
+      setVoiceText("");
+      setExtractedData(null);
+
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: true,
         playsInSilentModeIOS: true,
