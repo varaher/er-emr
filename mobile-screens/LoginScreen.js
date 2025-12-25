@@ -85,9 +85,11 @@ export default function LoginScreen({ navigation, onLoginSuccess }) {
       >
         {/* Logo / Header */}
         <View style={styles.header}>
-          <View style={styles.logoContainer}>
-            <Ionicons name="medical" size={60} color="#2563eb" />
-          </View>
+          <Image 
+            source={require('./assets/ermate-logo.png')} 
+            style={styles.logo}
+            resizeMode="contain"
+          />
           <Text style={styles.title}>ErMate</Text>
           <Text style={styles.subtitle}>Emergency Room Management</Text>
         </View>
