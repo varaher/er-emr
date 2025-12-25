@@ -2017,6 +2017,73 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
   },
+  prevBtn: {
+    flex: 1,
+    backgroundColor: "#f1f5f9",
+    padding: 16,
+    borderRadius: 12,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 8,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+  },
+  prevBtnText: { color: "#64748b", fontWeight: "700", fontSize: 15 },
   btnDisabled: { opacity: 0.6 },
   btnText: { color: "#fff", fontWeight: "700", fontSize: 15 },
+  
+  // MLC Fields
+  mlcContainer: { marginTop: 8 },
+  mlcFields: {
+    backgroundColor: "#fef3c7",
+    padding: 12,
+    borderRadius: 10,
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: "#fcd34d",
+  },
+  mlcTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#92400e",
+    marginBottom: 12,
+  },
+  
+  // VBG/Treatment styles
+  interpretBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#8b5cf6",
+    padding: 14,
+    borderRadius: 10,
+    marginTop: 12,
+    gap: 8,
+  },
+  interpretBtnText: { color: "#fff", fontWeight: "700", fontSize: 14 },
+  interpretResult: {
+    backgroundColor: "#f5f3ff",
+    padding: 12,
+    marginTop: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#c4b5fd",
+  },
+  interpretTitle: { fontSize: 13, fontWeight: "700", color: "#7c3aed", marginBottom: 6 },
+  interpretText: { fontSize: 13, color: "#5b21b6", lineHeight: 20 },
+  
+  // Discharge Summary button
+  dischargeSummaryBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#2563eb",
+    padding: 16,
+    borderRadius: 12,
+    marginHorizontal: 12,
+    marginTop: 16,
+    gap: 8,
+  },
+  dischargeSummaryBtnText: { color: "#fff", fontWeight: "700", fontSize: 15 },
 });
