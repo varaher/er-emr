@@ -904,7 +904,7 @@ export default function CaseSheetScreen({ route, navigation }) {
   );
 
   // Switch Row
-  const SwitchRow = ({ label, field }) => (
+  const SwitchRow = ({ label, field, onToggle }) => (
     <View style={styles.switchRow}>
       <Text style={styles.switchLabel}>{label}</Text>
       <Switch
@@ -912,6 +912,7 @@ export default function CaseSheetScreen({ route, navigation }) {
         onValueChange={(v) => {
           formDataRef.current[field] = v;
           setSelectStates(prev => ({ ...prev }));
+          if (onToggle) onToggle(v);
         }}
         trackColor={{ false: "#d1d5db", true: "#86efac" }}
         thumbColor={formDataRef.current[field] ? "#22c55e" : "#f4f3f4"}
