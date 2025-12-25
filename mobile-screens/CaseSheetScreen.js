@@ -748,7 +748,7 @@ export default function CaseSheetScreen({ route, navigation }) {
       if (response.ok) {
         const data = await response.json();
         formDataRef.current.vbg_interpretation = data.interpretation || data.result || "Interpretation complete";
-        forceUpdate(n => n + 1);
+        forceUpdate();
       } else {
         // Fallback to basic interpretation
         let interpretation = "";
@@ -768,7 +768,7 @@ export default function CaseSheetScreen({ route, navigation }) {
         if (lactate > 2) interpretation += `Elevated lactate (${lactate}). `;
         
         formDataRef.current.vbg_interpretation = interpretation || "Unable to interpret automatically";
-        forceUpdate(n => n + 1);
+        forceUpdate();
       }
     } catch (error) {
       console.log("VBG interpretation error:", error);
