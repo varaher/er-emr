@@ -1546,8 +1546,133 @@ export default function CaseSheetScreen({ route, navigation }) {
             </View>
           )}
 
+          {/* ==================== TREATMENT TAB ==================== */}
+          {activeTab === "treatment" && (
+            <View style={styles.tabContent}>
+              <View style={styles.card}>
+                <Text style={styles.cardTitle}>Investigations</Text>
+                <InputWithVoice label="Labs Ordered" field="labs_ordered" placeholder="CBC, RFT, LFT, ABG..." multiline />
+                <InputWithVoice label="Imaging" field="imaging_ordered" placeholder="X-ray, CT, USG..." multiline />
+                <InputWithVoice label="Results Summary" field="investigation_results" placeholder="Key findings..." multiline />
+              </View>
+
+              <View style={styles.card}>
+                <Text style={styles.cardTitle}>VBG / ABG</Text>
+                <View style={styles.row}>
+                  <View style={{ flex: 1 }}><InputField label="pH" field="vbg_ph" placeholder="7.35-7.45" keyboardType="decimal-pad" /></View>
+                  <View style={{ flex: 1 }}><InputField label="pCO₂" field="vbg_pco2" placeholder="mmHg" keyboardType="decimal-pad" /></View>
+                </View>
+                <View style={styles.row}>
+                  <View style={{ flex: 1 }}><InputField label="pO₂" field="vbg_po2" placeholder="mmHg" keyboardType="decimal-pad" /></View>
+                  <View style={{ flex: 1 }}><InputField label="HCO₃" field="vbg_hco3" placeholder="mEq/L" keyboardType="decimal-pad" /></View>
+                </View>
+                <View style={styles.row}>
+                  <View style={{ flex: 1 }}><InputField label="Lactate" field="vbg_lactate" placeholder="mmol/L" keyboardType="decimal-pad" /></View>
+                  <View style={{ flex: 1 }}><InputField label="BE" field="vbg_be" placeholder="mEq/L" /></View>
+                </View>
+                <TouchableOpacity style={styles.interpretBtn} onPress={interpretVBG}>
+                  <Ionicons name="analytics" size={18} color="#fff" />
+                  <Text style={styles.interpretBtnText}>AI Interpret VBG</Text>
+                </TouchableOpacity>
+                {formDataRef.current.vbg_interpretation ? (
+                  <View style={styles.interpretResult}>
+                    <Text style={styles.interpretTitle}>Interpretation:</Text>
+                    <Text style={styles.interpretText}>{formDataRef.current.vbg_interpretation}</Text>
+                  </View>
+                ) : null}
+              </View>
+
+              <View style={styles.card}>
+                <Text style={styles.cardTitle}>Provisional Diagnosis</Text>
+                <InputWithVoice label="Primary Diagnosis" field="diagnosis_primary" placeholder="Main diagnosis..." />
+                <InputWithVoice label="Differential Diagnoses" field="diagnosis_differential" placeholder="Other possibilities..." multiline />
+              </View>
+
+              <View style={styles.card}>
+                <Text style={styles.cardTitle}>Treatment Given</Text>
+                <InputWithVoice label="Medications" field="treatment_medications" placeholder="Drugs administered..." multiline />
+                <InputWithVoice label="IV Fluids" field="treatment_fluids" placeholder="NS, RL, etc..." />
+                <InputWithVoice label="Procedures Done" field="treatment_procedures" placeholder="Any procedures..." multiline />
+                <InputWithVoice label="Course in ED" field="treatment_course" placeholder="Progress notes..." multiline />
+              </View>
+            </View>
+          )}
+
+          {/* ==================== DISPOSITION TAB ==================== */}
+          {activeTab === "disposition" && (
+            <View style={styles.tabContent}>
+              <View style={styles.card}>
+                <Text style={styles.cardTitle}>Disposition</Text>
+                <SelectButtons 
+                  label="Disposition Type" 
+                  options={["Discharge", "Admit", "Refer", "LAMA", "Absconded", "Death"]} 
+                  field="disposition_type" 
+                />
+                
+                {formDataRef.current.disposition_type === "Admit" && (
+                  <InputField label="Admit to Ward" field="disposition_ward" placeholder="e.g., ICU, Medicine, Surgery" />
+                )}
+                
+                {formDataRef.current.disposition_type === "Refer" && (
+                  <>
+                    <InputField label="Refer to Hospital" field="disposition_refer_hospital" placeholder="Hospital name" />
+                    <InputField label="Reason for Referral" field="disposition_refer_reason" placeholder="Why referring..." />
+                  </>
+                )}
+                
+                {formDataRef.current.disposition_type === "LAMA" && (
+                  <InputWithVoice label="LAMA Notes" field="disposition_lama_notes" placeholder="Patient left against advice..." multiline />
+                )}
+                
+                {formDataRef.current.disposition_type === "Death" && (
+                  <>
+                    <InputField label="Time of Death" field="disposition_death_time" placeholder="HH:MM" />
+                    <InputWithVoice label="Cause of Death" field="disposition_death_cause" placeholder="Primary cause..." />
+                  </>
+                )}
+              </View>
+
+              <View style={styles.card}>
+                <Text style={styles.cardTitle}>Condition at Discharge</Text>
+                <SelectButtons 
+                  label="Condition" 
+                  options={["Stable", "Guarded", "Critical"]} 
+                  field="disposition_condition" 
+                />
+              </View>
+
+              <View style={styles.card}>
+                <Text style={styles.cardTitle}>Discharge Advice</Text>
+                <InputWithVoice label="Medications" field="discharge_medications" placeholder="Discharge prescriptions..." multiline />
+                <InputWithVoice label="Follow-up Instructions" field="discharge_followup" placeholder="When to return, warning signs..." multiline />
+              </View>
+
+              {/* Generate Discharge Summary Button */}
+              <TouchableOpacity 
+                style={styles.dischargeSummaryBtn} 
+                onPress={() => {
+                  if (caseId) {
+                    saveCaseSheet();
+                    navigation.navigate("DischargeSummary", { caseId });
+                  } else {
+                    Alert.alert("Save Required", "Please save the case sheet first");
+                  }
+                }}
+              >
+                <Ionicons name="document-text" size={20} color="#fff" />
+                <Text style={styles.dischargeSummaryBtnText}>Generate Discharge Summary</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
           {/* Action Buttons */}
           <View style={styles.actionRow}>
+            {activeTab !== "patient" && (
+              <TouchableOpacity style={styles.prevBtn} onPress={goToPrevious}>
+                <Ionicons name="arrow-back" size={20} color="#64748b" />
+                <Text style={styles.prevBtnText}>Previous</Text>
+              </TouchableOpacity>
+            )}
             <TouchableOpacity style={[styles.saveBtn, saving && styles.btnDisabled]} onPress={saveCaseSheet} disabled={saving}>
               {saving ? <ActivityIndicator color="#fff" /> : (
                 <>
@@ -1557,8 +1682,8 @@ export default function CaseSheetScreen({ route, navigation }) {
               )}
             </TouchableOpacity>
             <TouchableOpacity style={styles.nextBtn} onPress={proceedNext}>
-              <Text style={styles.btnText}>Next</Text>
-              <Ionicons name="arrow-forward" size={20} color="#fff" />
+              <Text style={styles.btnText}>{activeTab === "disposition" ? "Finish" : "Next"}</Text>
+              <Ionicons name={activeTab === "disposition" ? "checkmark" : "arrow-forward"} size={20} color="#fff" />
             </TouchableOpacity>
           </View>
 
