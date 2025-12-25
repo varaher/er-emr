@@ -713,6 +713,70 @@ export default function CaseSheetScreen({ route, navigation }) {
     }
   };
 
+  /* ===================== VBG INTERPRETATION ===================== */
+  const interpretVBG = async () => {
+    const fd = formDataRef.current;
+    const ph = parseFloat(fd.vbg_ph);
+    const pco2 = parseFloat(fd.vbg_pco2);
+    const hco3 = parseFloat(fd.vbg_hco3);
+    const lactate = parseFloat(fd.vbg_lactate);
+
+    if (!ph || !pco2 || !hco3) {
+      Alert.alert("Missing Data", "Please enter pH, pCO2, and HCO3 for interpretation");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const token = await AsyncStorage.getItem("token");
+      const response = await fetch(`${API_URL}/ai/interpret-abg`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          ph,
+          pco2,
+          po2: parseFloat(fd.vbg_po2) || null,
+          hco3,
+          lactate: lactate || null,
+          be: parseFloat(fd.vbg_be) || null,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        formDataRef.current.vbg_interpretation = data.interpretation || data.result || "Interpretation complete";
+        forceUpdate(n => n + 1);
+      } else {
+        // Fallback to basic interpretation
+        let interpretation = "";
+        
+        // pH assessment
+        if (ph < 7.35) interpretation += "Acidemia. ";
+        else if (ph > 7.45) interpretation += "Alkalemia. ";
+        else interpretation += "Normal pH. ";
+        
+        // Primary disorder
+        if (ph < 7.35 && pco2 > 45) interpretation += "Respiratory acidosis. ";
+        else if (ph < 7.35 && hco3 < 22) interpretation += "Metabolic acidosis. ";
+        else if (ph > 7.45 && pco2 < 35) interpretation += "Respiratory alkalosis. ";
+        else if (ph > 7.45 && hco3 > 26) interpretation += "Metabolic alkalosis. ";
+        
+        // Lactate
+        if (lactate > 2) interpretation += `Elevated lactate (${lactate}). `;
+        
+        formDataRef.current.vbg_interpretation = interpretation || "Unable to interpret automatically";
+        forceUpdate(n => n + 1);
+      }
+    } catch (error) {
+      console.log("VBG interpretation error:", error);
+      Alert.alert("Error", "Could not interpret VBG");
+    }
+    setLoading(false);
+  };
+
   /* ===================== UI COMPONENTS ===================== */
 
   // Collapsible Section Header
