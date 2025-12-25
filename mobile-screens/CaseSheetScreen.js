@@ -892,6 +892,8 @@ export default function CaseSheetScreen({ route, navigation }) {
             <TabButton id="primary" label="Primary" icon="fitness" />
             <TabButton id="history" label="History" icon="document-text" />
             <TabButton id="exam" label="Exam" icon="body" />
+            <TabButton id="treatment" label="Treatment" icon="medkit" />
+            <TabButton id="disposition" label="Disposition" icon="exit" />
           </ScrollView>
         </View>
 
