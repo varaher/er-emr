@@ -683,16 +683,34 @@ export default function CaseSheetScreen({ route, navigation }) {
     }
   };
 
+  // Tab navigation order
+  const TAB_ORDER = ["patient", "vitals", "primary", "history", "exam", "treatment", "disposition"];
+
   const proceedNext = async () => {
-    let id = caseId;
+    // Save if not saved yet and has patient name
     if (formDataRef.current.patient_name && !caseId) {
-      id = await saveCaseSheet();
+      await saveCaseSheet();
     }
-    navigation.navigate("PhysicalExam", {
-      caseId: id,
-      patientType,
-      patientName: formDataRef.current.patient_name,
-    });
+    
+    // Find current tab index and go to next
+    const currentIndex = TAB_ORDER.indexOf(activeTab);
+    if (currentIndex < TAB_ORDER.length - 1) {
+      setActiveTab(TAB_ORDER[currentIndex + 1]);
+    } else {
+      // On last tab, navigate to discharge summary
+      if (caseId) {
+        navigation.navigate("DischargeSummary", { caseId });
+      } else {
+        Alert.alert("Save Required", "Please save the case sheet first");
+      }
+    }
+  };
+
+  const goToPrevious = () => {
+    const currentIndex = TAB_ORDER.indexOf(activeTab);
+    if (currentIndex > 0) {
+      setActiveTab(TAB_ORDER[currentIndex - 1]);
+    }
   };
 
   /* ===================== UI COMPONENTS ===================== */
