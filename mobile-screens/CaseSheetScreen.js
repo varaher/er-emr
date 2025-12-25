@@ -75,17 +75,24 @@ export default function CaseSheetScreen({ route, navigation }) {
 
   /* ===================== FORM DATA REF ===================== */
   const formDataRef = useRef({
-    // Patient Info
-    patient_name: "",
-    patient_age: vitals.age ? String(vitals.age) : "",
-    patient_sex: "Male",
-    patient_phone: "",
-    patient_uhid: "",
-    patient_mode_of_arrival: "Walk-in",
-    patient_mlc: false,
+    // Patient Info (populated from Triage if available)
+    patient_name: patient.name || "",
+    patient_age: patient.age ? String(patient.age) : (vitals.age ? String(vitals.age) : ""),
+    patient_sex: patient.sex || "Male",
+    patient_phone: patient.phone || "",
+    patient_uhid: patient.uhid || "",
+    patient_mode_of_arrival: patient.mode_of_arrival || "Walk-in",
+    patient_mlc: patient.mlc || false,
+    patient_brought_by: patient.brought_by || "",
+    
+    // MLC Fields
+    mlc_nature: "",
+    mlc_date_time: "",
+    mlc_place: "",
+    mlc_identification_mark: "",
 
-    // Presenting Complaint
-    complaint_text: "",
+    // Presenting Complaint (populated from Triage if available)
+    complaint_text: presentingComplaint.text || voiceTranscript || "",
     complaint_duration: "",
     complaint_onset: "Sudden",
 
