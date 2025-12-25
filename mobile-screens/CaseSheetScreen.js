@@ -23,7 +23,14 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 const API_URL = "https://er-emr-backend.onrender.com/api";
 
 export default function CaseSheetScreen({ route, navigation }) {
-  const { patientType = "adult", vitals = {}, triageData = {}, caseId: existingCaseId } = route.params || {};
+  const { 
+    patientType = "adult", 
+    vitals = {}, 
+    patient = {},
+    presentingComplaint = {},
+    voiceTranscript = "",
+    caseId: existingCaseId 
+  } = route.params || {};
   const isPediatric = patientType === "pediatric";
 
   /* ===================== STATE ===================== */
@@ -31,6 +38,7 @@ export default function CaseSheetScreen({ route, navigation }) {
   const [saving, setSaving] = useState(false);
   const [caseId, setCaseId] = useState(existingCaseId || null);
   const [activeTab, setActiveTab] = useState("patient");
+  const [showMlcFields, setShowMlcFields] = useState(patient.mlc || false);
   
   // Collapsed sections
   const [collapsed, setCollapsed] = useState({
