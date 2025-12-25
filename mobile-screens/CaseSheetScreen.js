@@ -932,8 +932,29 @@ export default function CaseSheetScreen({ route, navigation }) {
                 </View>
                 <InputField label="UHID" field="patient_uhid" placeholder="Hospital ID" />
                 <InputField label="Phone" field="patient_phone" placeholder="Contact" keyboardType="phone-pad" />
+                <InputField label="Brought By" field="patient_brought_by" placeholder="Person who brought patient" />
                 <SelectButtons label="Mode of Arrival" options={["Walk-in", "Ambulance", "Referred"]} field="patient_mode_of_arrival" />
-                <SwitchRow label="MLC Case" field="patient_mlc" />
+                
+                {/* MLC Toggle */}
+                <View style={styles.mlcContainer}>
+                  <SwitchRow 
+                    label="MLC Case" 
+                    field="patient_mlc" 
+                    onToggle={(value) => setShowMlcFields(value)}
+                  />
+                </View>
+
+                {/* MLC Fields - Show when MLC is checked */}
+                {showMlcFields && (
+                  <View style={styles.mlcFields}>
+                    <Text style={styles.mlcTitle}>⚠️ MLC Details</Text>
+                    <InputField label="Nature of Incident" field="mlc_nature" placeholder="e.g., Road Traffic Accident, Assault" />
+                    <InputField label="Date & Time of Incident" field="mlc_date_time" placeholder="DD/MM/YYYY HH:MM" />
+                    <InputField label="Place of Incident" field="mlc_place" placeholder="Location where incident occurred" />
+                    <InputField label="Identification Mark" field="mlc_identification_mark" placeholder="Any identifying marks" />
+                    <InputField label="Informant/Brought By" field="patient_brought_by" placeholder="Name & relation of person" />
+                  </View>
+                )}
               </View>
 
               <View style={styles.card}>
