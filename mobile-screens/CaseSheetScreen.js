@@ -280,8 +280,8 @@ export default function CaseSheetScreen({ route, navigation }) {
   });
 
   /* ===================== HELPERS ===================== */
-  const [, setForceRender] = useState(0);
-  const forceUpdate = () => setForceRender(prev => prev + 1);
+  const [forceRenderKey, setForceRenderKey] = useState(0);
+  const forceUpdate = () => setForceRenderKey(prev => prev + 1);
 
   const toggleCollapse = (section) => {
     setCollapsed(prev => ({ ...prev, [section]: !prev[section] }));
