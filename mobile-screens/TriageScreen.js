@@ -430,11 +430,17 @@ export default function TriageScreen({ route, navigation }) {
     // Auto-fill defaults for any blank vital fields
     fillWithDefaults();
 
-    // Require at least patient name to save
-    if (!fd.name) {
+    // Require at least patient name to save - check both ref and state
+    const name = fd.name || patientName;
+    if (!name) {
       Alert.alert("Required", "Please enter at least the patient name before saving to case sheet");
       return;
     }
+
+    // Update ref with state values in case state was updated but not ref
+    if (patientName && !fd.name) fd.name = patientName;
+    if (patientAge && !fd.age) fd.age = patientAge;
+    if (chiefComplaint && !fd.chief_complaint) fd.chief_complaint = chiefComplaint;
 
     setLoading(true);
     try {
