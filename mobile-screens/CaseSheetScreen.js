@@ -848,6 +848,7 @@ export default function CaseSheetScreen({ route, navigation }) {
     <View style={styles.inputGroup}>
       <Text style={styles.label}>{label}</Text>
       <TextInput
+        key={`${field}-${forceRenderKey}`}
         style={styles.input}
         defaultValue={formDataRef.current[field]}
         onChangeText={(text) => updateTextField(field, text)}
