@@ -719,9 +719,16 @@ export default function TriageScreen({ route, navigation }) {
     <View style={styles.inputGroup}>
       <Text style={styles.label}>{label}</Text>
       <TextInput
+        key={`${field}-${refreshKey}`}
         style={[styles.input, multiline && styles.textArea]}
         defaultValue={formDataRef.current[field]}
-        onChangeText={(t) => updateTextField(field, t)}
+        onChangeText={(t) => {
+          updateTextField(field, t);
+          // Also update state for key fields
+          if (field === 'name') setPatientName(t);
+          if (field === 'age') setPatientAge(t);
+          if (field === 'chief_complaint') setChiefComplaint(t);
+        }}
         placeholder={placeholder}
         keyboardType={keyboardType}
         multiline={multiline}
@@ -733,9 +740,20 @@ export default function TriageScreen({ route, navigation }) {
     <View style={styles.vitalItem}>
       <Text style={styles.vitalLabel}>{label}</Text>
       <TextInput
+        key={`${field}-${refreshKey}`}
         style={styles.vitalInput}
         defaultValue={formDataRef.current[field]}
-        onChangeText={(t) => updateTextField(field, t)}
+        onChangeText={(t) => {
+          updateTextField(field, t);
+          // Also update state for key vitals
+          if (field === 'hr') setVitalsHr(t);
+          if (field === 'bp_systolic') setVitalsBpSys(t);
+          if (field === 'bp_diastolic') setVitalsBpDia(t);
+          if (field === 'rr') setVitalsRr(t);
+          if (field === 'spo2') setVitalsSpo2(t);
+          if (field === 'temperature') setVitalsTemp(t);
+          if (field === 'grbs') setVitalsGrbs(t);
+        }}
         placeholder={placeholder}
         keyboardType="numeric"
       />
