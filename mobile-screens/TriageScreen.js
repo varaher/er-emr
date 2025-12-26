@@ -271,24 +271,55 @@ export default function TriageScreen({ route, navigation }) {
 
     console.log("🔄 Auto-applying extracted data:", JSON.stringify(data, null, 2));
 
-    // Apply vitals (from data.vitals)
+    // Apply vitals (from data.vitals) - USE STATE for UI update
     if (data.vitals) {
       const v = data.vitals;
-      if (v.hr) formDataRef.current.hr = String(v.hr);
-      if (v.bp_sys || v.bp_systolic) formDataRef.current.bp_systolic = String(v.bp_sys || v.bp_systolic);
-      if (v.bp_dia || v.bp_diastolic) formDataRef.current.bp_diastolic = String(v.bp_dia || v.bp_diastolic);
-      if (v.rr) formDataRef.current.rr = String(v.rr);
-      if (v.spo2) formDataRef.current.spo2 = String(v.spo2);
-      if (v.temp || v.temperature) formDataRef.current.temperature = String(v.temp || v.temperature);
+      if (v.hr) {
+        formDataRef.current.hr = String(v.hr);
+        setVitalsHr(String(v.hr));
+      }
+      if (v.bp_sys || v.bp_systolic) {
+        const val = String(v.bp_sys || v.bp_systolic);
+        formDataRef.current.bp_systolic = val;
+        setVitalsBpSys(val);
+      }
+      if (v.bp_dia || v.bp_diastolic) {
+        const val = String(v.bp_dia || v.bp_diastolic);
+        formDataRef.current.bp_diastolic = val;
+        setVitalsBpDia(val);
+      }
+      if (v.rr) {
+        formDataRef.current.rr = String(v.rr);
+        setVitalsRr(String(v.rr));
+      }
+      if (v.spo2) {
+        formDataRef.current.spo2 = String(v.spo2);
+        setVitalsSpo2(String(v.spo2));
+      }
+      if (v.temp || v.temperature) {
+        const val = String(v.temp || v.temperature);
+        formDataRef.current.temperature = val;
+        setVitalsTemp(val);
+      }
       if (v.gcs_e) formDataRef.current.gcs_e = String(v.gcs_e);
       if (v.gcs_v) formDataRef.current.gcs_v = String(v.gcs_v);
       if (v.gcs_m) formDataRef.current.gcs_m = String(v.gcs_m);
-      if (v.grbs) formDataRef.current.grbs = String(v.grbs);
+      if (v.grbs) {
+        formDataRef.current.grbs = String(v.grbs);
+        setVitalsGrbs(String(v.grbs));
+      }
     }
 
-    // Apply age from top-level (backend returns age at top level, not in patient object)
+    // Apply age from top-level - USE STATE
     if (data.age) {
       formDataRef.current.age = String(data.age);
+      setPatientAge(String(data.age));
+    }
+
+    // Apply name if present - USE STATE
+    if (data.name) {
+      formDataRef.current.name = data.name;
+      setPatientName(data.name);
     }
 
     // Apply symptoms
@@ -302,24 +333,30 @@ export default function TriageScreen({ route, navigation }) {
       setSymptoms(newSymptoms);
     }
 
-    // Apply patient info if present (for future compatibility)
+    // Apply patient info if present - USE STATE
     if (data.patient) {
       const p = data.patient;
-      if (p.name) formDataRef.current.name = p.name;
-      if (p.age) formDataRef.current.age = String(p.age);
+      if (p.name) {
+        formDataRef.current.name = p.name;
+        setPatientName(p.name);
+      }
+      if (p.age) {
+        formDataRef.current.age = String(p.age);
+        setPatientAge(String(p.age));
+      }
       if (p.sex) setSex(p.sex);
     }
 
-    // Apply chief complaint from transcript if present
+    // Apply chief complaint - USE STATE
     if (data.chief_complaint) {
       formDataRef.current.chief_complaint = data.chief_complaint;
+      setChiefComplaint(data.chief_complaint);
     }
 
     // Apply suggested triage priority
     if (data.suggested_priority) {
       const sp = data.suggested_priority;
       if (sp.level) {
-        // Auto-set triage result
         setTriageResult({
           priority_level: sp.level,
           priority_color: sp.color || "green",
@@ -330,8 +367,8 @@ export default function TriageScreen({ route, navigation }) {
     }
 
     // Force UI re-render
-    forceUpdate(n => n + 1);
-    console.log("✅ Data auto-applied successfully");
+    forceUpdate();
+    console.log("✅ Data auto-applied successfully - UI should update now");
   };
 
   const applyExtractedData = () => {
