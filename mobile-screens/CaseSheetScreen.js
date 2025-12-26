@@ -676,7 +676,18 @@ export default function CaseSheetScreen({ route, navigation }) {
       return savedCase.id;
     } catch (err) {
       console.error("Save error:", err);
-      Alert.alert("Error", err.message);
+      // Properly format error message - CRITICAL FIX
+      let errorMsg = "Failed to save case";
+      if (err?.response?.data?.detail) {
+        errorMsg = err.response.data.detail;
+      } else if (err?.response?.data?.message) {
+        errorMsg = err.response.data.message;
+      } else if (err?.response?.data && typeof err.response.data === 'object') {
+        errorMsg = JSON.stringify(err.response.data);
+      } else if (err?.message) {
+        errorMsg = err.message;
+      }
+      Alert.alert("Error", errorMsg);
       return null;
     } finally {
       setSaving(false);
