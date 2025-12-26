@@ -77,7 +77,22 @@ export default function TriageScreen({ route, navigation }) {
   const [sex, setSex] = useState("Male");
   const [modeOfArrival, setModeOfArrival] = useState("Walk-in");
   const [mlc, setMlc] = useState(false);
-  const [, forceUpdate] = useState(0);
+  const [refreshKey, setRefreshKey] = useState(0);
+  
+  // STATE VARIABLES FOR FORM FIELDS (needed for re-render after voice input)
+  const [patientName, setPatientName] = useState("");
+  const [patientAge, setPatientAge] = useState("");
+  const [chiefComplaint, setChiefComplaint] = useState("");
+  const [vitalsHr, setVitalsHr] = useState("");
+  const [vitalsBpSys, setVitalsBpSys] = useState("");
+  const [vitalsBpDia, setVitalsBpDia] = useState("");
+  const [vitalsRr, setVitalsRr] = useState("");
+  const [vitalsSpo2, setVitalsSpo2] = useState("");
+  const [vitalsTemp, setVitalsTemp] = useState("");
+  const [vitalsGrbs, setVitalsGrbs] = useState("");
+  
+  // Force re-render function
+  const forceUpdate = useCallback(() => setRefreshKey(k => k + 1), []);
   
   // Symptoms checkboxes
   const [symptoms, setSymptoms] = useState({
