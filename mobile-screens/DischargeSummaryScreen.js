@@ -176,11 +176,20 @@ export default function DischargeSummaryScreen({ route, navigation }) {
       if (res.ok) {
         Alert.alert("Success", "Discharge summary saved");
       } else {
-        Alert.alert("Error", "Failed to save discharge summary");
+        const errData = await res.json().catch(() => ({}));
+        const errorMsg = errData.detail || errData.message || "Failed to save discharge summary";
+        Alert.alert("Error", errorMsg);
       }
     } catch (err) {
       console.log("SAVE ERROR:", err);
-      Alert.alert("Error", "Unable to save discharge summary");
+      // Properly format error message
+      let errorMsg = "Unable to save discharge summary";
+      if (err?.response?.data?.detail) {
+        errorMsg = err.response.data.detail;
+      } else if (err?.message) {
+        errorMsg = err.message;
+      }
+      Alert.alert("Error", errorMsg);
     }
     setSaving(false);
   };
