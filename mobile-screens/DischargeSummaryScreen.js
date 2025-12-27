@@ -55,6 +55,7 @@ export default function DischargeSummaryScreen({ route, navigation }) {
 
   // Force re-render after data load
   const [dataLoaded, setDataLoaded] = useState(false);
+  const [renderKey, setRenderKey] = useState(0);
 
   useEffect(() => {
     loadCaseData();
