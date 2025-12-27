@@ -158,13 +158,35 @@ export default function DischargeSummaryScreen({ route, navigation }) {
       setSaving(true);
       const token = await AsyncStorage.getItem("token");
 
+      // Build payload matching backend schema
       const payload = {
-        ...dischargeDataRef.current,
-        disposition_type: radioStates.disposition_type,
-        condition_at_discharge: radioStates.condition_at_discharge,
+        disposition: {
+          type: mapDispositionTypeToBackend(radioStates.disposition_type),
+          destination: dischargeDataRef.current.discharge_ward || "",
+          advice: dischargeDataRef.current.follow_up_advice || "",
+          condition_at_discharge: radioStates.condition_at_discharge.toLowerCase(),
+          discharge_vitals: {
+            hr: parseFloatOrNull(dischargeDataRef.current.discharge_vitals.hr),
+            bp: dischargeDataRef.current.discharge_vitals.bp || "",
+            rr: parseFloatOrNull(dischargeDataRef.current.discharge_vitals.rr),
+            spo2: parseFloatOrNull(dischargeDataRef.current.discharge_vitals.spo2),
+            gcs: dischargeDataRef.current.discharge_vitals.gcs || "",
+            pain_score: parseIntOrNull(dischargeDataRef.current.discharge_vitals.pain_score),
+            grbs: parseFloatOrNull(dischargeDataRef.current.discharge_vitals.grbs),
+            temperature: parseFloatOrNull(dischargeDataRef.current.discharge_vitals.temp),
+          },
+        },
+        treatment: {
+          ...caseData?.treatment,
+          medications: dischargeDataRef.current.discharge_medications,
+        },
+        em_resident: dischargeDataRef.current.ed_resident,
+        em_consultant: dischargeDataRef.current.ed_consultant,
+        status: radioStates.disposition_type === "Normal Discharge" ? "discharged" : "completed",
       };
 
-      const res = await fetch(`${API_URL}/discharge/${caseId}`, {
+      // Use the correct endpoint: PUT /cases/{caseId}
+      const res = await fetch(`${API_URL}/cases/${caseId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -193,6 +215,30 @@ export default function DischargeSummaryScreen({ route, navigation }) {
     }
     setSaving(false);
   };
+
+  // Helper functions
+  function parseFloatOrNull(val) {
+    const num = parseFloat(val);
+    return isNaN(num) ? null : num;
+  }
+  
+  function parseIntOrNull(val) {
+    const num = parseInt(val);
+    return isNaN(num) ? null : num;
+  }
+  
+  function mapDispositionTypeToBackend(type) {
+    const map = {
+      "Normal Discharge": "discharged",
+      "Admitted ICU": "admitted-icu",
+      "Admitted HDU": "admitted-hdu",
+      "Admitted Ward": "admitted-ward",
+      "Referred": "referred",
+      "DAMA/LAMA": "dama",
+      "Death": "death",
+    };
+    return map[type] || "discharged";
+  }
 
   const generatePDF = async () => {
     if (!caseData) return;
