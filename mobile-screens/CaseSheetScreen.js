@@ -262,6 +262,28 @@ export default function CaseSheetScreen({ route, navigation }) {
 
     // Treatment
     treatment_interventions: "",
+    labs_ordered: "",
+    imaging_ordered: "",
+    investigation_results: "",
+    vbg_interpretation: "",
+    diagnosis_primary: "",
+    diagnosis_differential: "",
+    treatment_medications: "",
+    treatment_fluids: "",
+    treatment_procedures: "",
+    treatment_course: "",
+
+    // Disposition
+    disposition_type: "Discharge",
+    disposition_ward: "",
+    disposition_refer_hospital: "",
+    disposition_refer_reason: "",
+    disposition_lama_notes: "",
+    disposition_death_time: "",
+    disposition_death_cause: "",
+    disposition_condition: "Stable",
+    discharge_medications: "",
+    discharge_followup: "",
   });
 
   // Select states for UI
