@@ -671,9 +671,40 @@ export default function CaseSheetScreen({ route, navigation }) {
         },
         treatment: {
           intervention_notes: fd.treatment_interventions,
+          medications: fd.treatment_medications,
+          fluids: fd.treatment_fluids,
+          procedures_done: fd.treatment_procedures,
+          course_in_hospital: fd.treatment_course,
+          differential_diagnoses: fd.diagnosis_differential ? fd.diagnosis_differential.split(",").map(s => s.trim()).filter(Boolean) : [],
+          provisional_diagnoses: fd.diagnosis_primary ? [fd.diagnosis_primary.trim()] : [],
+        },
+        investigations: {
+          panels_selected: fd.labs_ordered ? fd.labs_ordered.split(",").map(s => s.trim()).filter(Boolean) : [],
+          imaging: fd.imaging_ordered ? fd.imaging_ordered.split(",").map(s => s.trim()).filter(Boolean) : [],
+          results_notes: fd.investigation_results,
+        },
+        disposition: {
+          type: mapDispositionType(fd.disposition_type),
+          destination: fd.disposition_ward || fd.disposition_refer_hospital || "",
+          advice: fd.discharge_followup || "",
+          condition_at_discharge: (fd.disposition_condition || "stable").toLowerCase(),
+          discharge_vitals: null,
         },
         em_resident: user.name || "",
       };
+
+      // Helper function to map disposition type
+      function mapDispositionType(type) {
+        const map = {
+          "Discharge": "discharged",
+          "Admit": "admitted-ward",
+          "Refer": "referred",
+          "LAMA": "dama",
+          "Absconded": "absconded",
+          "Death": "death",
+        };
+        return map[type] || "discharged";
+      }
 
       let response;
       if (caseId) {
