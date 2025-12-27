@@ -113,9 +113,17 @@ export default function DischargeSummaryScreen({ route, navigation }) {
       });
 
       setDataLoaded(true);
+      setRenderKey(prev => prev + 1); // Force re-render to show loaded data
     } catch (err) {
       console.log("DISCHARGE ERROR:", err);
-      Alert.alert("Error", "Unable to load case data");
+      // Properly format error message
+      let errorMsg = "Unable to load case data";
+      if (err?.response?.data?.detail) {
+        errorMsg = err.response.data.detail;
+      } else if (err?.message) {
+        errorMsg = err.message;
+      }
+      Alert.alert("Error", errorMsg);
     }
     setLoading(false);
   };
