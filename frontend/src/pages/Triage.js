@@ -284,26 +284,38 @@ export default function Triage() {
             <Card className="border-blue-200 bg-blue-50">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  🎤 Chief Complaint / Presenting Complaint
+                  Chief Complaint / Presenting Complaint
                 </CardTitle>
                 <CardDescription className="text-blue-700">
-                  Use voice recording - AI will auto-extract vitals & symptoms
+                  Type directly or use voice recording - AI will auto-extract vitals & symptoms
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <Label htmlFor="chief-complaint" className="text-sm font-semibold">
                     Main Reason for Visit
                   </Label>
-                  <WhisperTriageInput
+                  {/* Regular textarea for continuous typing */}
+                  <textarea
+                    id="chief-complaint"
                     value={formData.chief_complaint}
                     onChange={(e) => setFormData({ ...formData, chief_complaint: e.target.value })}
-                    onExtractedData={handleExtractedData}
-                    className="min-h-[80px]"
+                    className="w-full min-h-[100px] p-3 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white resize-y"
+                    placeholder="Type the presenting complaint here..."
+                    data-testid="textarea-chief-complaint"
                   />
-                  <p className="text-xs text-slate-600">
-                    ✨ <strong>AI-Powered:</strong> Speak vitals & symptoms - AI will auto-fill the form below!
-                  </p>
+                  {/* Voice input option */}
+                  <div className="pt-2 border-t border-blue-200">
+                    <p className="text-xs text-slate-600 mb-2">
+                      Or use voice recording for AI auto-extraction:
+                    </p>
+                    <WhisperTriageInput
+                      value={formData.chief_complaint}
+                      onChange={(e) => setFormData({ ...formData, chief_complaint: e.target.value })}
+                      onExtractedData={handleExtractedData}
+                      className="min-h-[60px]"
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>
