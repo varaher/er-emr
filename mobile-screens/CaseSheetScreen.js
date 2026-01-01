@@ -2758,6 +2758,20 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   dischargeSummaryBtnText: { color: "#fff", fontWeight: "700", fontSize: 15 },
+  dashboardBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#fff",
+    borderWidth: 2,
+    borderColor: "#2563eb",
+    padding: 16,
+    borderRadius: 12,
+    marginHorizontal: 12,
+    marginTop: 12,
+    gap: 8,
+  },
+  dashboardBtnText: { color: "#2563eb", fontWeight: "700", fontSize: 15 },
   
   // AI Diagnosis Styles
   aiDiagnosisBtn: {
