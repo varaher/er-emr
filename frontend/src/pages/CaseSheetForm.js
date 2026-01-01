@@ -3968,9 +3968,32 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
                       </div>
                     </div>
 
-                    {/* Provisional Diagnosis */}
-                    <div className="space-y-2 p-4 border-l-4 border-green-400 bg-green-50/50 rounded-r-lg">
-                      <Label htmlFor="provisional-diagnoses" className="text-lg font-semibold text-green-900">Provisional Diagnosis</Label>
+                    {/* Provisional Diagnosis with AI */}
+                    <div className="space-y-4 p-4 border-l-4 border-green-400 bg-green-50/50 rounded-r-lg">
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="provisional-diagnoses" className="text-lg font-semibold text-green-900">Provisional Diagnosis</Label>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={getAIDiagnosisSuggestions}
+                          disabled={aiDiagnosisLoading}
+                          className="bg-purple-50 border-purple-300 text-purple-700 hover:bg-purple-100"
+                          data-testid="ai-diagnosis-suggest-btn"
+                        >
+                          {aiDiagnosisLoading ? (
+                            <>
+                              <span className="animate-spin mr-2">⏳</span>
+                              Analyzing...
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="h-4 w-4 mr-2" />
+                              AI Suggest Diagnosis & Red Flags
+                            </>
+                          )}
+                        </Button>
+                      </div>
                       <Input
                         id="provisional-diagnoses"
                         data-testid="input-provisional-diagnoses"
@@ -3979,9 +4002,100 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
                         placeholder="Enter provisional diagnoses separated by commas"
                         className="text-base"
                       />
-                      <p className="text-xs text-slate-500">
-                        💡 Differential diagnoses will be documented in the discharge summary
-                      </p>
+                      
+                      {/* AI Diagnosis Results */}
+                      {showAIDiagnosisPanel && aiDiagnosisResult && (
+                        <div className="mt-4 space-y-3">
+                          <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Sparkles className="h-4 w-4 text-purple-600" />
+                              <span className="font-semibold text-purple-800">AI Suggestions</span>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setShowAIDiagnosisPanel(false)}
+                                className="ml-auto h-6 w-6 p-0"
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                            <p className="text-sm text-purple-700 whitespace-pre-wrap">{aiDiagnosisResult}</p>
+                          </div>
+                          
+                          {/* Red Flags */}
+                          {aiRedFlags.length > 0 && (
+                            <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                              <div className="flex items-center gap-2 mb-2">
+                                <AlertTriangle className="h-4 w-4 text-red-600" />
+                                <span className="font-semibold text-red-800">Red Flags to Consider</span>
+                              </div>
+                              <ul className="space-y-1">
+                                {aiRedFlags.map((flag, idx) => (
+                                  <li key={idx} className="flex items-start gap-2 text-sm text-red-700">
+                                    <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                                    <span>{flag.trim()}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Drug Selection Section */}
+                    <div className="space-y-4 p-4 border-l-4 border-orange-400 bg-orange-50/50 rounded-r-lg">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-lg font-semibold text-orange-900 flex items-center gap-2">
+                          <Pill className="h-5 w-5" />
+                          Medications ({isPediatric ? 'Pediatric' : 'Adult'} Formulary)
+                        </Label>
+                        <div className="flex items-center gap-2">
+                          <label className="flex items-center gap-2 text-sm">
+                            <input
+                              type="checkbox"
+                              checked={isPediatric}
+                              onChange={(e) => setIsPediatric(e.target.checked)}
+                              className="rounded border-gray-300"
+                            />
+                            Pediatric
+                          </label>
+                          <Button
+                            type="button"
+                            onClick={() => setShowDrugModal(true)}
+                            className="bg-orange-600 hover:bg-orange-700"
+                            data-testid="add-drug-btn"
+                          >
+                            <Plus className="h-4 w-4 mr-2" />
+                            Add Drug from List
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      {/* Selected Drugs List */}
+                      {selectedDrugs.length > 0 && (
+                        <div className="space-y-2">
+                          {selectedDrugs.map((drug) => (
+                            <div key={drug.id} className="flex items-center justify-between p-3 bg-white border border-orange-200 rounded-lg">
+                              <div>
+                                <span className="font-semibold text-orange-800">{drug.name}</span>
+                                <span className="text-orange-600 ml-2">{drug.dose}</span>
+                                <span className="text-slate-500 text-sm ml-2">at {drug.time}</span>
+                              </div>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeDrug(drug.id)}
+                                className="text-red-500 hover:text-red-700"
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
 
                     {/* Treatment Notes */}
@@ -3999,6 +4113,38 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
                         rows={5}
                       />
                     </div>
+
+                    {/* Addendum Notes Section */}
+                    {addendums.length > 0 && (
+                      <div className="space-y-2 p-4 border-l-4 border-sky-400 bg-sky-50/50 rounded-r-lg">
+                        <Label className="text-lg font-semibold text-sky-900 flex items-center gap-2">
+                          <Clock className="h-5 w-5" />
+                          Addendum Notes
+                        </Label>
+                        <div className="space-y-2">
+                          {addendums.map((addendum, idx) => (
+                            <div key={idx} className="p-3 bg-white border border-sky-200 rounded-lg">
+                              <div className="text-xs text-slate-500 mb-1">
+                                {new Date(addendum.timestamp).toLocaleString()} - {addendum.author}
+                              </div>
+                              <p className="text-sm text-slate-700">{addendum.note}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Add Addendum Button */}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setShowAddendumModal(true)}
+                      className="w-full border-dashed border-sky-400 text-sky-700 hover:bg-sky-50"
+                      data-testid="add-addendum-btn"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Addendum Note
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
