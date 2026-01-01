@@ -1703,14 +1703,18 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
 
         <div className={isLocked ? 'pointer-events-none opacity-60' : ''}>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-7 mb-6">
+          <TabsList className="grid grid-cols-8 mb-6">
             <TabsTrigger value="patient" data-testid="tab-patient">Patient Info</TabsTrigger>
             <TabsTrigger value="vitals" data-testid="tab-vitals">Vitals</TabsTrigger>
             <TabsTrigger value="primary" data-testid="tab-primary">ABCDE</TabsTrigger>
             <TabsTrigger value="history" data-testid="tab-history">Secondary Survey</TabsTrigger>
-            <TabsTrigger value="examination" data-testid="tab-examination">Physical Examination</TabsTrigger>
+            <TabsTrigger value="examination" data-testid="tab-examination">Physical Exam</TabsTrigger>
             <TabsTrigger value="investigations" data-testid="tab-investigations">Investigations</TabsTrigger>
             <TabsTrigger value="treatment" data-testid="tab-treatment">Treatment</TabsTrigger>
+            <TabsTrigger value="notes" data-testid="tab-notes" className="flex items-center gap-1">
+              <ClipboardList className="h-3 w-3" />
+              Notes
+            </TabsTrigger>
           </TabsList>
 
           {/* Patient Info Tab */}
