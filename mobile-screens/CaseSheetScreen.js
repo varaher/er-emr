@@ -2719,4 +2719,389 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   dischargeSummaryBtnText: { color: "#fff", fontWeight: "700", fontSize: 15 },
+  
+  // AI Diagnosis Styles
+  aiDiagnosisBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#7c3aed",
+    padding: 14,
+    borderRadius: 10,
+    marginTop: 12,
+    marginHorizontal: 16,
+    gap: 8,
+  },
+  aiDiagnosisBtnText: { color: "#fff", fontWeight: "700", fontSize: 14 },
+  aiDiagnosisResult: {
+    backgroundColor: "#f5f3ff",
+    padding: 14,
+    marginTop: 12,
+    marginHorizontal: 16,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#c4b5fd",
+  },
+  aiResultHeader: { 
+    fontSize: 14, 
+    fontWeight: "700", 
+    color: "#7c3aed", 
+    marginBottom: 8 
+  },
+  aiResultContent: { 
+    fontSize: 13, 
+    color: "#5b21b6", 
+    lineHeight: 20 
+  },
+  
+  // Red Flags Styles
+  redFlagsContainer: {
+    backgroundColor: "#fef2f2",
+    padding: 14,
+    marginTop: 12,
+    marginHorizontal: 16,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#fecaca",
+  },
+  redFlagsHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 10,
+  },
+  redFlagsTitle: { 
+    fontSize: 14, 
+    fontWeight: "700", 
+    color: "#dc2626" 
+  },
+  redFlagItem: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 8,
+    marginBottom: 6,
+    paddingLeft: 4,
+  },
+  redFlagText: { 
+    fontSize: 13, 
+    color: "#991b1b", 
+    flex: 1,
+    lineHeight: 18,
+  },
+  
+  // Drug Section Styles
+  drugSection: { 
+    paddingHorizontal: 16, 
+    marginBottom: 12 
+  },
+  drugSectionLabel: { 
+    fontSize: 12, 
+    fontWeight: "600", 
+    color: "#475569", 
+    marginBottom: 8 
+  },
+  addDrugBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#16a34a",
+    padding: 12,
+    borderRadius: 10,
+    gap: 8,
+  },
+  addDrugBtnText: { 
+    color: "#fff", 
+    fontWeight: "700", 
+    fontSize: 14 
+  },
+  selectedDrugsList: { 
+    paddingHorizontal: 16, 
+    marginBottom: 12 
+  },
+  selectedDrugItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#f0fdf4",
+    padding: 12,
+    borderRadius: 10,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: "#86efac",
+  },
+  selectedDrugInfo: { flex: 1 },
+  selectedDrugName: { 
+    fontSize: 14, 
+    fontWeight: "700", 
+    color: "#166534" 
+  },
+  selectedDrugDose: { 
+    fontSize: 12, 
+    color: "#15803d", 
+    marginTop: 2 
+  },
+  
+  // Addendum Styles
+  addendumItem: {
+    backgroundColor: "#f8fafc",
+    padding: 12,
+    marginHorizontal: 16,
+    marginBottom: 8,
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: "#2563eb",
+  },
+  addendumTime: { 
+    fontSize: 11, 
+    color: "#64748b", 
+    marginBottom: 4 
+  },
+  addendumText: { 
+    fontSize: 13, 
+    color: "#1e293b", 
+    lineHeight: 18 
+  },
+  addAddendumBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#fff",
+    padding: 14,
+    marginHorizontal: 12,
+    marginTop: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#2563eb",
+    borderStyle: "dashed",
+    gap: 6,
+  },
+  addAddendumBtnText: { 
+    color: "#2563eb", 
+    fontWeight: "600", 
+    fontSize: 14 
+  },
+  
+  // Procedure Styles
+  procedureSubtitle: {
+    fontSize: 12,
+    color: "#64748b",
+    paddingHorizontal: 16,
+    marginBottom: 12,
+  },
+  procedureCategory: { 
+    marginBottom: 16 
+  },
+  procedureCategoryTitle: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#1e40af",
+    backgroundColor: "#eff6ff",
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    marginBottom: 8,
+  },
+  procedureItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    gap: 10,
+  },
+  procedureItemSelected: { 
+    backgroundColor: "#f0fdf4" 
+  },
+  procedureItemText: { 
+    fontSize: 14, 
+    color: "#475569" 
+  },
+  procedureItemTextSelected: { 
+    color: "#166534", 
+    fontWeight: "600" 
+  },
+  procedureNotesInput: { 
+    paddingHorizontal: 16, 
+    paddingBottom: 10 
+  },
+  procedureNoteField: {
+    backgroundColor: "#f8fafc",
+    padding: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    fontSize: 13,
+    minHeight: 60,
+    textAlignVertical: "top",
+    marginLeft: 32,
+  },
+  procedureSummary: { 
+    paddingHorizontal: 16, 
+    paddingBottom: 8 
+  },
+  procedureSummaryItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 6,
+  },
+  procedureSummaryText: { 
+    fontSize: 13, 
+    color: "#166534" 
+  },
+  
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
+  },
+  modalContainer: {
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: "80%",
+    paddingBottom: 30,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e2e8f0",
+  },
+  modalTitle: { 
+    fontSize: 18, 
+    fontWeight: "700", 
+    color: "#1e293b" 
+  },
+  drugSearchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f1f5f9",
+    margin: 16,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    gap: 8,
+  },
+  drugSearchInput: { 
+    flex: 1, 
+    padding: 12, 
+    fontSize: 15 
+  },
+  drugList: { 
+    maxHeight: 400, 
+    paddingHorizontal: 16 
+  },
+  drugItemContainer: {
+    backgroundColor: "#f8fafc",
+    padding: 14,
+    borderRadius: 10,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+  },
+  drugItemHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  drugItemName: { 
+    fontSize: 15, 
+    fontWeight: "700", 
+    color: "#1e293b" 
+  },
+  drugItemStrength: { 
+    fontSize: 12, 
+    color: "#64748b" 
+  },
+  drugDoseOptions: { 
+    flexDirection: "row", 
+    flexWrap: "wrap", 
+    gap: 8 
+  },
+  drugDoseBtn: {
+    backgroundColor: "#2563eb",
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+  },
+  drugDoseBtnText: { 
+    color: "#fff", 
+    fontSize: 12, 
+    fontWeight: "600" 
+  },
+  noDrugsText: { 
+    textAlign: "center", 
+    color: "#94a3b8", 
+    padding: 20 
+  },
+  
+  // Addendum Modal Styles
+  addendumModalContainer: {
+    backgroundColor: "#fff",
+    marginHorizontal: 20,
+    marginTop: "auto",
+    marginBottom: "auto",
+    borderRadius: 16,
+    padding: 20,
+  },
+  addendumModalHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginBottom: 8,
+  },
+  addendumModalTitle: { 
+    fontSize: 18, 
+    fontWeight: "700", 
+    color: "#1e293b" 
+  },
+  addendumModalSubtitle: { 
+    fontSize: 13, 
+    color: "#64748b", 
+    marginBottom: 16 
+  },
+  addendumInput: {
+    backgroundColor: "#f8fafc",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    borderRadius: 10,
+    padding: 14,
+    fontSize: 14,
+    minHeight: 120,
+    textAlignVertical: "top",
+    marginBottom: 16,
+  },
+  addendumModalButtons: { 
+    flexDirection: "row", 
+    gap: 12 
+  },
+  addendumCancelBtn: {
+    flex: 1,
+    padding: 14,
+    borderRadius: 10,
+    backgroundColor: "#f1f5f9",
+    alignItems: "center",
+  },
+  addendumCancelBtnText: { 
+    color: "#64748b", 
+    fontWeight: "600", 
+    fontSize: 15 
+  },
+  addendumSaveBtn: {
+    flex: 2,
+    flexDirection: "row",
+    padding: 14,
+    borderRadius: 10,
+    backgroundColor: "#2563eb",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  addendumSaveBtnText: { 
+    color: "#fff", 
+    fontWeight: "700", 
+    fontSize: 15 
+  },
 });
