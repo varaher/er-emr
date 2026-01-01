@@ -970,11 +970,14 @@ export default function CaseSheetScreen({ route, navigation }) {
           imaging: fd.imaging_ordered ? fd.imaging_ordered.split(",").map(s => s.trim()).filter(Boolean) : [],
           results_notes: fd.investigation_results,
         },
+        er_observation: {
+          notes: fd.er_observation_notes || "",
+          duration: fd.er_duration || "",
+        },
         disposition: {
           type: mapDispositionType(fd.disposition_type),
           destination: fd.disposition_ward || fd.disposition_refer_hospital || "",
           advice: fd.discharge_followup || "",
-          condition_at_discharge: (fd.disposition_condition || "stable").toLowerCase(),
           discharge_vitals: null,
         },
         em_resident: user.name || "",
