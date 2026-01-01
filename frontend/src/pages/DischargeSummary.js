@@ -115,11 +115,19 @@ export default function DischargeSummary() {
               <Button 
                 variant="outline" 
                 size="sm" 
-                onClick={() => navigate('/')}
-                data-testid="back-button"
+                onClick={() => navigate('/dashboard')}
+                data-testid="back-to-dashboard"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Back
+                Dashboard
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => navigate(`/case/${id}`)}
+                data-testid="back-to-case"
+              >
+                Back to Case Sheet
               </Button>
               <div>
                 <h1 className="text-2xl font-bold tracking-tight text-slate-900">Discharge Summary</h1>
