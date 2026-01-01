@@ -124,7 +124,7 @@ export default function DischargeSummary() {
               <Button 
                 variant="outline" 
                 size="sm" 
-                onClick={() => navigate(`/case/${id}`)}
+                onClick={() => navigate(`/case/${caseId}`)}
                 data-testid="back-to-case"
               >
                 Back to Case Sheet
