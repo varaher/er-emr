@@ -4292,6 +4292,115 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
               </Button>
             </div>
           </TabsContent>
+
+          {/* Notes Tab (Procedures) */}
+          <TabsContent value="notes">
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <ClipboardList className="h-5 w-5" />
+                    Procedures Performed
+                  </CardTitle>
+                  <CardDescription>Document all procedures performed and add detailed notes for each</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    {PROCEDURE_CATEGORIES.map((category) => {
+                      const categoryProcedures = PROCEDURE_OPTIONS.filter(p => p.category === category);
+                      if (categoryProcedures.length === 0) return null;
+                      
+                      return (
+                        <div key={category} className="space-y-3">
+                          <h3 className="text-sm font-bold text-slate-700 bg-slate-100 px-3 py-2 rounded">
+                            {category}
+                          </h3>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 px-2">
+                            {categoryProcedures.map((proc) => {
+                              const isSelected = selectedProceduresWithNotes[proc.id] !== undefined;
+                              return (
+                                <div key={proc.id} className="space-y-2">
+                                  <div 
+                                    className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
+                                      isSelected 
+                                        ? 'bg-green-50 border border-green-300' 
+                                        : 'bg-white border border-slate-200 hover:border-slate-300'
+                                    }`}
+                                    onClick={() => toggleProcedureWithNote(proc.id)}
+                                  >
+                                    {isSelected ? (
+                                      <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />
+                                    ) : (
+                                      <div className="h-5 w-5 rounded-full border-2 border-slate-300 flex-shrink-0" />
+                                    )}
+                                    <span className={`text-sm ${isSelected ? 'font-semibold text-green-800' : 'text-slate-700'}`}>
+                                      {proc.name}
+                                    </span>
+                                  </div>
+                                  
+                                  {/* Notes input for selected procedure */}
+                                  {isSelected && (
+                                    <div className="pl-8">
+                                      <textarea
+                                        className="w-full px-3 py-2 text-sm border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 bg-white"
+                                        placeholder={`Notes for ${proc.name}...`}
+                                        value={selectedProceduresWithNotes[proc.id] || ''}
+                                        onChange={(e) => updateProcedureNote(proc.id, e.target.value)}
+                                        rows={2}
+                                      />
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Procedure Summary */}
+              {Object.keys(selectedProceduresWithNotes).length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-green-800">
+                      <CheckCircle2 className="h-5 w-5" />
+                      Procedures Summary ({Object.keys(selectedProceduresWithNotes).length} selected)
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {Object.entries(selectedProceduresWithNotes).map(([procId, note]) => {
+                        const proc = PROCEDURE_OPTIONS.find(p => p.id === procId);
+                        return (
+                          <div key={procId} className="flex items-start gap-3 p-3 bg-green-50 rounded-lg border border-green-200">
+                            <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5" />
+                            <div>
+                              <div className="font-semibold text-green-800">{proc?.name || procId}</div>
+                              {note && <div className="text-sm text-green-700 mt-1">{note}</div>}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Navigation Buttons */}
+              <div className="flex justify-between gap-2">
+                <Button variant="outline" onClick={goToPreviousTab}>
+                  ← Back: Treatment
+                </Button>
+                <Button onClick={handleSaveClick} className="bg-green-600 hover:bg-green-700" size="lg">
+                  <Save className="h-5 w-5 mr-2" />
+                  Complete & Save Case Sheet
+                </Button>
+              </div>
+            </div>
+          </TabsContent>
         </Tabs>
         </div>
       </main>
