@@ -64,8 +64,8 @@ export default function CaseSheetForm() {
   const addendumTimerRef = useRef(null);
   const [addendumReminderCount, setAddendumReminderCount] = useState(0);
   
-  // Tab navigation
-  const tabs = ['patient', 'vitals', 'primary', 'history', 'examination', 'investigations', 'treatment'];
+  // Tab navigation - UPDATED to include notes tab
+  const tabs = ['patient', 'vitals', 'primary', 'history', 'examination', 'investigations', 'treatment', 'notes'];
   const currentTabIndex = tabs.indexOf(activeTab);
   
   const goToNextTab = () => {
