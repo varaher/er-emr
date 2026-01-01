@@ -372,6 +372,27 @@ export default function CaseSheetForm() {
     return () => clearInterval(autoSaveInterval);
   }, [id, formData, isLocked]);
 
+  // NEW: Addendum reminder timer - every 2 hours
+  useEffect(() => {
+    if (!id || id === 'new') return;
+
+    const TWO_HOURS = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
+    
+    addendumTimerRef.current = setInterval(() => {
+      setAddendumReminderCount(prev => prev + 1);
+      setShowAddendumModal(true);
+      toast.info('⏰ Time for progress notes! Consider adding an addendum.', {
+        duration: 5000
+      });
+    }, TWO_HOURS);
+
+    return () => {
+      if (addendumTimerRef.current) {
+        clearInterval(addendumTimerRef.current);
+      }
+    };
+  }, [id]);
+
   const fetchTriageAndPopulateVitals = async (triageId) => {
     try {
       const response = await api.get(`/triage/${triageId}`);
