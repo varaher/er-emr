@@ -1043,12 +1043,22 @@ export default function CaseSheetScreen({ route, navigation }) {
     if (currentIndex < TAB_ORDER.length - 1) {
       setActiveTab(TAB_ORDER[currentIndex + 1]);
     } else {
-      // On last tab, navigate to discharge summary
-      if (caseId) {
-        navigation.navigate("DischargeSummary", { caseId });
-      } else {
-        Alert.alert("Save Required", "Please save the case sheet first");
-      }
+      // On last tab (disposition), save and go to Dashboard
+      await saveCaseSheet();
+      Alert.alert(
+        "Case Saved",
+        "Case sheet has been saved successfully.",
+        [
+          {
+            text: "Go to Dashboard",
+            onPress: () => navigation.navigate("Dashboard")
+          },
+          {
+            text: "Stay Here",
+            style: "cancel"
+          }
+        ]
+      );
     }
   };
 
