@@ -1586,6 +1586,70 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
         </DialogContent>
       </Dialog>
 
+      {/* Drug Selection Modal */}
+      <Dialog open={showDrugModal} onOpenChange={setShowDrugModal}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Pill className="h-5 w-5" />
+              Select {isPediatric ? 'Pediatric' : 'Adult'} Drug
+            </DialogTitle>
+            <DialogDescription>
+              Search and select drugs from the emergency formulary
+            </DialogDescription>
+          </DialogHeader>
+          
+          {/* Search Input */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Input
+              placeholder="Search drugs by name or category..."
+              value={drugSearchQuery}
+              onChange={(e) => setDrugSearchQuery(e.target.value)}
+              className="pl-10"
+              autoFocus
+            />
+          </div>
+
+          {/* Drug List */}
+          <div className="flex-1 overflow-y-auto space-y-3 pr-2 max-h-[50vh]">
+            {filteredDrugs.map((drug, idx) => (
+              <div key={idx} className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <div className="font-semibold text-slate-900">{drug.name}</div>
+                    <div className="text-sm text-slate-500">{drug.strength} • {drug.category}</div>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {drug.doses.map((dose, doseIdx) => (
+                    <Button
+                      key={doseIdx}
+                      size="sm"
+                      onClick={() => addDrug(drug, dose)}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      {dose}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            ))}
+            {filteredDrugs.length === 0 && (
+              <div className="text-center text-slate-500 py-8">
+                No drugs match your search
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDrugModal(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Info Banners */}
