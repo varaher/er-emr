@@ -1,10 +1,25 @@
 # 📋 ERMATE MOBILE APP - COMPLETE UPDATE CHECKLIST
 ## Generated: December 25, 2024
-## Last Updated: December 2024 (New Features Added)
+## Last Updated: December 2024 (OTA Update Popup Added)
 
 ---
 
 ## 🎯 GOAL: Make OTA Updates Work + Apply All Bug Fixes + NEW FEATURES
+
+---
+
+## 🔔 OTA UPDATE POPUP
+
+When an OTA update is available, the app will automatically:
+1. Check for updates on app launch
+2. Download the update in background
+3. **Show a prominent popup** with:
+   - "Update Available!" title
+   - List of new features
+   - 🚀 **"Update Now"** green button
+   - "Later" option to skip
+
+**Manual Check:** Users can also check for updates from **Profile → Check for Updates**
 
 ---
 
@@ -29,6 +44,10 @@
 - Automatic reminder every 2 hours to document progress
 - Manual "Add Addendum" button always available
 - All addendums are timestamped and saved with the case
+
+### 5. Check for Updates Button
+- Profile screen now has "Check for Updates" button
+- Allows manual checking for OTA updates
 
 ---
 
