@@ -23,33 +23,41 @@ ErMate is a mobile-first emergency room documentation application designed for m
 - **History**: SAMPLE history, allergies, medications
 - **Examination**: General, CVS, Respiratory, Abdomen, CNS, Extremities
 - **Treatment**: Investigations, VBG interpretation, Diagnosis, Medications
-- **Procedures**: Documented procedures with notes
+- **Notes**: Documented procedures with individual notes (NEW TAB)
 - **Disposition**: Discharge, Admit, Refer, LAMA, Death
 
 ### 3. AI Features
 - VBG/ABG interpretation
-- **AI Diagnosis & Red Flags** (NEW)
+- **AI Diagnosis & Red Flags** - Suggests diagnoses and highlights red flags based on clinical context
 - Voice-to-text transcription (Sarvam/OpenAI)
 
 ### 4. Drug Management (NEW)
 - Pre-built adult drug formulary (35+ drugs)
 - Pre-built pediatric drug formulary (14+ drugs)
-- Searchable drug selection
+- Searchable drug selection modal
 - Dose options with timestamps
+- Toggle between Adult/Pediatric formulary
 
 ### 5. Procedures Documentation (NEW)
 - 26 common ER procedures
-- Organized by category (Resuscitation, Airway, Vascular, etc.)
-- Individual notes for each procedure
+- Organized by category (Resuscitation, Airway, Vascular, Chest, Neuro, GU, GI, Wound, Ortho, Cardiac, Monitoring)
+- Individual notes field for each procedure
+- Summary view of selected procedures
 
-### 6. Addendum Notes (NEW)
-- 2-hour automatic reminder popup
-- Manual addendum entry
+### 6. Addendum Notes
+- 2-hour automatic reminder popup (mobile)
+- Manual addendum entry button
 - Timestamped progress notes
+- Saved with case data
 
 ---
 
 ## Tech Stack
+
+### Frontend (Web)
+- React with Tailwind CSS
+- Shadcn/UI components
+- Voice input enabled
 
 ### Frontend (Mobile)
 - React Native / Expo
@@ -65,24 +73,29 @@ ErMate is a mobile-first emergency room documentation application designed for m
 
 ## What's Been Implemented
 
-### December 2024
-- [x] Core mobile app screens (Login, Dashboard, Triage, CaseSheet, Profile)
-- [x] Voice-to-text transcription
-- [x] Triage priority calculation
-- [x] VBG interpretation
-- [x] OTA update configuration
-- [x] Backend 500 error fix (vitals sanitization)
-- [x] **AI Diagnosis & Red Flags feature**
-- [x] **Drug dropdowns (Adult/Pediatric)**
-- [x] **Procedures Notes tab**
-- [x] **Addendum Notes popup (2-hour reminder)**
+### December 2024 - Session Updates
+**Mobile App (CaseSheetScreen.js):**
+- [x] AI Diagnosis & Red Flags feature
+- [x] Drug dropdowns (35+ Adult, 14+ Pediatric drugs)
+- [x] Notes tab for Procedures (26 procedures)
+- [x] Addendum Notes popup (2-hour timer)
+
+**Web App (CaseSheetForm.js):**
+- [x] AI Suggest Diagnosis & Red Flags button (purple)
+- [x] Drug selection modal with searchable formulary
+- [x] Adult/Pediatric toggle for drug list
+- [x] Notes tab with procedures by category
+- [x] Individual notes for each procedure
+
+**New Data File:**
+- [x] `/app/frontend/src/data/drugFormulary.js` - Emergency drug database
 
 ---
 
 ## Pending Items
 
 ### P0 - Critical
-- [ ] User needs to rebuild APK with corrected OTA config
+- [ ] User needs to rebuild mobile APK with corrected OTA config
 - [ ] User needs to deploy backend fix to Render.com
 
 ### P1 - High Priority
@@ -100,15 +113,16 @@ ErMate is a mobile-first emergency room documentation application designed for m
 
 ## File References
 
+### Web App Files
+- `/app/frontend/src/pages/CaseSheetForm.js` - Main case sheet (4400+ lines)
+- `/app/frontend/src/data/drugFormulary.js` - Drug and procedure data
+
 ### Mobile App Files
-- `/app/mobile-screens/CaseSheetScreen.js` - Main case sheet with all new features
-- `/app/mobile-screens/App.js` - OTA configuration
-- `/app/mobile-screens/app.json` - Expo project config
-- `/app/mobile-screens/eas.json` - EAS build config
+- `/app/mobile-screens/CaseSheetScreen.js` - Main case sheet (~3100 lines)
 - `/app/mobile-screens/UPDATE_CHECKLIST.md` - User guide
 
 ### Backend Files
-- `/app/backend/server.py` - API server with sanitization fix
+- `/app/backend/server.py` - API server
 
 ---
 
@@ -134,7 +148,7 @@ ErMate is a mobile-first emergency room documentation application designed for m
 
 ## Configuration
 
-### Expo Project
+### Expo Project (Mobile)
 - Project ID: `44c665c9-fa62-4ace-b08a-e797df5feac1`
 - Owner: `varah`
 - Package: `com.ermate.app`
