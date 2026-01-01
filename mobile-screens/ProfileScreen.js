@@ -16,11 +16,12 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const API_URL = "https://er-emr-backend.onrender.com/api";
 
-export default function ProfileScreen({ navigation, onLogout }) {
+export default function ProfileScreen({ navigation, onLogout, checkForUpdates }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [checkingUpdate, setCheckingUpdate] = useState(false);
   
   // Editable fields
   const [editData, setEditData] = useState({
