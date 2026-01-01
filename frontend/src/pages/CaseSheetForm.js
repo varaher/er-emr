@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { VoiceTextInput, VoiceTextarea } from '@/components/VoiceTextInput';
 import WhisperCaseSheetInput from '@/components/WhisperCaseSheetInput';
 import { toast } from 'sonner';
-import { ArrowLeft, Save, Sparkles, AlertCircle, Mic, Database, Clock, FileText, Download, Plus, X, Search, Pill, ClipboardList, AlertTriangle, Timer, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Save, Sparkles, AlertCircle, Mic, Database, Clock, FileText, Download, Plus, X, Search, Pill, ClipboardList, AlertTriangle, Timer, CheckCircle2, Home } from 'lucide-react';
 import { generateCaseSheetPDF } from '@/utils/pdfGenerator';
 import ContinuousVoiceRecorder from '@/components/ContinuousVoiceRecorder';
 import { ADULT_DRUGS, PEDIATRIC_DRUGS, PROCEDURE_OPTIONS, PROCEDURE_CATEGORIES } from '@/data/drugFormulary';
