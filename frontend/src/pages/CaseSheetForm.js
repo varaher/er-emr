@@ -288,24 +288,14 @@ export default function CaseSheetForm() {
       provisional_diagnoses: [],
       differential_diagnoses: []
     },
+    er_observation: {
+      notes: '',
+      duration: ''
+    },
     disposition: {
       type: 'discharged',
       destination: '',
-      advice: '',
-      condition_at_discharge: 'Stable',
-      discharge_vitals: {
-        hr: null,
-        bp_systolic: null,
-        bp_diastolic: null,
-        rr: null,
-        spo2: null,
-        temperature: null,
-        gcs_e: null,
-        gcs_v: null,
-        gcs_m: null,
-        grbs: null,
-        pain_score: null
-      }
+      advice: ''
     },
     triage_id: triageData.triageId || null,
     triage_priority: triageData.triagePriority || null,
