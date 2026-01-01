@@ -333,23 +333,6 @@ export default function DischargeSummary() {
           </Card>
         )}
       </main>
-
-      <style jsx>{`
-        @media print {
-          body {
-            background: white;
-          }
-          .print\\:hidden {
-            display: none !important;
-          }
-          .print\\:shadow-none {
-            box-shadow: none !important;
-          }
-          .print\\:border-0 {
-            border: none !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }
