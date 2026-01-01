@@ -1995,19 +1995,192 @@ export default function CaseSheetScreen({ route, navigation }) {
                 ) : null}
               </View>
 
+              {/* Provisional Diagnosis with AI */}
               <View style={styles.card}>
                 <Text style={styles.cardTitle}>Provisional Diagnosis</Text>
                 <InputWithVoice label="Primary Diagnosis" field="diagnosis_primary" placeholder="Main diagnosis..." />
                 <InputWithVoice label="Differential Diagnoses" field="diagnosis_differential" placeholder="Other possibilities..." multiline />
+                
+                {/* AI Diagnosis Button */}
+                <TouchableOpacity 
+                  style={[styles.aiDiagnosisBtn, aiDiagnosisLoading && styles.btnDisabled]} 
+                  onPress={getAIDiagnosisSuggestions}
+                  disabled={aiDiagnosisLoading}
+                >
+                  {aiDiagnosisLoading ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <>
+                      <Ionicons name="sparkles" size={18} color="#fff" />
+                      <Text style={styles.aiDiagnosisBtnText}>AI Suggest Diagnosis & Red Flags</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+
+                {/* AI Diagnosis Result */}
+                {aiDiagnosisResult && (
+                  <View style={styles.aiDiagnosisResult}>
+                    <Text style={styles.aiResultHeader}>AI Suggestions</Text>
+                    <Text style={styles.aiResultContent}>{aiDiagnosisResult}</Text>
+                  </View>
+                )}
+
+                {/* Red Flags Section */}
+                {aiRedFlags.length > 0 && (
+                  <View style={styles.redFlagsContainer}>
+                    <View style={styles.redFlagsHeader}>
+                      <Ionicons name="warning" size={18} color="#dc2626" />
+                      <Text style={styles.redFlagsTitle}>Red Flags to Consider</Text>
+                    </View>
+                    {aiRedFlags.map((flag, idx) => (
+                      <View key={idx} style={styles.redFlagItem}>
+                        <Ionicons name="alert-circle" size={14} color="#dc2626" />
+                        <Text style={styles.redFlagText}>{flag.trim()}</Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
               </View>
 
+              {/* Treatment Given with Drug Dropdown */}
               <View style={styles.card}>
                 <Text style={styles.cardTitle}>Treatment Given</Text>
-                <InputWithVoice label="Medications" field="treatment_medications" placeholder="Drugs administered..." multiline />
+                
+                {/* Drug Selection Button */}
+                <View style={styles.drugSection}>
+                  <Text style={styles.drugSectionLabel}>
+                    Medications ({isPediatric ? "Pediatric" : "Adult"} Formulary)
+                  </Text>
+                  <TouchableOpacity 
+                    style={styles.addDrugBtn}
+                    onPress={() => setShowDrugModal(true)}
+                  >
+                    <Ionicons name="add-circle" size={20} color="#fff" />
+                    <Text style={styles.addDrugBtnText}>Add Drug from List</Text>
+                  </TouchableOpacity>
+                </View>
+
+                {/* Selected Drugs List */}
+                {selectedDrugs.length > 0 && (
+                  <View style={styles.selectedDrugsList}>
+                    {selectedDrugs.map((drug) => (
+                      <View key={drug.id} style={styles.selectedDrugItem}>
+                        <View style={styles.selectedDrugInfo}>
+                          <Text style={styles.selectedDrugName}>{drug.name}</Text>
+                          <Text style={styles.selectedDrugDose}>{drug.dose} • {drug.time}</Text>
+                        </View>
+                        <TouchableOpacity onPress={() => removeDrug(drug.id)}>
+                          <Ionicons name="close-circle" size={22} color="#ef4444" />
+                        </TouchableOpacity>
+                      </View>
+                    ))}
+                  </View>
+                )}
+
+                {/* Manual medication input */}
+                <InputWithVoice label="Other Medications" field="treatment_medications" placeholder="Additional drugs not in list..." multiline />
                 <InputWithVoice label="IV Fluids" field="treatment_fluids" placeholder="NS, RL, etc..." />
                 <InputWithVoice label="Procedures Done" field="treatment_procedures" placeholder="Any procedures..." multiline />
                 <InputWithVoice label="Course in ED" field="treatment_course" placeholder="Progress notes..." multiline />
               </View>
+
+              {/* Addendum Notes Section */}
+              {addendumNotes.length > 0 && (
+                <View style={styles.card}>
+                  <Text style={styles.cardTitle}>Addendum Notes</Text>
+                  {addendumNotes.map((note) => (
+                    <View key={note.id} style={styles.addendumItem}>
+                      <Text style={styles.addendumTime}>{note.displayTime}</Text>
+                      <Text style={styles.addendumText}>{note.text}</Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+
+              {/* Manual Add Addendum Button */}
+              <TouchableOpacity 
+                style={styles.addAddendumBtn}
+                onPress={() => setShowAddendumModal(true)}
+              >
+                <Ionicons name="add" size={18} color="#2563eb" />
+                <Text style={styles.addAddendumBtnText}>Add Addendum Note</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* ==================== NOTES TAB (Procedures) ==================== */}
+          {activeTab === "notes" && (
+            <View style={styles.tabContent}>
+              <View style={styles.card}>
+                <Text style={styles.cardTitle}>Procedures Performed</Text>
+                <Text style={styles.procedureSubtitle}>Select all procedures performed and add notes</Text>
+                
+                {/* Procedures by Category */}
+                {["Resuscitation", "Airway", "Vascular", "Chest", "Neuro", "GU", "GI", "Wound", "Ortho", "Cardiac", "Monitoring"].map((category) => {
+                  const categoryProcedures = PROCEDURE_OPTIONS.filter(p => p.category === category);
+                  if (categoryProcedures.length === 0) return null;
+                  
+                  return (
+                    <View key={category} style={styles.procedureCategory}>
+                      <Text style={styles.procedureCategoryTitle}>{category}</Text>
+                      {categoryProcedures.map((proc) => {
+                        const isSelected = selectedProcedures.includes(proc.id);
+                        return (
+                          <View key={proc.id}>
+                            <TouchableOpacity 
+                              style={[styles.procedureItem, isSelected && styles.procedureItemSelected]}
+                              onPress={() => toggleProcedure(proc.id)}
+                            >
+                              <Ionicons 
+                                name={isSelected ? "checkbox" : "square-outline"} 
+                                size={22} 
+                                color={isSelected ? "#16a34a" : "#94a3b8"} 
+                              />
+                              <Text style={[styles.procedureItemText, isSelected && styles.procedureItemTextSelected]}>
+                                {proc.name}
+                              </Text>
+                            </TouchableOpacity>
+                            
+                            {/* Notes input for selected procedure */}
+                            {isSelected && (
+                              <View style={styles.procedureNotesInput}>
+                                <TextInput
+                                  style={styles.procedureNoteField}
+                                  placeholder={`Notes for ${proc.name}...`}
+                                  placeholderTextColor="#9ca3af"
+                                  value={procedureNotes[proc.id] || ""}
+                                  onChangeText={(text) => updateProcedureNote(proc.id, text)}
+                                  multiline
+                                />
+                              </View>
+                            )}
+                          </View>
+                        );
+                      })}
+                    </View>
+                  );
+                })}
+              </View>
+
+              {/* Summary of Selected Procedures */}
+              {selectedProcedures.length > 0 && (
+                <View style={styles.card}>
+                  <Text style={styles.cardTitle}>Procedure Summary</Text>
+                  <View style={styles.procedureSummary}>
+                    {selectedProcedures.map((procId) => {
+                      const proc = PROCEDURE_OPTIONS.find(p => p.id === procId);
+                      return (
+                        <View key={procId} style={styles.procedureSummaryItem}>
+                          <Ionicons name="checkmark-circle" size={16} color="#16a34a" />
+                          <Text style={styles.procedureSummaryText}>
+                            {proc?.name || procId}
+                          </Text>
+                        </View>
+                      );
+                    })}
+                  </View>
+                </View>
+              )}
             </View>
           )}
 
