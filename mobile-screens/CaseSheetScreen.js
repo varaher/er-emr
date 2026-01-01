@@ -1014,7 +1014,7 @@ export default function CaseSheetScreen({ route, navigation }) {
   };
 
   // Tab navigation order
-  const TAB_ORDER = ["patient", "vitals", "primary", "history", "exam", "treatment", "disposition"];
+  const TAB_ORDER = ["patient", "vitals", "primary", "history", "exam", "treatment", "notes", "disposition"];
 
   const proceedNext = async () => {
     // Save if not saved yet and has patient name
