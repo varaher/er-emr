@@ -1794,7 +1794,7 @@ export default function CaseSheetScreen({ route, navigation }) {
               <View style={styles.card}>
                 <Text style={styles.cardTitle}>History</Text>
                 <InputWithVoice label="Signs & Symptoms" field="history_signs_symptoms" placeholder="Associated symptoms..." multiline />
-                <InputWithVoice label="Secondary Survey" field="history_secondary_survey" placeholder="Head-to-toe assessment..." multiline />
+                <InputWithVoice label="Additional Assessment" field="history_secondary_survey" placeholder="Head-to-toe assessment..." multiline />
                 <InputWithVoice label="Allergies" field="history_allergies" placeholder="NKDA or list allergies" />
                 <InputWithVoice label="Medications" field="history_medications" placeholder="Current medications..." />
                 <InputWithVoice label="Past Medical History" field="history_past_medical" placeholder="DM, HTN, Asthma..." />
