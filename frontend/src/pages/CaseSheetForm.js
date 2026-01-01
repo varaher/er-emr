@@ -660,6 +660,110 @@ export default function CaseSheetForm() {
     }
   };
 
+  // NEW: AI Diagnosis with Red Flags Function
+  const getAIDiagnosisSuggestions = async () => {
+    const clinicalContext = {
+      age: formData.patient?.age,
+      sex: formData.patient?.sex,
+      presenting_complaint: formData.presenting_complaint?.text,
+      vitals: {
+        hr: formData.vitals_at_arrival?.hr,
+        rr: formData.vitals_at_arrival?.rr,
+        bp: `${formData.vitals_at_arrival?.bp_systolic || ''}/${formData.vitals_at_arrival?.bp_diastolic || ''}`,
+        spo2: formData.vitals_at_arrival?.spo2,
+        temp: formData.vitals_at_arrival?.temperature,
+      },
+      history: formData.history?.hpi,
+      examination_findings: formData.examination?.general_notes || '',
+      current_diagnosis: formData.treatment?.provisional_diagnoses?.join(', ') || '',
+    };
+
+    if (!clinicalContext.presenting_complaint && !clinicalContext.history) {
+      toast.error('Please enter presenting complaint or history first');
+      return;
+    }
+
+    setAiDiagnosisLoading(true);
+    try {
+      const response = await api.post('/ai/generate', {
+        case_sheet_id: id || 'new',
+        prompt_type: 'diagnosis_suggestions',
+        case_context: clinicalContext,
+      });
+
+      setAiDiagnosisResult(response.data.response || response.data.content || '');
+      
+      // Extract red flags from response
+      const responseText = response.data.response || '';
+      const redFlagMatch = responseText.match(/RED FLAGS?:?([\s\S]*?)(?:SUGGESTED|DIFFERENTIAL|DIAGNOSIS|$)/i);
+      if (redFlagMatch) {
+        const flags = redFlagMatch[1].split(/[•\-\n]/).filter(f => f.trim().length > 3);
+        setAiRedFlags(flags.slice(0, 5));
+      }
+      
+      setShowAIDiagnosisPanel(true);
+      toast.success('AI analysis complete');
+    } catch (error) {
+      console.error('AI Diagnosis error:', error);
+      toast.error('Failed to get AI suggestions. Please try again.');
+    }
+    setAiDiagnosisLoading(false);
+  };
+
+  // NEW: Drug Management Functions
+  const drugList = isPediatric ? PEDIATRIC_DRUGS : ADULT_DRUGS;
+  
+  const filteredDrugs = drugList.filter(drug =>
+    drug.name.toLowerCase().includes(drugSearchQuery.toLowerCase()) ||
+    drug.category.toLowerCase().includes(drugSearchQuery.toLowerCase())
+  );
+
+  const addDrug = (drug, dose) => {
+    const newDrug = {
+      id: Date.now(),
+      name: drug.name,
+      strength: drug.strength,
+      dose: dose,
+      category: drug.category,
+      time: new Date().toLocaleTimeString(),
+    };
+    setSelectedDrugs(prev => [...prev, newDrug]);
+    
+    // Update form data
+    const drugsList = [...selectedDrugs, newDrug].map(d => `${d.name} ${d.dose}`).join(', ');
+    updateNestedField('treatment', 'intervention_notes', 
+      (formData.treatment?.intervention_notes || '') + 
+      (formData.treatment?.intervention_notes ? '\n' : '') + 
+      `${newDrug.name} ${newDrug.dose} at ${newDrug.time}`
+    );
+    
+    setShowDrugModal(false);
+    setDrugSearchQuery('');
+    toast.success(`Added ${drug.name} ${dose}`);
+  };
+
+  const removeDrug = (drugId) => {
+    setSelectedDrugs(prev => prev.filter(d => d.id !== drugId));
+  };
+
+  // NEW: Procedure Notes Functions
+  const toggleProcedureWithNote = (procedureId) => {
+    setSelectedProceduresWithNotes(prev => {
+      if (prev[procedureId] !== undefined) {
+        const { [procedureId]: removed, ...rest } = prev;
+        return rest;
+      }
+      return { ...prev, [procedureId]: '' };
+    });
+  };
+
+  const updateProcedureNote = (procedureId, note) => {
+    setSelectedProceduresWithNotes(prev => ({
+      ...prev,
+      [procedureId]: note
+    }));
+  };
+
   const handleDownloadPDF = () => {
     if (!id || id === 'new') {
       toast.error('⚠️ Please save the case first before downloading PDF', {
