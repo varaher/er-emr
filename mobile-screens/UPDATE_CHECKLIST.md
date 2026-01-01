@@ -1,9 +1,34 @@
 # 📋 ERMATE MOBILE APP - COMPLETE UPDATE CHECKLIST
 ## Generated: December 25, 2024
+## Last Updated: December 2024 (New Features Added)
 
 ---
 
-## 🎯 GOAL: Make OTA Updates Work + Apply All Bug Fixes
+## 🎯 GOAL: Make OTA Updates Work + Apply All Bug Fixes + NEW FEATURES
+
+---
+
+## 🆕 NEW FEATURES IN THIS UPDATE
+
+### 1. AI-Powered Diagnosis & Red Flags
+- AI button in Treatment tab suggests diagnoses based on clinical context
+- Automatically highlights red flags to watch for
+- Uses existing `/api/ai/generate` endpoint
+
+### 2. Drug Dropdowns (Adult & Pediatric)
+- Searchable formulary with 35+ adult drugs and 14+ pediatric drugs
+- Each drug shows strength and dose options
+- One-tap selection with auto-timestamping
+
+### 3. Procedures Notes Tab (NEW TAB)
+- New "Notes" tab between Treatment and Disposition
+- 26 common ER procedures organized by category
+- Individual notes field for each procedure performed
+
+### 4. Addendum Notes Popup
+- Automatic reminder every 2 hours to document progress
+- Manual "Add Addendum" button always available
+- All addendums are timestamped and saved with the case
 
 ---
 
@@ -21,12 +46,12 @@ Copy these files to your project ROOT folder:
 ### SCREENS FOLDER (ERmateApp/src/screens/)
 Copy ALL these files to `ERmateApp/src/screens/`:
 
-| File | What's Fixed |
+| File | What's Fixed/Added |
 |------|--------------|
 | `LoginScreen.js` | Login callback, branding |
 | `DashboardScreen.js` | ErMate logo, View button, error handling |
 | `TriageScreen.js` | Voice auto-populate, state sync, error handling |
-| `CaseSheetScreen.js` | Tab navigation, save payload, MLC fields, VBG |
+| `CaseSheetScreen.js` | **MAJOR UPDATE** - AI Diagnosis, Drug Dropdowns, Notes Tab, Addendum Popup |
 | `PhysicalExamScreen.js` | Examination forms |
 | `InvestigationsScreen.js` | Labs & imaging |
 | `TreatmentScreen.js` | Treatment forms |
@@ -35,7 +60,7 @@ Copy ALL these files to `ERmateApp/src/screens/`:
 | `ProfileScreen.js` | Working logout, edit, upgrade button |
 | `LogsScreen.js` | Activity logs |
 | `UpgradeScreen.js` | Subscription plans |
-| `ViewCaseSheetScreen.js` | **NEW** - Full case sheet view |
+| `ViewCaseSheetScreen.js` | Full case sheet view |
 
 ---
 
@@ -109,7 +134,11 @@ After copying files and rebuilding:
 - [ ] Dashboard shows cases
 - [ ] Voice recording works in Triage
 - [ ] Voice data auto-populates form
-- [ ] Can navigate through all tabs (Patient → Vitals → Primary → History → Exam → Treatment → Disposition)
+- [ ] Can navigate through all tabs (Patient → Vitals → Primary → History → Exam → Treatment → **Notes** → Disposition)
+- [ ] **NEW**: AI Suggest Diagnosis button works in Treatment tab
+- [ ] **NEW**: "Add Drug from List" opens drug modal
+- [ ] **NEW**: Notes tab shows procedure checkboxes
+- [ ] **NEW**: Can add addendum notes (manual button or popup)
 - [ ] Save button works on each section
 - [ ] Discharge Summary loads saved data
 - [ ] Profile page - Logout works
@@ -133,6 +162,9 @@ After copying files and rebuilding:
 
 ### [object Object] errors
 → Make sure you copied screens with fixed error handling.
+
+### AI Diagnosis button shows error
+→ Ensure backend is updated with `/api/ai/generate` endpoint. Enter complaint/history first.
 
 ---
 
