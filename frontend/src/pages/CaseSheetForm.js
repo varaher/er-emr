@@ -4217,7 +4217,7 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
               <Card>
                 <CardHeader>
                   <CardTitle>Disposition</CardTitle>
-                  <CardDescription>Final disposition and discharge planning</CardDescription>
+                  <CardDescription>Final disposition decision</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
@@ -4240,21 +4240,54 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
                         <option value="death">Death in ER</option>
                       </select>
                     </div>
+                  </div>
+                </CardContent>
+              </Card>
 
+              {/* Observation in ER */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Observation in ER</CardTitle>
+                  <CardDescription>Document patient's course in the emergency room</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="condition-at-discharge">Condition at Discharge</Label>
-                      <select
-                        id="condition-at-discharge"
-                        data-testid="select-condition-discharge"
-                        className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
-                        value={formData.disposition.condition_at_discharge}
-                        onChange={(e) => updateNestedField('disposition', 'condition_at_discharge', e.target.value)}
-                      >
-                        <option value="Stable">Stable</option>
-                        <option value="Unstable">Unstable</option>
-                      </select>
+                      <Label htmlFor="er-observation-notes" className="flex items-center gap-2">
+                        ER Observation Notes
+                        <Mic className="h-3 w-3 text-slate-400" />
+                      </Label>
+                      <VoiceTextarea
+                        id="er-observation-notes"
+                        data-testid="textarea-er-observation"
+                        value={formData.er_observation?.notes || ''}
+                        onChange={(e) => updateNestedField('er_observation', 'notes', e.target.value)}
+                        placeholder="Patient's course in ER, response to treatment, changes in condition..."
+                        rows={4}
+                      />
                     </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="er-duration">Duration in ER</Label>
+                      <Input
+                        id="er-duration"
+                        data-testid="input-er-duration"
+                        value={formData.er_observation?.duration || ''}
+                        onChange={(e) => updateNestedField('er_observation', 'duration', e.target.value)}
+                        placeholder="e.g., 4 hours"
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
+              {/* Discharge Advice - Only show if disposition is discharged */}
+              {formData.disposition.type === 'discharged' && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Discharge Advice</CardTitle>
+                    <CardDescription>Follow-up instructions for the patient</CardDescription>
+                  </CardHeader>
+                  <CardContent>
                     <div className="space-y-2">
                       <Label htmlFor="disposition-advice" className="flex items-center gap-2">
                         Follow-up Advice
@@ -4269,9 +4302,9 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
                         rows={5}
                       />
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Prepare Discharge Summary Section - Only show if disposition is "discharged" */}
               {id && id !== 'new' && formData.disposition.type === 'discharged' && (
