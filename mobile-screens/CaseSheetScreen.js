@@ -1323,6 +1323,7 @@ export default function CaseSheetScreen({ route, navigation }) {
             <TabButton id="history" label="History" icon="document-text" />
             <TabButton id="exam" label="Exam" icon="body" />
             <TabButton id="treatment" label="Treatment" icon="medkit" />
+            <TabButton id="notes" label="Notes" icon="clipboard" />
             <TabButton id="disposition" label="Disposition" icon="exit" />
           </ScrollView>
         </View>
