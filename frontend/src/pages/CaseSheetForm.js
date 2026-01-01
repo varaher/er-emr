@@ -1152,18 +1152,18 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
               <Button 
                 variant="outline" 
                 size="sm" 
-                onClick={() => navigate('/')}
-                data-testid="back-button"
+                onClick={() => navigate('/dashboard')}
+                data-testid="back-to-dashboard"
               >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back
+                <Home className="h-4 w-4 mr-2" />
+                Dashboard
               </Button>
               <div>
                 <h1 className="text-2xl font-bold tracking-tight text-slate-900">
                   {id === 'new' ? 'New Case Sheet' : 'Edit Case Sheet'}
                 </h1>
                 <div className="flex items-center gap-2">
-                  <p className="text-sm text-slate-600">Complete the emergency department case documentation</p>
+                  <p className="text-sm text-slate-600">Emergency department case documentation</p>
                   {formData.triage_color && (
                     <span className={`text-xs font-semibold px-2 py-0.5 rounded-full
                       ${formData.triage_color === 'red' ? 'bg-red-100 text-red-800' : ''}
