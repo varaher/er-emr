@@ -1792,7 +1792,7 @@ export default function CaseSheetScreen({ route, navigation }) {
           {activeTab === "history" && (
             <View style={styles.tabContent}>
               <View style={styles.card}>
-                <Text style={styles.cardTitle}>History (SAMPLE)</Text>
+                <Text style={styles.cardTitle}>History</Text>
                 <InputWithVoice label="Signs & Symptoms" field="history_signs_symptoms" placeholder="Associated symptoms..." multiline />
                 <InputWithVoice label="Secondary Survey" field="history_secondary_survey" placeholder="Head-to-toe assessment..." multiline />
                 <InputWithVoice label="Allergies" field="history_allergies" placeholder="NKDA or list allergies" />
