@@ -260,6 +260,30 @@ export default function ProfileScreen({ navigation, onLogout, checkForUpdates })
           <Text style={styles.upgradeBtnText}>Upgrade Plan / Buy Credits</Text>
         </TouchableOpacity>
 
+        {/* Check for Updates Button */}
+        <TouchableOpacity
+          style={styles.updateCheckBtn}
+          onPress={async () => {
+            if (checkForUpdates) {
+              setCheckingUpdate(true);
+              await checkForUpdates();
+              setCheckingUpdate(false);
+            } else {
+              Alert.alert("Info", "Update check not available in development mode");
+            }
+          }}
+          disabled={checkingUpdate}
+        >
+          {checkingUpdate ? (
+            <ActivityIndicator color="#2563eb" size="small" />
+          ) : (
+            <Ionicons name="cloud-download-outline" size={20} color="#2563eb" />
+          )}
+          <Text style={styles.updateCheckBtnText}>
+            {checkingUpdate ? "Checking..." : "Check for Updates"}
+          </Text>
+        </TouchableOpacity>
+
         {/* Action Buttons */}
         {editMode ? (
           <TouchableOpacity
