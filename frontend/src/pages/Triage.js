@@ -223,11 +223,11 @@ export default function Triage() {
               <Button 
                 variant="outline" 
                 size="sm" 
-                onClick={() => navigate('/')}
-                data-testid="back-button"
+                onClick={() => navigate('/dashboard')}
+                data-testid="back-to-dashboard"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Back
+                Dashboard
               </Button>
               <div>
                 <h1 className="text-2xl font-bold tracking-tight text-slate-900">Triage Assessment</h1>
