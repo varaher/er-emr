@@ -156,15 +156,27 @@ export default function App() {
     return (
       <View style={styles.updateModalContainer}>
         <View style={styles.updateModal}>
+          <View style={styles.updateBadge}>
+            <Text style={styles.updateBadgeText}>NEW</Text>
+          </View>
           <Text style={styles.updateModalIcon}>🎉</Text>
-          <Text style={styles.updateModalTitle}>UPDATE AVAILABLE!</Text>
+          <Text style={styles.updateModalTitle}>Update Available!</Text>
+          <Text style={styles.updateModalSubtitle}>ErMate v1.1</Text>
           <Text style={styles.updateModalMessage}>
-            A new version of ErMate is ready with the latest features and bug fixes.
+            Great news! A new version is ready with:{'\n\n'}
+            • AI Diagnosis & Red Flags{'\n'}
+            • Drug Formulary (Adult/Pediatric){'\n'}
+            • Procedures Notes Tab{'\n'}
+            • Bug fixes & improvements
           </Text>
           <TouchableOpacity 
             style={styles.updateNowBtn}
             onPress={async () => {
-              await Updates.reloadAsync();
+              try {
+                await Updates.reloadAsync();
+              } catch (e) {
+                console.log('Reload error:', e);
+              }
             }}
           >
             <Text style={styles.updateNowBtnText}>🚀 Update Now</Text>
@@ -173,7 +185,6 @@ export default function App() {
             style={styles.updateLaterBtn}
             onPress={() => {
               setShowUpdateModal(false);
-              setIsCheckingUpdate(false);
             }}
           >
             <Text style={styles.updateLaterBtnText}>Later</Text>
