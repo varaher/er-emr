@@ -390,6 +390,13 @@ export default function CaseSheetScreen({ route, navigation }) {
     disposition_condition: "Stable",
     discharge_medications: "",
     discharge_followup: "",
+    
+    // Procedures & Notes
+    procedures_performed: [],
+    procedure_notes: {},
+    
+    // Addendum Notes
+    addendum_notes: [],
   });
 
   // Select states for UI
