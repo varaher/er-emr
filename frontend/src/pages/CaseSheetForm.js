@@ -4412,10 +4412,22 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
                 <Button variant="outline" onClick={goToPreviousTab}>
                   ← Back: Treatment
                 </Button>
-                <Button onClick={handleSaveClick} className="bg-green-600 hover:bg-green-700" size="lg">
-                  <Save className="h-5 w-5 mr-2" />
-                  Complete & Save Case Sheet
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      handleSaveClick();
+                      setTimeout(() => navigate('/dashboard'), 1000);
+                    }}
+                  >
+                    <Home className="h-4 w-4 mr-2" />
+                    Save & Go to Dashboard
+                  </Button>
+                  <Button onClick={handleSaveClick} className="bg-green-600 hover:bg-green-700" size="lg">
+                    <Save className="h-5 w-5 mr-2" />
+                    Save Case Sheet
+                  </Button>
+                </div>
               </div>
             </div>
           </TabsContent>
