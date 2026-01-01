@@ -446,6 +446,159 @@ export default function CaseSheetScreen({ route, navigation }) {
     forceUpdate();
   };
 
+  /* ===================== ADDENDUM TIMER ===================== */
+  useEffect(() => {
+    // Set up 2-hour reminder for addendum notes
+    const TWO_HOURS = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
+    
+    addendumTimerRef.current = setInterval(() => {
+      if (caseId) { // Only show if case is saved
+        setShowAddendumModal(true);
+      }
+    }, TWO_HOURS);
+
+    return () => {
+      if (addendumTimerRef.current) {
+        clearInterval(addendumTimerRef.current);
+      }
+    };
+  }, [caseId]);
+
+  /* ===================== AI DIAGNOSIS FUNCTIONS ===================== */
+  const getAIDiagnosisSuggestions = async () => {
+    const fd = formDataRef.current;
+    
+    // Build clinical context
+    const clinicalContext = {
+      age: fd.patient_age,
+      sex: fd.patient_sex,
+      presenting_complaint: fd.complaint_text,
+      vitals: {
+        hr: fd.vitals_hr,
+        rr: fd.vitals_rr,
+        bp: `${fd.vitals_bp_systolic}/${fd.vitals_bp_diastolic}`,
+        spo2: fd.vitals_spo2,
+        temp: fd.vitals_temperature,
+      },
+      history: fd.history_hpi,
+      examination_findings: fd.general_notes || "",
+      current_diagnosis: fd.diagnosis_primary || "",
+    };
+
+    if (!clinicalContext.presenting_complaint && !clinicalContext.history) {
+      Alert.alert("Insufficient Data", "Please enter presenting complaint or history first");
+      return;
+    }
+
+    setAiDiagnosisLoading(true);
+    try {
+      const token = await AsyncStorage.getItem("token");
+      
+      const response = await fetch(`${API_URL}/ai/generate`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          prompt_type: "diagnosis_suggestions",
+          case_context: clinicalContext,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setAiDiagnosisResult(data.response || data.content || "");
+        
+        // Extract red flags from response
+        const redFlagMatch = data.response?.match(/RED FLAGS?:?([\s\S]*?)(?:SUGGESTED|DIFFERENTIAL|$)/i);
+        if (redFlagMatch) {
+          const flags = redFlagMatch[1].split(/[•\-\n]/).filter(f => f.trim().length > 3);
+          setAiRedFlags(flags.slice(0, 5));
+        }
+      } else {
+        throw new Error("AI request failed");
+      }
+    } catch (err) {
+      console.error("AI Diagnosis error:", err);
+      Alert.alert("Error", "Failed to get AI suggestions. Please try again.");
+    }
+    setAiDiagnosisLoading(false);
+  };
+
+  /* ===================== DRUG MANAGEMENT ===================== */
+  const drugList = isPediatric ? PEDIATRIC_DRUGS : ADULT_DRUGS;
+  
+  const filteredDrugs = drugList.filter(drug => 
+    drug.name.toLowerCase().includes(drugSearchQuery.toLowerCase())
+  );
+
+  const addDrug = (drug, dose) => {
+    const newDrug = {
+      id: Date.now(),
+      name: drug.name,
+      strength: drug.strength,
+      dose: dose,
+      time: new Date().toLocaleTimeString(),
+    };
+    setSelectedDrugs(prev => [...prev, newDrug]);
+    
+    // Update form data
+    const drugsList = [...selectedDrugs, newDrug].map(d => `${d.name} ${d.dose}`).join(", ");
+    formDataRef.current.treatment_medications = drugsList;
+    
+    setShowDrugModal(false);
+    setDrugSearchQuery("");
+  };
+
+  const removeDrug = (drugId) => {
+    const updated = selectedDrugs.filter(d => d.id !== drugId);
+    setSelectedDrugs(updated);
+    formDataRef.current.treatment_medications = updated.map(d => `${d.name} ${d.dose}`).join(", ");
+  };
+
+  /* ===================== PROCEDURE MANAGEMENT ===================== */
+  const toggleProcedure = (procedureId) => {
+    setSelectedProcedures(prev => {
+      if (prev.includes(procedureId)) {
+        return prev.filter(p => p !== procedureId);
+      }
+      return [...prev, procedureId];
+    });
+  };
+
+  const updateProcedureNote = (procedureId, note) => {
+    setProcedureNotes(prev => ({ ...prev, [procedureId]: note }));
+    
+    // Update form data
+    formDataRef.current.procedure_notes = { ...procedureNotes, [procedureId]: note };
+  };
+
+  /* ===================== ADDENDUM NOTES ===================== */
+  const saveAddendum = () => {
+    if (!currentAddendum.trim()) {
+      setShowAddendumModal(false);
+      return;
+    }
+    
+    const newAddendum = {
+      id: Date.now(),
+      text: currentAddendum,
+      timestamp: new Date().toISOString(),
+      displayTime: new Date().toLocaleString(),
+    };
+    
+    const updated = [...addendumNotes, newAddendum];
+    setAddendumNotes(updated);
+    formDataRef.current.addendum_notes = updated;
+    
+    setCurrentAddendum("");
+    setShowAddendumModal(false);
+    
+    // Auto-save case sheet with new addendum
+    saveCaseSheet();
+  };
+
   /* ===================== VOICE RECORDING ===================== */
   const startVoiceInput = async (field) => {
     try {
