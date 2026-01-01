@@ -126,6 +126,26 @@ export default function CaseSheetScreen({ route, navigation }) {
   const [activeTab, setActiveTab] = useState("patient");
   const [showMlcFields, setShowMlcFields] = useState(patient.mlc || false);
   
+  // AI Diagnosis State
+  const [aiDiagnosisLoading, setAiDiagnosisLoading] = useState(false);
+  const [aiDiagnosisResult, setAiDiagnosisResult] = useState(null);
+  const [aiRedFlags, setAiRedFlags] = useState([]);
+  
+  // Drug Selection State
+  const [showDrugModal, setShowDrugModal] = useState(false);
+  const [drugSearchQuery, setDrugSearchQuery] = useState("");
+  const [selectedDrugs, setSelectedDrugs] = useState([]);
+  
+  // Procedures State
+  const [selectedProcedures, setSelectedProcedures] = useState([]);
+  const [procedureNotes, setProcedureNotes] = useState({});
+  
+  // Addendum Modal State
+  const [showAddendumModal, setShowAddendumModal] = useState(false);
+  const [addendumNotes, setAddendumNotes] = useState([]);
+  const [currentAddendum, setCurrentAddendum] = useState("");
+  const addendumTimerRef = useRef(null);
+  
   // Collapsed sections
   const [collapsed, setCollapsed] = useState({
     airway: false,
