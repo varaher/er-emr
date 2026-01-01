@@ -2276,6 +2276,118 @@ export default function CaseSheetScreen({ route, navigation }) {
           <View style={{ height: 40 }} />
         </ScrollView>
       </View>
+
+      {/* ==================== DRUG SELECTION MODAL ==================== */}
+      <Modal
+        visible={showDrugModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowDrugModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>
+                Select {isPediatric ? "Pediatric" : "Adult"} Drug
+              </Text>
+              <TouchableOpacity onPress={() => setShowDrugModal(false)}>
+                <Ionicons name="close" size={24} color="#64748b" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Search Input */}
+            <View style={styles.drugSearchContainer}>
+              <Ionicons name="search" size={20} color="#94a3b8" />
+              <TextInput
+                style={styles.drugSearchInput}
+                placeholder="Search drugs..."
+                placeholderTextColor="#94a3b8"
+                value={drugSearchQuery}
+                onChangeText={setDrugSearchQuery}
+                autoFocus
+              />
+            </View>
+
+            {/* Drug List */}
+            <ScrollView style={styles.drugList}>
+              {filteredDrugs.map((drug, idx) => (
+                <View key={idx} style={styles.drugItemContainer}>
+                  <View style={styles.drugItemHeader}>
+                    <Text style={styles.drugItemName}>{drug.name}</Text>
+                    <Text style={styles.drugItemStrength}>{drug.strength}</Text>
+                  </View>
+                  <View style={styles.drugDoseOptions}>
+                    {drug.doses.map((dose, doseIdx) => (
+                      <TouchableOpacity
+                        key={doseIdx}
+                        style={styles.drugDoseBtn}
+                        onPress={() => addDrug(drug, dose)}
+                      >
+                        <Text style={styles.drugDoseBtnText}>{dose}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+              ))}
+              {filteredDrugs.length === 0 && (
+                <Text style={styles.noDrugsText}>No drugs match your search</Text>
+              )}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ==================== ADDENDUM NOTES MODAL ==================== */}
+      <Modal
+        visible={showAddendumModal}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={() => setShowAddendumModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.addendumModalContainer}>
+            <View style={styles.addendumModalHeader}>
+              <Ionicons name="time" size={24} color="#2563eb" />
+              <Text style={styles.addendumModalTitle}>Add Progress Note</Text>
+            </View>
+            
+            <Text style={styles.addendumModalSubtitle}>
+              Document any changes in patient condition, new findings, or interventions
+            </Text>
+
+            <TextInput
+              style={styles.addendumInput}
+              placeholder="Enter addendum notes..."
+              placeholderTextColor="#94a3b8"
+              value={currentAddendum}
+              onChangeText={setCurrentAddendum}
+              multiline
+              numberOfLines={5}
+              autoFocus
+            />
+
+            <View style={styles.addendumModalButtons}>
+              <TouchableOpacity 
+                style={styles.addendumCancelBtn}
+                onPress={() => {
+                  setCurrentAddendum("");
+                  setShowAddendumModal(false);
+                }}
+              >
+                <Text style={styles.addendumCancelBtnText}>Skip</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.addendumSaveBtn}
+                onPress={saveAddendum}
+              >
+                <Ionicons name="checkmark" size={18} color="#fff" />
+                <Text style={styles.addendumSaveBtnText}>Save Note</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
