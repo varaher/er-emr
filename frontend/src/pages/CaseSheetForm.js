@@ -3095,12 +3095,12 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
             </div>
           </TabsContent>
 
-          {/* Secondary Survey Tab - SAMPLE Format */}
+          {/* Secondary Survey Tab */}
           <TabsContent value="history">
             <Card>
               <CardHeader>
-                <CardTitle>Secondary Survey - SAMPLE</CardTitle>
-                <CardDescription>Comprehensive patient history using SAMPLE format</CardDescription>
+                <CardTitle>Secondary Survey</CardTitle>
+                <CardDescription>Comprehensive patient history and assessment</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
