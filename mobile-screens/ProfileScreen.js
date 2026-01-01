@@ -529,6 +529,23 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontSize: 15,
   },
+  updateCheckBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#e0e7ff",
+    padding: 14,
+    borderRadius: 12,
+    marginBottom: 12,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: "#c7d2fe",
+  },
+  updateCheckBtnText: {
+    color: "#2563eb",
+    fontWeight: "600",
+    fontSize: 14,
+  },
   btn: {
     flexDirection: "row",
     alignItems: "center",
