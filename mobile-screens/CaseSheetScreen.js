@@ -387,7 +387,12 @@ export default function CaseSheetScreen({ route, navigation }) {
     disposition_lama_notes: "",
     disposition_death_time: "",
     disposition_death_cause: "",
-    disposition_condition: "Stable",
+    
+    // Observation in ER
+    er_observation_notes: "",
+    er_duration: "",
+    
+    // Discharge (only for discharge disposition)
     discharge_medications: "",
     discharge_followup: "",
     
