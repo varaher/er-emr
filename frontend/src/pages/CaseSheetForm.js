@@ -45,6 +45,25 @@ export default function CaseSheetForm() {
   const [autoSaving, setAutoSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState(null);
   
+  // NEW: Drug Selection State
+  const [showDrugModal, setShowDrugModal] = useState(false);
+  const [drugSearchQuery, setDrugSearchQuery] = useState('');
+  const [selectedDrugs, setSelectedDrugs] = useState([]);
+  const [isPediatric, setIsPediatric] = useState(false);
+  
+  // NEW: Procedure Notes State
+  const [selectedProceduresWithNotes, setSelectedProceduresWithNotes] = useState({});
+  
+  // NEW: AI Diagnosis State
+  const [aiDiagnosisLoading, setAiDiagnosisLoading] = useState(false);
+  const [aiDiagnosisResult, setAiDiagnosisResult] = useState(null);
+  const [aiRedFlags, setAiRedFlags] = useState([]);
+  const [showAIDiagnosisPanel, setShowAIDiagnosisPanel] = useState(false);
+  
+  // NEW: Addendum Timer
+  const addendumTimerRef = useRef(null);
+  const [addendumReminderCount, setAddendumReminderCount] = useState(0);
+  
   // Tab navigation
   const tabs = ['patient', 'vitals', 'primary', 'history', 'examination', 'investigations', 'treatment'];
   const currentTabIndex = tabs.indexOf(activeTab);
