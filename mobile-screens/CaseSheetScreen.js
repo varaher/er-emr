@@ -2228,35 +2228,59 @@ export default function CaseSheetScreen({ route, navigation }) {
                 )}
               </View>
 
+              {/* Observation in ER */}
               <View style={styles.card}>
-                <Text style={styles.cardTitle}>Condition at Discharge</Text>
-                <SelectButtons 
-                  label="Condition" 
-                  options={["Stable", "Guarded", "Critical"]} 
-                  field="disposition_condition" 
+                <Text style={styles.cardTitle}>Observation in ER</Text>
+                <InputWithVoice 
+                  label="ER Observation Notes" 
+                  field="er_observation_notes" 
+                  placeholder="Patient's course in ER, response to treatment, changes in condition..." 
+                  multiline 
+                />
+                <InputField 
+                  label="Duration in ER" 
+                  field="er_duration" 
+                  placeholder="e.g., 4 hours" 
                 />
               </View>
 
-              <View style={styles.card}>
-                <Text style={styles.cardTitle}>Discharge Advice</Text>
-                <InputWithVoice label="Medications" field="discharge_medications" placeholder="Discharge prescriptions..." multiline />
-                <InputWithVoice label="Follow-up Instructions" field="discharge_followup" placeholder="When to return, warning signs..." multiline />
-              </View>
+              {/* Discharge Advice - only show if disposition is Discharge */}
+              {formDataRef.current.disposition_type === "Discharge" && (
+                <View style={styles.card}>
+                  <Text style={styles.cardTitle}>Discharge Advice</Text>
+                  <InputWithVoice label="Medications" field="discharge_medications" placeholder="Discharge prescriptions..." multiline />
+                  <InputWithVoice label="Follow-up Instructions" field="discharge_followup" placeholder="When to return, warning signs..." multiline />
+                </View>
+              )}
 
-              {/* Generate Discharge Summary Button */}
+              {/* Generate Discharge Summary Button - only for Discharge disposition */}
+              {formDataRef.current.disposition_type === "Discharge" && (
+                <TouchableOpacity 
+                  style={styles.dischargeSummaryBtn} 
+                  onPress={() => {
+                    if (caseId) {
+                      saveCaseSheet();
+                      navigation.navigate("DischargeSummary", { caseId });
+                    } else {
+                      Alert.alert("Save Required", "Please save the case sheet first");
+                    }
+                  }}
+                >
+                  <Ionicons name="document-text" size={20} color="#fff" />
+                  <Text style={styles.dischargeSummaryBtnText}>Generate Discharge Summary</Text>
+                </TouchableOpacity>
+              )}
+
+              {/* Go to Dashboard Button */}
               <TouchableOpacity 
-                style={styles.dischargeSummaryBtn} 
+                style={styles.dashboardBtn} 
                 onPress={() => {
-                  if (caseId) {
-                    saveCaseSheet();
-                    navigation.navigate("DischargeSummary", { caseId });
-                  } else {
-                    Alert.alert("Save Required", "Please save the case sheet first");
-                  }
+                  saveCaseSheet();
+                  navigation.navigate("Dashboard");
                 }}
               >
-                <Ionicons name="document-text" size={20} color="#fff" />
-                <Text style={styles.dischargeSummaryBtnText}>Generate Discharge Summary</Text>
+                <Ionicons name="home" size={20} color="#2563eb" />
+                <Text style={styles.dashboardBtnText}>Save & Go to Dashboard</Text>
               </TouchableOpacity>
             </View>
           )}
