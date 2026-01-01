@@ -291,7 +291,7 @@ export default function CaseSheetScreen({ route, navigation }) {
     bedside_echo: "",
     adjuvants_notes: "",
 
-    // History (SAMPLE)
+    // History
     history_hpi: "",
     history_signs_symptoms: "",
     history_secondary_survey: "",
