@@ -166,7 +166,7 @@ export default function DischargeSummary() {
           <div className="text-center py-12">
             <p className="text-slate-600">Loading case data...</p>
           </div>
-        ) : (
+        ) : !summary ? (
           <Card>
             <CardHeader>
               <CardTitle>No Discharge Summary Available</CardTitle>
