@@ -66,32 +66,10 @@ export default function App() {
         await Updates.fetchUpdateAsync();
         console.log('✅ Update downloaded successfully!');
         
-        // Show prominent popup
+        // Show prominent popup - this will be the main UI
         setShowUpdateModal(true);
+        setIsCheckingUpdate(false); // Allow app to show modal
         
-        // Also show alert
-        Alert.alert(
-          '🎉 UPDATE AVAILABLE!',
-          'A new version of ErMate is ready!\n\nPlease tap "Update Now" to get the latest features and fixes.',
-          [
-            {
-              text: 'Later',
-              style: 'cancel',
-              onPress: () => {
-                setShowUpdateModal(false);
-                setIsCheckingUpdate(false);
-              }
-            },
-            {
-              text: '🚀 Update Now',
-              onPress: async () => {
-                console.log('🔄 Reloading app with new update...');
-                await Updates.reloadAsync();
-              }
-            }
-          ],
-          { cancelable: false }
-        );
       } else {
         console.log('✅ App is up to date - no updates available');
         setUpdateStatus('');
