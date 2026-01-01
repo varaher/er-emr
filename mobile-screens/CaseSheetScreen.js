@@ -943,7 +943,23 @@ export default function CaseSheetScreen({ route, navigation }) {
           course_in_hospital: fd.treatment_course,
           differential_diagnoses: fd.diagnosis_differential ? fd.diagnosis_differential.split(",").map(s => s.trim()).filter(Boolean) : [],
           provisional_diagnoses: fd.diagnosis_primary ? [fd.diagnosis_primary.trim()] : [],
+          ai_diagnosis_suggestions: aiDiagnosisResult || "",
+          ai_red_flags: aiRedFlags || [],
+          drugs_administered: selectedDrugs.map(d => ({ name: d.name, dose: d.dose, time: d.time })),
         },
+        procedures: {
+          procedures_performed: selectedProcedures.map(pId => {
+            const proc = PROCEDURE_OPTIONS.find(p => p.id === pId);
+            return {
+              id: pId,
+              name: proc?.name || pId,
+              category: proc?.category || "Other",
+              notes: procedureNotes[pId] || "",
+              timestamp: new Date().toISOString(),
+            };
+          }),
+        },
+        addendum_notes: addendumNotes,
         investigations: {
           panels_selected: fd.labs_ordered ? fd.labs_ordered.split(",").map(s => s.trim()).filter(Boolean) : [],
           imaging: fd.imaging_ordered ? fd.imaging_ordered.split(",").map(s => s.trim()).filter(Boolean) : [],
