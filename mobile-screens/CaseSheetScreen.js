@@ -1532,13 +1532,31 @@ export default function CaseSheetScreen({ route, navigation }) {
   );
 
   // Vital Input
+  // Function to update vital alerts based on current vitals
+  const updateVitalAlerts = useCallback(() => {
+    const fd = formDataRef.current;
+    const vitals = {
+      hr: fd.vitals_hr,
+      rr: fd.vitals_rr,
+      sbp: fd.vitals_bp_systolic,
+      temp: fd.vitals_temperature,
+      spo2: fd.vitals_spo2,
+    };
+    const alerts = getVitalAlerts(vitals, fd.patient_age);
+    setVitalAlerts(alerts);
+  }, []);
+
   const VitalInput = ({ label, field, placeholder }) => (
     <View style={styles.vitalItem}>
       <Text style={styles.vitalLabel}>{label}</Text>
       <TextInput
         style={styles.vitalInput}
         defaultValue={formDataRef.current[field]}
-        onChangeText={(text) => updateTextField(field, text)}
+        onChangeText={(text) => {
+          updateTextField(field, text);
+          // Update alerts after vital change
+          setTimeout(updateVitalAlerts, 100);
+        }}
         placeholder={placeholder}
         placeholderTextColor="#9ca3af"
         keyboardType="numeric"
