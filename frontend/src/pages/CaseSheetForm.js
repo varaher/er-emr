@@ -1741,6 +1741,24 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Info Banners */}
         <div className="mb-6 space-y-3">
+          {/* Pediatric Mode Indicator */}
+          {isPediatric && (
+            <div className="p-4 bg-pink-50 border-2 border-pink-300 rounded-lg" data-testid="pediatric-mode-banner">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">👶</span>
+                <div>
+                  <h3 className="text-base font-bold text-pink-900">PEDIATRIC CASE SHEET ACTIVE</h3>
+                  <p className="text-sm text-pink-700">
+                    Patient age &lt; 16 years. Pediatric Assessment Triangle (PAT), HEENT, EFAST, and age-specific vital alerts are enabled.
+                  </p>
+                </div>
+                <Badge className="ml-auto bg-pink-600 text-white text-sm px-3 py-1">
+                  Age: {formData.patient?.age || 'Not set'}
+                </Badge>
+              </div>
+            </div>
+          )}
+          
           {/* Locked Case Warning */}
           {isLocked && (
             <div className="p-4 bg-red-50 border-2 border-red-300 rounded-lg">
