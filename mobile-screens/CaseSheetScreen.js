@@ -282,6 +282,27 @@ export default function CaseSheetScreen({ route, navigation }) {
     exposure_findings: "",
     exposure_notes: "",
 
+    // PAT (Pediatric Assessment Triangle) - Only for pediatric patients
+    pat_appearance_tone: "",
+    pat_appearance_interactivity: "",
+    pat_appearance_consolability: "",
+    pat_appearance_look_gaze: "",
+    pat_appearance_speech_cry: "",
+    pat_work_of_breathing: "",
+    pat_abnormal_sounds: [],
+    pat_abnormal_positioning: "",
+    pat_circulation_skin_color: "",
+    pat_circulation_crt: "",
+    pat_overall_impression: "",
+    pat_notes: "",
+
+    // EFAST (for trauma)
+    efast_heart: "",
+    efast_abdomen: "",
+    efast_lungs: "",
+    efast_pelvis: "",
+    efast_notes: "",
+
     // Reassessment
     reassessment_status: "",
     reassessment_notes: "",
