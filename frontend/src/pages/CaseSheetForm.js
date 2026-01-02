@@ -4085,35 +4085,15 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
                       </div>
                     </div>
 
-                    {/* Procedures Done */}
-                    <div className="space-y-2 p-4 border-l-4 border-purple-400 bg-purple-50/50 rounded-r-lg">
-                      <Label className="text-lg font-semibold text-purple-900">Procedures Done</Label>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                        {['IV Cannulation', 'Foley Catheter', 'NG Tube', 'Central Line', 'Arterial Line', 'Intubation', 'ICD Insertion', 'Lumbar Puncture', 'Wound Suturing', 'Splinting', 'CPR', 'Cardioversion/Defibrillation'].map(item => (
-                          <div key={item} className="flex items-center space-x-2">
-                            <Checkbox
-                              id={`procedure-${item}`}
-                              checked={formData.treatment.procedures?.includes(item)}
-                              onCheckedChange={() => toggleArrayField('treatment', 'procedures', item)}
-                            />
-                            <Label htmlFor={`procedure-${item}`} className="text-sm">{item}</Label>
-                          </div>
-                        ))}
+                    {/* NOTE: Procedures are documented in the dedicated "Notes" tab */}
+                    <div className="p-4 border-l-4 border-purple-400 bg-purple-50/50 rounded-r-lg">
+                      <div className="flex items-center gap-2 text-purple-800">
+                        <ClipboardList className="h-5 w-5" />
+                        <span className="font-medium">Procedures are documented in the "Notes" tab</span>
                       </div>
-                      <div className="mt-3">
-                        <Label htmlFor="procedure-notes" className="flex items-center gap-2">
-                          <Mic className="h-4 w-4 text-blue-600" />
-                          Procedure Notes
-                        </Label>
-                        <VoiceTextarea
-                          id="procedure-notes"
-                          value={formData.treatment.procedure_notes || ''}
-                          onChange={(e) => updateNestedField('treatment', 'procedure_notes', e.target.value)}
-                          placeholder="Details of procedures performed..."
-                          rows={2}
-                          className="mt-1"
-                        />
-                      </div>
+                      <p className="text-sm text-purple-600 mt-1">
+                        Go to Notes tab to document all procedures performed with detailed notes.
+                      </p>
                     </div>
 
                     {/* Provisional Diagnosis with AI */}
@@ -4364,31 +4344,7 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
                 </CardContent>
               </Card>
 
-              {/* Discharge Advice - Only show if disposition is discharged */}
-              {formData.disposition.type === 'discharged' && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Discharge Advice</CardTitle>
-                    <CardDescription>Follow-up instructions for the patient</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <Label htmlFor="disposition-advice" className="flex items-center gap-2">
-                        Follow-up Advice
-                        <Mic className="h-3 w-3 text-slate-400" />
-                      </Label>
-                      <VoiceTextarea
-                        id="disposition-advice"
-                        data-testid="textarea-disposition-advice"
-                        value={formData.disposition.advice}
-                        onChange={(e) => updateNestedField('disposition', 'advice', e.target.value)}
-                        placeholder="Follow-up instructions, medications, precautions..."
-                        rows={5}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+              {/* NOTE: Discharge Advice is documented in the Discharge Summary, not in Case Sheet */}
 
               {/* Prepare Discharge Summary Section - Only show if disposition is "discharged" */}
               {id && id !== 'new' && formData.disposition.type === 'discharged' && (
