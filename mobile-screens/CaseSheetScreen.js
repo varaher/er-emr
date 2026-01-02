@@ -22,6 +22,16 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const API_URL = "https://er-emr-backend.onrender.com/api";
 
+// Normal Exam Auto-fill Template - when user types "normal"
+const NORMAL_EXAM_TEMPLATE = {
+  general: "Patient conscious, comfortable, afebrile, well oriented to time, place and person.",
+  cvs: "S1 S2 normal, no murmurs, no added sounds.",
+  rs: "Bilateral air entry equal, no wheeze or crepitations, normal vesicular breath sounds.",
+  abdomen: "Soft, non-tender, no guarding or rigidity, bowel sounds present.",
+  cns: "Conscious, oriented, GCS E4 V5 M6 = 15/15, no focal neurological deficit, pupils BERL.",
+  extremities: "No edema, no cyanosis, peripheral pulses well felt bilaterally.",
+};
+
 // Drug Database for Emergency Medicine
 const ADULT_DRUGS = [
   { name: "Adrenaline", strength: "1mg/mL", doses: ["0.5mg IM", "1mg IV"] },
