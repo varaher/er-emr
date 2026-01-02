@@ -1670,6 +1670,61 @@ export default function CaseSheetScreen({ route, navigation }) {
           {/* ==================== VITALS TAB ==================== */}
           {activeTab === "vitals" && (
             <View style={styles.tabContent}>
+              {/* Vital Alerts - Show warnings for abnormal vitals */}
+              {vitalAlerts.length > 0 && (
+                <View style={styles.vitalAlertsContainer}>
+                  <View style={styles.vitalAlertsHeader}>
+                    <Ionicons name="warning" size={20} color="#dc2626" />
+                    <Text style={styles.vitalAlertsTitle}>Vital Sign Alerts</Text>
+                  </View>
+                  {vitalAlerts.map((alert, idx) => (
+                    <View 
+                      key={idx} 
+                      style={[
+                        styles.vitalAlertItem, 
+                        alert.type === 'danger' ? styles.vitalAlertDanger : styles.vitalAlertWarning
+                      ]}
+                    >
+                      <Ionicons 
+                        name={alert.type === 'danger' ? "alert-circle" : "alert"} 
+                        size={16} 
+                        color={alert.type === 'danger' ? "#dc2626" : "#d97706"} 
+                      />
+                      <Text style={[
+                        styles.vitalAlertText,
+                        alert.type === 'danger' ? styles.vitalAlertTextDanger : styles.vitalAlertTextWarning
+                      ]}>
+                        {alert.message}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+
+              {/* Normal Range Reference - for pediatric patients */}
+              {isPediatric && (
+                <View style={styles.normalRangeCard}>
+                  <View style={styles.normalRangeHeader}>
+                    <Ionicons name="information-circle" size={18} color="#0284c7" />
+                    <Text style={styles.normalRangeTitle}>
+                      Normal Ranges for {PEDIATRIC_VITALS[getAgeGroup(formDataRef.current.patient_age)]?.ageRange || 'this age'}
+                    </Text>
+                  </View>
+                  {(() => {
+                    const norms = PEDIATRIC_VITALS[getAgeGroup(formDataRef.current.patient_age)];
+                    if (!norms) return null;
+                    return (
+                      <View style={styles.normalRangeGrid}>
+                        <Text style={styles.normalRangeItem}>HR: {norms.hr[0]}-{norms.hr[1]}</Text>
+                        <Text style={styles.normalRangeItem}>RR: {norms.rr[0]}-{norms.rr[1]}</Text>
+                        <Text style={styles.normalRangeItem}>SBP: {norms.sbp[0]}-{norms.sbp[1]}</Text>
+                        <Text style={styles.normalRangeItem}>SpO2: ≥{norms.spo2[0]}%</Text>
+                      </View>
+                    );
+                  })()}
+                </View>
+              )}
+
               <View style={styles.card}>
                 <Text style={styles.cardTitle}>Vitals at Arrival</Text>
                 <View style={styles.vitalsGrid}>
