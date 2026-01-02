@@ -163,6 +163,7 @@ export default function CaseSheetScreen({ route, navigation }) {
     circulation: false,
     disability: false,
     exposure: false,
+    efast: true,
     reassessment: false,
     adjuvants: true,
     generalExam: false,
