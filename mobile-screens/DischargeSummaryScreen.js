@@ -887,7 +887,20 @@ export default function DischargeSummaryScreen({ route, navigation }) {
           disabled={saving}
         >
           <Text style={styles.btnPrimaryText}>
-            {saving ? "Saving..." : "💾 Save Discharge Summary"}
+            {saving ? "Saving..." : "💾 Save"}
+          </Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          style={[styles.btn, styles.btnFinish]}
+          onPress={async () => {
+            await handleSave();
+            navigation.navigate("Dashboard");
+          }}
+          disabled={saving}
+        >
+          <Text style={styles.btnPrimaryText}>
+            ✅ Finish & Dashboard
           </Text>
         </TouchableOpacity>
       </View>
