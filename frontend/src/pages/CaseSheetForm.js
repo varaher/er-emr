@@ -3364,8 +3364,40 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
           <TabsContent value="examination">
             <Card>
               <CardHeader>
-                <CardTitle>Physical Examination</CardTitle>
-                <CardDescription>Document examination findings</CardDescription>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <CardTitle>Physical Examination</CardTitle>
+                    <CardDescription>Document examination findings</CardDescription>
+                  </div>
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      // Mark all normal with template text
+                      setFormData(prev => ({
+                        ...prev,
+                        examination: {
+                          ...prev.examination,
+                          general_pallor: false,
+                          general_icterus: false,
+                          general_clubbing: false,
+                          general_lymphadenopathy: false,
+                          general_additional_notes: "Patient conscious, comfortable, afebrile, well oriented to time, place and person. No pallor, icterus, cyanosis, clubbing, lymphadenopathy or edema.",
+                          cvs_findings: "S1 S2 normal, no murmurs, regular rhythm, peripheral pulses well felt.",
+                          respiratory_findings: "Bilateral air entry equal, no wheeze or crepitations, normal vesicular breath sounds.",
+                          abdomen_findings: "Soft, non-tender, no guarding or rigidity, bowel sounds present.",
+                          cns_findings: "Conscious, oriented, GCS E4 V5 M6 = 15/15, no focal neurological deficit, pupils BERL.",
+                          extremities_findings: "No edema, no cyanosis, peripheral pulses well felt bilaterally.",
+                        }
+                      }));
+                      toast.success("All examination fields marked as Normal");
+                    }}
+                    className="bg-green-600 hover:bg-green-700"
+                    data-testid="mark-all-normal-btn"
+                  >
+                    <CheckCircle2 className="h-4 w-4 mr-2" />
+                    Mark All Normal
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
