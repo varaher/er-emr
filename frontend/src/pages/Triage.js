@@ -243,38 +243,94 @@ export default function Triage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column - Input Form */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Age Group Selection */}
+            {/* Patient Age & Auto Age Group Detection */}
             <Card>
               <CardHeader>
-                <CardTitle>Age Group</CardTitle>
+                <CardTitle>Patient Age</CardTitle>
+                <CardDescription>Enter age to auto-detect Adult/Pediatric pathway (under 16 = Pediatric)</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="flex gap-4">
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      id="adult"
-                      name="age_group"
-                      value="adult"
-                      checked={formData.age_group === 'adult'}
-                      onChange={(e) => setFormData({ ...formData, age_group: e.target.value })}
-                      className="w-4 h-4"
-                      data-testid="radio-adult"
-                    />
-                    <Label htmlFor="adult" className="text-base font-medium">Adult</Label>
+                <div className="space-y-4">
+                  {/* Age Input */}
+                  <div className="flex items-center gap-4">
+                    <div className="flex-1">
+                      <Label htmlFor="patient-age" className="text-sm font-medium">Age</Label>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Input
+                          id="patient-age"
+                          type="text"
+                          value={formData.patient_age || ''}
+                          onChange={(e) => {
+                            const ageValue = e.target.value;
+                            // Parse age to determine pediatric status
+                            let isPediatric = false;
+                            const ageMatch = ageValue.match(/^(\d+)/);
+                            if (ageMatch) {
+                              const numericAge = parseInt(ageMatch[1]);
+                              // Check if it's months or years
+                              const isMonths = ageValue.toLowerCase().includes('m') || ageValue.toLowerCase().includes('month');
+                              const isDays = ageValue.toLowerCase().includes('d') || ageValue.toLowerCase().includes('day');
+                              if (isDays || isMonths || numericAge < 16) {
+                                isPediatric = true;
+                              }
+                            }
+                            setFormData({ 
+                              ...formData, 
+                              patient_age: ageValue,
+                              age_group: isPediatric ? 'pediatric' : 'adult'
+                            });
+                          }}
+                          placeholder="e.g., 5 years, 6 months, 45"
+                          className="w-48"
+                          data-testid="input-patient-age"
+                        />
+                        <span className="text-sm text-slate-500">years/months</span>
+                      </div>
+                    </div>
+                    
+                    {/* Auto-detected badge */}
+                    <div className="pt-6">
+                      <Badge 
+                        className={`text-base px-4 py-2 ${
+                          formData.age_group === 'pediatric' 
+                            ? 'bg-pink-100 text-pink-800 border border-pink-300' 
+                            : 'bg-blue-100 text-blue-800 border border-blue-300'
+                        }`}
+                      >
+                        {formData.age_group === 'pediatric' ? '👶 Pediatric' : '🧑 Adult'}
+                      </Badge>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      id="pediatric"
-                      name="age_group"
-                      value="pediatric"
-                      checked={formData.age_group === 'pediatric'}
-                      onChange={(e) => setFormData({ ...formData, age_group: e.target.value })}
-                      className="w-4 h-4"
-                      data-testid="radio-pediatric"
-                    />
-                    <Label htmlFor="pediatric" className="text-base font-medium">Pediatric</Label>
+                  
+                  {/* Manual override option */}
+                  <div className="flex gap-4 pt-2 border-t border-slate-200">
+                    <span className="text-sm text-slate-500">Override if needed:</span>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="radio"
+                        id="adult"
+                        name="age_group"
+                        value="adult"
+                        checked={formData.age_group === 'adult'}
+                        onChange={(e) => setFormData({ ...formData, age_group: e.target.value })}
+                        className="w-4 h-4"
+                        data-testid="radio-adult"
+                      />
+                      <Label htmlFor="adult" className="text-sm">Adult</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="radio"
+                        id="pediatric"
+                        name="age_group"
+                        value="pediatric"
+                        checked={formData.age_group === 'pediatric'}
+                        onChange={(e) => setFormData({ ...formData, age_group: e.target.value })}
+                        className="w-4 h-4"
+                        data-testid="radio-pediatric"
+                      />
+                      <Label htmlFor="pediatric" className="text-sm">Pediatric</Label>
+                    </div>
                   </div>
                 </div>
               </CardContent>
