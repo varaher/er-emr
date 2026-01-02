@@ -298,6 +298,14 @@ export default function CaseSheetScreen({ route, navigation }) {
     pat_overall_impression: "",
     pat_notes: "",
 
+    // HEENT (Pediatric)
+    heent_head: "",
+    heent_eyes: "",
+    heent_ears: "",
+    heent_nose: "",
+    heent_throat: "",
+    heent_notes: "",
+
     // EFAST (for trauma)
     efast_heart: "",
     efast_abdomen: "",
