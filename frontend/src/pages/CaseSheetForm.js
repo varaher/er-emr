@@ -336,6 +336,24 @@ export default function CaseSheetForm() {
       fetchTriageAndPopulateVitals(triageData.triageId);
     }
     
+    // Auto-set pediatric status from triage data
+    if (triageData.isPediatric !== undefined) {
+      setIsPediatric(triageData.isPediatric);
+    } else if (triageData.age_group) {
+      setIsPediatric(triageData.age_group === 'pediatric');
+    }
+    
+    // Auto-populate patient age from triage
+    if (triageData.patient_age) {
+      setFormData(prev => ({
+        ...prev,
+        patient: {
+          ...prev.patient,
+          age: triageData.patient_age
+        }
+      }));
+    }
+    
     // Auto-populate from triage voice recordings and vitals
     if (triageData.chief_complaint || triageData.vitals) {
       setFormData(prev => ({
