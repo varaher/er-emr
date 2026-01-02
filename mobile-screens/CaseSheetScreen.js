@@ -22,14 +22,14 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const API_URL = "https://er-emr-backend.onrender.com/api";
 
-// Normal Exam Auto-fill Template - when user types "normal"
+// Normal Exam Auto-fill Template - DETAILED examination results
 const NORMAL_EXAM_TEMPLATE = {
-  general: "Patient conscious, comfortable, afebrile, well oriented to time, place and person.",
-  cvs: "S1 S2 normal, no murmurs, no added sounds.",
-  rs: "Bilateral air entry equal, no wheeze or crepitations, normal vesicular breath sounds.",
-  abdomen: "Soft, non-tender, no guarding or rigidity, bowel sounds present.",
-  cns: "Conscious, oriented, GCS E4 V5 M6 = 15/15, no focal neurological deficit, pupils BERL.",
-  extremities: "No edema, no cyanosis, peripheral pulses well felt bilaterally.",
+  general: "Patient is conscious, alert, and oriented to time, place, and person. Comfortable at rest, afebrile, not in distress. No pallor, icterus, cyanosis, clubbing, lymphadenopathy, or peripheral edema noted. Hydration status adequate.",
+  cvs: "Cardiovascular examination: Pulse 72 bpm, regular rhythm, normal volume, no radio-femoral delay. JVP not elevated. Apex beat in 5th intercostal space, midclavicular line. Heart sounds S1 S2 heard, normal intensity, no murmurs, gallops, or rubs. Peripheral pulses well felt bilaterally.",
+  rs: "Respiratory examination: Chest shape normal, symmetric movement with respiration. Trachea central. Respiratory rate 16/min, regular. No use of accessory muscles. Percussion note resonant bilaterally. Bilateral equal air entry, vesicular breath sounds heard, no added sounds (wheeze, crackles, rhonchi). No pleural rub.",
+  abdomen: "Abdominal examination: Abdomen soft, non-distended. No visible peristalsis or pulsations. Umbilicus central, inverted. No tenderness, guarding, or rigidity. No organomegaly. Bowel sounds present, normal. No free fluid clinically. Hernial orifices intact.",
+  cns: "Central nervous system examination: Conscious, oriented, GCS 15/15 (E4 V5 M6). Speech clear and coherent. Cranial nerves II-XII grossly intact. Pupils equal, round, reactive to light (PERL), 3mm bilaterally. No nystagmus. Motor system: Tone normal, power 5/5 in all limbs, no drift. Sensory system intact to light touch. Reflexes 2+ and symmetric. Plantars flexor bilaterally. No cerebellar signs. Gait normal.",
+  extremities: "Extremities examination: No pallor, cyanosis, or clubbing. No pedal edema. Peripheral pulses well felt - radial, dorsalis pedis, posterior tibial all present bilaterally. Capillary refill time <2 seconds. No joint swelling, tenderness, or deformity. Full range of motion in all joints.",
 };
 
 // Pediatric Normal Vital Signs by Age Group
