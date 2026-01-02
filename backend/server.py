@@ -615,6 +615,18 @@ class Addendum(BaseModel):
     added_by_name: str
     note: str
 
+class ProcedurePerformed(BaseModel):
+    id: str
+    name: str
+    category: str = "Other"
+    notes: str = ""
+    timestamp: Optional[datetime] = None
+
+class DrugAdministered(BaseModel):
+    name: str
+    dose: str
+    time: str
+
 class CaseSheet(BaseModel):
     model_config = ConfigDict(extra="ignore")
     
