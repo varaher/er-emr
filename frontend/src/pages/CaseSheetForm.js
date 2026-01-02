@@ -437,12 +437,32 @@ export default function CaseSheetForm() {
   const handleSave = async (lockAfterSave = false, customTimestamp = null) => {
     try {
       setLoading(true);
+      
+      // Merge procedures from Notes tab into formData before saving
+      const proceduresPerformed = Object.entries(selectedProceduresWithNotes).map(([procId, note]) => {
+        const proc = PROCEDURE_OPTIONS.find(p => p.id === procId);
+        return {
+          id: procId,
+          name: proc?.name || procId,
+          category: proc?.category || 'Other',
+          notes: note || '',
+          timestamp: new Date().toISOString(),
+        };
+      });
+      
+      // Create payload with procedures included
+      const payload = {
+        ...formData,
+        procedures_performed: proceduresPerformed,
+        drugs_administered: selectedDrugs.map(d => ({ name: d.name, dose: d.dose, time: d.time })),
+      };
+      
       if (id && id !== 'new') {
         const url = customTimestamp 
           ? `/cases/${id}?lock_case=${lockAfterSave}&custom_timestamp=${encodeURIComponent(customTimestamp)}`
           : `/cases/${id}?lock_case=${lockAfterSave}`;
         
-        await api.put(url, formData);
+        await api.put(url, payload);
         if (lockAfterSave) {
           setIsLocked(true);
           toast.success('🔒 Case Saved and LOCKED Successfully!', {
