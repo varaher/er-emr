@@ -1432,6 +1432,9 @@ const styles = StyleSheet.create({
   btnPrimary: {
     backgroundColor: "#007AFF",
   },
+  btnFinish: {
+    backgroundColor: "#10b981",
+  },
   btnPrimaryText: {
     color: "#fff",
     fontWeight: "700",
