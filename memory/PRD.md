@@ -15,7 +15,8 @@ ErMate is a mobile-first emergency room documentation application designed for m
 - **Regular textarea for continuous typing** + voice option
 - Auto-fill from voice transcription
 - Priority calculation (Red/Orange/Yellow/Green/Blue)
-- Adult and Pediatric pathways
+- **Automatic Adult/Pediatric Detection** - Based on age input (<16 = Pediatric)
+- Visual badge showing detected patient type
 
 ### 2. Case Sheet Documentation
 - **Patient Info**: Demographics, UHID, MLC fields
@@ -29,25 +30,32 @@ ErMate is a mobile-first emergency room documentation application designed for m
 - **Notes Tab**: Dedicated procedure documentation with individual notes
 - **Disposition**: Discharge, Admit, Refer, LAMA, Death
 
-### 3. AI Features
+### 3. Automatic Pediatric Detection
+- **Triage**: Enter age (e.g., "5", "6 months", "5m") → Auto-detect Adult/Pediatric
+- **Visual Badge**: Shows "👶 Pediatric" (pink) or "🧑 Adult" (blue) badge
+- **Case Sheet**: Pink banner "PEDIATRIC CASE SHEET ACTIVE" appears for pediatric patients
+- **Dynamic Update**: Changing age in case sheet updates pediatric status with toast notification
+- **Features Enabled**: PAT (Pediatric Assessment Triangle), HEENT, EFAST, age-specific vital alerts
+
+### 4. AI Features
 - VBG/ABG interpretation
 - **AI Diagnosis & Red Flags** - Suggests diagnoses and highlights red flags
 - Voice-to-text transcription (Sarvam/OpenAI)
 
-### 4. Drug Management
+### 5. Drug Management
 - Pre-built adult drug formulary (35+ drugs)
 - Pre-built pediatric drug formulary (14+ drugs)
 - Searchable drug selection modal
 - Dose options with timestamps
-- Toggle between Adult/Pediatric formulary
+- Toggle between Adult/Pediatric formulary (auto-set based on patient age)
 
-### 5. Procedures Documentation (Notes Tab)
+### 6. Procedures Documentation (Notes Tab)
 - 26 common ER procedures organized by category
 - Individual notes for each procedure performed
 - **Procedures now properly saved to database**
 - Procedure summary display
 
-### 6. Pediatric Features
+### 7. Pediatric Features (Enabled for age < 16)
 - **Pediatric Assessment Triangle (PAT)**: Appearance, Work of Breathing, Circulation
 - **HEENT Examination**: Head, Eyes, Ears, Nose, Throat
 - **EFAST Exam**: For trauma cases
@@ -64,14 +72,30 @@ ErMate is a mobile-first emergency room documentation application designed for m
 
 ---
 
-## Recent Fixes (January 2, 2026)
+## Recent Updates (January 2, 2026)
 
-### ✅ P0 Issues Fixed:
-1. **"Procedures Done" removed from Treatment tab** - Now shows message directing to Notes tab
-2. **"Discharge Advice" removed from Case Sheet Disposition** - Only in Discharge Summary
-3. **"Normal" exam auto-fills detailed findings** - Both individual selection and Mark All Normal
-4. **Procedures from Notes tab now saved to database** - Added procedures_performed field
-5. **Drugs administered now saved to database** - Added drugs_administered field
+### ✅ Automatic Adult/Pediatric Detection (NEW)
+- **Triage Page**:
+  - Added patient age input field with auto-detection
+  - Entering age < 16 years auto-sets "Pediatric" mode
+  - Days/weeks/months always detected as Pediatric
+  - Visual badge (pink for Pediatric, blue for Adult)
+  - Manual override option available
+- **Case Sheet**:
+  - Pink "PEDIATRIC CASE SHEET ACTIVE" banner for pediatric patients
+  - Patient age auto-populated from triage
+  - Editing age dynamically updates pediatric status
+  - Toast notification when pediatric mode changes
+- **Mobile App**:
+  - Same auto-detection in TriageScreen
+  - Header shows detected patient type badge
+
+### ✅ P0 Bug Fixes (5/5 Completed)
+1. "Procedures Done" removed from Treatment tab
+2. "Discharge Advice/Follow-up" removed from Case Sheet Disposition
+3. "Normal" exam auto-fills detailed findings
+4. Procedures from Notes tab now saved to database
+5. Drugs administered now saved to database
 
 ### Backend Changes:
 - Added `ProcedurePerformed` and `DrugAdministered` models
@@ -79,22 +103,37 @@ ErMate is a mobile-first emergency room documentation application designed for m
 - Updated CaseSheetCreate and CaseSheetUpdate models
 
 ### Frontend Changes:
-- Replaced "Procedures Done" checkboxes with message
-- Removed "Discharge Advice" card from Disposition area
-- Fixed field names in Mark All Normal (uses _additional_notes)
-- Fixed field names in updateNestedField (uses _additional_notes)
-- Updated handleSave to include procedures_performed and drugs_administered
+- Added Badge component import (fixed by testing agent)
+- Added checkIfPediatric helper function
+- Added pediatric mode banner UI
+- Enhanced updateNestedField for auto-detection on age change
+
+---
+
+## File References
+
+### Web App Files
+- `/app/frontend/src/pages/CaseSheetForm.js` - Main case sheet with pediatric detection
+- `/app/frontend/src/pages/Triage.js` - Triage with auto age detection
+- `/app/frontend/src/pages/DischargeSummary.js` - Discharge summary
+- `/app/frontend/src/data/drugFormulary.js` - Drug and procedure data
+
+### Mobile App Files
+- `/app/mobile-screens/CaseSheetScreen.js` - Main case sheet
+- `/app/mobile-screens/TriageScreen.js` - Triage with auto detection
+- `/app/mobile-screens/UPDATE_CHECKLIST.md` - User guide
+
+### Backend Files
+- `/app/backend/server.py` - API server with procedures models
+
+### Test Files
+- `/app/test_reports/iteration_4.json` - Latest test results (100% pass)
 
 ---
 
 ## Pending Items
 
-### P0 - Critical
-- [x] ~~Fix 5 recurring UI/UX issues~~ (COMPLETED)
-- [ ] User needs to rebuild mobile APK with corrected OTA config
-
 ### P1 - High Priority
-- [ ] Implement automatic Adult/Pediatric case sheet selection based on age (<16 = Pediatric)
 - [ ] Mobile voice transcription engine toggle (Sarvam/OpenAI)
 - [ ] Full regression testing after APK rebuild
 
@@ -104,27 +143,6 @@ ErMate is a mobile-first emergency room documentation application designed for m
 - [ ] Documentation Score
 - [ ] Auto-generate Referral Letters
 - [ ] ErPrana patient wellness documentation
-
----
-
-## File References
-
-### Web App Files
-- `/app/frontend/src/pages/CaseSheetForm.js` - Main case sheet (fixed)
-- `/app/frontend/src/pages/Triage.js` - Triage assessment
-- `/app/frontend/src/pages/DischargeSummary.js` - Discharge summary
-- `/app/frontend/src/data/drugFormulary.js` - Drug and procedure data
-
-### Mobile App Files
-- `/app/mobile-screens/CaseSheetScreen.js` - Main case sheet (fixed)
-- `/app/mobile-screens/UPDATE_CHECKLIST.md` - User guide
-
-### Backend Files
-- `/app/backend/server.py` - API server (fixed - added procedures models)
-
-### Test Files
-- `/app/tests/test_ermate_fixes.py` - Pytest tests for bug fixes
-- `/app/test_reports/iteration_3.json` - Latest test results (100% pass)
 
 ---
 
