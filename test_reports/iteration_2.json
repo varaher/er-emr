@@ -1,0 +1,92 @@
+{
+  "summary": "Tested 5 UI fixes for recurring issues. 4 out of 5 fixes verified working. One critical bug found: procedures selected in Notes tab are NOT being saved to database.",
+  
+  "backend_issues": {
+    "critical": [
+      {
+        "endpoint": "POST/PUT /api/cases",
+        "issue": "procedures_performed field is NOT saved to database. Backend CaseSheet model doesn't have procedures_performed field, and extra='ignore' discards the data.",
+        "priority": "HIGH",
+        "fix_needed": "Add procedures_performed field to CaseSheet, CaseSheetCreate, and CaseSheetUpdate models in server.py"
+      }
+    ],
+    "minor": []
+  },
+  
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "CaseSheetForm.js - updateNestedField",
+        "issue": "When selecting 'Normal' for individual exam systems (CVS, Respiratory, etc), the auto-fill sets 'cvs_findings' but UI displays 'cvs_additional_notes'. Field name mismatch.",
+        "selector": "updateNestedField function line 1130",
+        "priority": "MEDIUM",
+        "fix_needed": "Change findingsField from `${examType}_findings` to `${examType}_additional_notes` in updateNestedField function"
+      },
+      {
+        "component": "CaseSheetForm.js - Mark All Normal button",
+        "issue": "Mark All Normal button sets cvs_findings, respiratory_findings etc but UI displays cvs_additional_notes, respiratory_additional_notes. Field name mismatch.",
+        "selector": "Line 3495-3499",
+        "priority": "MEDIUM",
+        "fix_needed": "Change field names in Mark All Normal onClick handler to use _additional_notes suffix"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  
+  "passed_tests": [
+    "Treatment tab: 'Procedures Done' checkboxes removed - shows message 'Procedures are documented in the Notes tab'",
+    "Treatment tab: 'Course in ED' section removed",
+    "Disposition tab: 'Discharge Advice' section removed from case sheet",
+    "Disposition tab: 'Follow-up' section removed from case sheet",
+    "Physical Exam tab: 'Mark All Normal' button present and clickable",
+    "Physical Exam tab: Mark All Normal sets all system dropdowns to 'Normal'",
+    "Physical Exam tab: Mark All Normal fills general_additional_notes with detailed text",
+    "Notes tab: Shows 'Procedures Performed' heading",
+    "Notes tab: Shows procedure categories (Resuscitation, Airway, Vascular, Chest, etc.)",
+    "Notes tab: Procedure checkboxes are clickable",
+    "Notes tab: Notes input appears when procedure is selected",
+    "Secondary Survey tab: 'Additional Assessment' section NOT present",
+    "Case creation: New case can be created and saved"
+  ],
+  
+  "failed_tests": [
+    "Procedures selected in Notes tab are NOT saved to database (backend model missing field)",
+    "Individual system 'Normal' selection does NOT auto-fill detailed findings (field name mismatch)"
+  ],
+  
+  "test_report_links": [
+    "/app/test_reports/iteration_2.json"
+  ],
+  
+  "action_items": [
+    "CRITICAL: Add procedures_performed field to backend CaseSheet model (server.py lines 618-650)",
+    "MEDIUM: Fix field name mismatch in updateNestedField - change cvs_findings to cvs_additional_notes (line 1130)",
+    "MEDIUM: Fix field names in Mark All Normal button handler - change _findings to _additional_notes (lines 3495-3499)"
+  ],
+  
+  "critical_code_review_comments": [
+    "Backend CaseSheet model (line 618) is missing procedures_performed field - procedures from Notes tab are silently discarded",
+    "Field name inconsistency: NORMAL_EXAM_TEMPLATES uses 'cvs', 'respiratory' etc but updateNestedField creates 'cvs_findings' while UI uses 'cvs_additional_notes'",
+    "Mark All Normal button (line 3485-3501) sets wrong field names that don't match the UI textarea bindings"
+  ],
+  
+  "updated_files": [],
+  
+  "success_rate": {
+    "backend": "90%",
+    "frontend": "80%"
+  },
+  
+  "test_credentials": {
+    "email": "test@test.com",
+    "password": "Test123!"
+  },
+  
+  "seed_data_creation": "Created test case with ID 5c689c69-7ce9-4880-902f-a2c743d98377",
+  
+  "retest_needed": true,
+  "should_main_agent_self_test": false,
+  
+  "context_for_next_testing_agent": "5 UI fixes were tested. 4 are working correctly (Treatment tab procedures message, Disposition tab cleanup, Mark All Normal button visibility, Notes tab procedures UI). 2 bugs found: 1) procedures_performed not saved to DB (backend model missing field), 2) Normal exam auto-fill uses wrong field names. Test user: test@test.com / Test123!"
+}
