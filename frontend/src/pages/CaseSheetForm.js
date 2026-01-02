@@ -3492,11 +3492,16 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
                           general_clubbing: false,
                           general_lymphadenopathy: false,
                           general_additional_notes: "Patient conscious, comfortable, afebrile, well oriented to time, place and person. No pallor, icterus, cyanosis, clubbing, lymphadenopathy or edema.",
-                          cvs_findings: "S1 S2 normal, no murmurs, regular rhythm, peripheral pulses well felt.",
-                          respiratory_findings: "Bilateral air entry equal, no wheeze or crepitations, normal vesicular breath sounds.",
-                          abdomen_findings: "Soft, non-tender, no guarding or rigidity, bowel sounds present.",
-                          cns_findings: "Conscious, oriented, GCS E4 V5 M6 = 15/15, no focal neurological deficit, pupils BERL.",
-                          extremities_findings: "No edema, no cyanosis, peripheral pulses well felt bilaterally.",
+                          cvs_status: 'Normal',
+                          cvs_additional_notes: "S1 S2 normal, no murmurs, regular rhythm, peripheral pulses well felt.",
+                          respiratory_status: 'Normal',
+                          respiratory_additional_notes: "Bilateral air entry equal, no wheeze or crepitations, normal vesicular breath sounds.",
+                          abdomen_status: 'Normal',
+                          abdomen_additional_notes: "Soft, non-tender, no guarding or rigidity, bowel sounds present.",
+                          cns_status: 'Normal',
+                          cns_additional_notes: "Conscious, oriented, GCS E4 V5 M6 = 15/15, no focal neurological deficit, pupils BERL.",
+                          extremities_status: 'Normal',
+                          extremities_additional_notes: "No edema, no cyanosis, peripheral pulses well felt bilaterally.",
                         }
                       }));
                       toast.success("All examination fields marked as Normal");
