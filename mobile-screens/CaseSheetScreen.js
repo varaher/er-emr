@@ -322,6 +322,9 @@ export default function CaseSheetScreen({ route, navigation }) {
   const [currentAddendum, setCurrentAddendum] = useState("");
   const addendumTimerRef = useRef(null);
   
+  // Vital Alerts State
+  const [vitalAlerts, setVitalAlerts] = useState([]);
+  
   // Collapsed sections
   const [collapsed, setCollapsed] = useState({
     airway: false,
