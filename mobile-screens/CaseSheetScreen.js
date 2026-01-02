@@ -3383,6 +3383,89 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   
+  // Vital Alerts Styles
+  vitalAlertsContainer: {
+    backgroundColor: "#fef2f2",
+    borderRadius: 12,
+    padding: 12,
+    marginHorizontal: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#fecaca",
+  },
+  vitalAlertsHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 10,
+  },
+  vitalAlertsTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#dc2626",
+  },
+  vitalAlertItem: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    marginBottom: 6,
+  },
+  vitalAlertDanger: {
+    backgroundColor: "#fee2e2",
+  },
+  vitalAlertWarning: {
+    backgroundColor: "#fef3c7",
+  },
+  vitalAlertText: {
+    flex: 1,
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  vitalAlertTextDanger: {
+    color: "#991b1b",
+  },
+  vitalAlertTextWarning: {
+    color: "#92400e",
+  },
+  
+  // Normal Range Reference Card
+  normalRangeCard: {
+    backgroundColor: "#f0f9ff",
+    borderRadius: 12,
+    padding: 12,
+    marginHorizontal: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#bae6fd",
+  },
+  normalRangeHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginBottom: 8,
+  },
+  normalRangeTitle: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#0284c7",
+  },
+  normalRangeGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12,
+  },
+  normalRangeItem: {
+    fontSize: 12,
+    color: "#0369a1",
+    backgroundColor: "#e0f2fe",
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 6,
+  },
+  
   // AI Diagnosis Styles
   aiDiagnosisBtn: {
     flexDirection: "row",
