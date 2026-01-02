@@ -939,7 +939,12 @@ export default function TriageScreen({ route, navigation }) {
                 label="Unit"
                 options={["years", "months", "days"]}
                 value={ageUnit}
-                onSelect={setAgeUnit}
+                onSelect={(unit) => {
+                  setAgeUnit(unit);
+                  // Re-check pediatric status when unit changes
+                  const isPed = checkIfPediatric(patientAge, unit);
+                  setPatientType(isPed ? "pediatric" : "adult");
+                }}
               />
             </View>
           </View>
