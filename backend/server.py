@@ -658,6 +658,10 @@ class CaseSheet(BaseModel):
     locked_by_user_id: Optional[str] = None
     addendums: List[Addendum] = []  # Additional notes added after locking
     
+    # Procedures from Notes tab
+    procedures_performed: List[ProcedurePerformed] = []
+    drugs_administered: List[DrugAdministered] = []
+    
     # Custom save timestamp (for backdating within allowed window)
     custom_save_timestamp: Optional[datetime] = None
 
