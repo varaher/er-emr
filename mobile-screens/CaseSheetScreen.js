@@ -3028,6 +3028,27 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   
+  // EFAST Styles
+  efastNote: {
+    fontSize: 12,
+    color: "#0891b2",
+    fontStyle: "italic",
+    marginBottom: 12,
+    paddingHorizontal: 4,
+  },
+  efastGrid: {
+    gap: 16,
+  },
+  efastItem: {
+    marginBottom: 8,
+  },
+  efastLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#155e75",
+    marginBottom: 8,
+  },
+  
   // AI Diagnosis Styles
   aiDiagnosisBtn: {
     flexDirection: "row",
