@@ -22,6 +22,7 @@ export default function Triage() {
 
   const [formData, setFormData] = useState({
     age_group: 'adult',
+    patient_age: '',
     chief_complaint: '',
     additional_notes: '',
     vitals: {
