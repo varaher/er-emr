@@ -1183,6 +1183,15 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
       }
     }
     
+    // Auto-detect pediatric when patient age changes
+    if (section === 'patient' && field === 'age') {
+      const isPediatricNow = checkIfPediatric(value);
+      setIsPediatric(isPediatricNow);
+      if (isPediatricNow) {
+        toast.info('👶 Pediatric case detected - Pediatric features enabled', { duration: 3000 });
+      }
+    }
+    
     setFormData(prev => ({
       ...prev,
       [section]: {
