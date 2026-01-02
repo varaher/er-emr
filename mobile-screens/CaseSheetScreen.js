@@ -2812,6 +2812,18 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   dashboardBtnText: { color: "#2563eb", fontWeight: "700", fontSize: 15 },
+  allNormalBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#16a34a",
+    padding: 14,
+    borderRadius: 12,
+    marginHorizontal: 12,
+    marginBottom: 16,
+    gap: 8,
+  },
+  allNormalBtnText: { color: "#fff", fontWeight: "700", fontSize: 15 },
   
   // AI Diagnosis Styles
   aiDiagnosisBtn: {
