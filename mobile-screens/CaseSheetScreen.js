@@ -1221,7 +1221,6 @@ export default function CaseSheetScreen({ route, navigation }) {
         disposition: {
           type: mapDispositionType(fd.disposition_type),
           destination: fd.disposition_ward || fd.disposition_refer_hospital || "",
-          advice: fd.discharge_followup || "",
           discharge_vitals: null,
         },
         em_resident: user.name || "",
