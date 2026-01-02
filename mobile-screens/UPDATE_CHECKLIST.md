@@ -59,6 +59,16 @@ When an OTA update is available, the app will automatically:
 - **HEENT Examination** - Head, Eyes, Ears, Nose, Throat (Pediatric only)
 - Age-based case sheet selection (cutoff: 16 years)
 
+### 7. Age-Specific Vital Sign Alerts (NEW)
+- **Normal ranges by age group**: Newborn, Infant, Toddler, Preschool, School-age, Adolescent
+- **Real-time alerts** when vitals are abnormal:
+  - Bradycardia/Tachycardia (HR)
+  - Bradypnea/Tachypnea (RR)
+  - Hypotension/Hypertension (BP)
+  - Hypothermia/Fever (Temp)
+  - Hypoxia (SpO2)
+- **Normal range reference card** displayed for pediatric patients
+
 ---
 
 ## 📁 FILES TO COPY TO YOUR PROJECT
