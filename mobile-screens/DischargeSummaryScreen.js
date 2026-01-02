@@ -100,7 +100,7 @@ export default function DischargeSummaryScreen({ route, navigation }) {
         past_surgical: history.past_surgical || "None",
         primary_assessment: buildPrimaryAssessmentText(primaryAssessment),
         examination: buildExaminationText(examination, isPediatric),
-        course_in_hospital: treatment.course_in_hospital || treatment.intervention_notes || "",
+        course_in_hospital: treatment.course_in_hospital || treatment.intervention_notes || generateCourseInER(data),
         investigations: investigations.results_notes || 
           (investigations.panels_selected?.length > 0 ? `Ordered: ${investigations.panels_selected.join(", ")}` : "Pending"),
         diagnosis: treatment.differential_diagnoses?.join(", ") || treatment.provisional_diagnoses?.join(", ") || "",
