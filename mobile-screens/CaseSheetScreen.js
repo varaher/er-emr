@@ -3090,6 +3090,21 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   
+  // HEENT Styles (Pediatric)
+  heentSubtitle: {
+    fontSize: 12,
+    color: "#d97706",
+    fontStyle: "italic",
+    marginBottom: 12,
+  },
+  heentLabel: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#92400e",
+    marginTop: 10,
+    marginBottom: 6,
+  },
+  
   // AI Diagnosis Styles
   aiDiagnosisBtn: {
     flexDirection: "row",
