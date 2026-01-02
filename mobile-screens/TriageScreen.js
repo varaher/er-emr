@@ -33,6 +33,22 @@ const DEFAULT_VITALS = {
   grbs: "100",
 };
 
+// Helper function to determine if patient is pediatric based on age
+const checkIfPediatric = (ageString, ageUnit = "years") => {
+  if (!ageString) return false;
+  
+  const numericAge = parseFloat(ageString);
+  if (isNaN(numericAge)) return false;
+  
+  // Days, weeks, months are always pediatric
+  if (ageUnit === "days" || ageUnit === "weeks" || ageUnit === "months") {
+    return true;
+  }
+  
+  // For years, check if < 16
+  return numericAge < 16;
+};
+
 export default function TriageScreen({ route, navigation }) {
   const [loading, setLoading] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
