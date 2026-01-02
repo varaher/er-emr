@@ -1190,8 +1190,6 @@ export default function CaseSheetScreen({ route, navigation }) {
           intervention_notes: fd.treatment_interventions,
           medications: fd.treatment_medications,
           fluids: fd.treatment_fluids,
-          procedures_done: fd.treatment_procedures,
-          course_in_hospital: fd.treatment_course,
           differential_diagnoses: fd.diagnosis_differential ? fd.diagnosis_differential.split(",").map(s => s.trim()).filter(Boolean) : [],
           provisional_diagnoses: fd.diagnosis_primary ? [fd.diagnosis_primary.trim()] : [],
           ai_diagnosis_suggestions: aiDiagnosisResult || "",
