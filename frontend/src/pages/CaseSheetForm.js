@@ -1127,7 +1127,7 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
     // Auto-fill normal detailed findings when status is set to "Normal"
     if (section === 'examination' && field.endsWith('_status') && value === 'Normal') {
       const examType = field.replace('_status', '');
-      const findingsField = `${examType}_findings`;
+      const findingsField = `${examType}_additional_notes`;
       const template = NORMAL_EXAM_TEMPLATES[examType];
       
       if (template) {
