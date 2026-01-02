@@ -51,6 +51,28 @@ export default function CaseSheetForm() {
   const [selectedDrugs, setSelectedDrugs] = useState([]);
   const [isPediatric, setIsPediatric] = useState(false);
   
+  // Helper function to determine if patient is pediatric based on age string
+  const checkIfPediatric = (ageString) => {
+    if (!ageString) return false;
+    const age = ageString.toLowerCase();
+    
+    // Parse age - look for numbers
+    const numMatch = age.match(/(\d+)/);
+    if (!numMatch) return false;
+    
+    const numericAge = parseInt(numMatch[1]);
+    
+    // Check unit - days/months always pediatric, years depends on value
+    const isDays = age.includes('d') || age.includes('day');
+    const isMonths = age.includes('m') || age.includes('month');
+    const isWeeks = age.includes('w') || age.includes('week');
+    
+    if (isDays || isWeeks || isMonths) return true;
+    
+    // If just a number or "years", check if < 16
+    return numericAge < 16;
+  };
+  
   // NEW: Procedure Notes State
   const [selectedProceduresWithNotes, setSelectedProceduresWithNotes] = useState({});
   
