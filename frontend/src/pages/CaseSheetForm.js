@@ -476,7 +476,7 @@ export default function CaseSheetForm() {
           });
         }
       } else {
-        const response = await api.post('/cases', formData);
+        const response = await api.post('/cases', payload);
         toast.success('✅ New Case Created Successfully!', {
           description: 'You can now continue editing or save.',
           duration: 3000
