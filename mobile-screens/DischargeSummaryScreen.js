@@ -240,58 +240,121 @@ export default function DischargeSummaryScreen({ route, navigation }) {
     return map[type] || "discharged";
   }
 
-  // Generate Course in ER summary automatically
+  // Generate comprehensive Course in ER summary automatically
   const generateCourseInER = (data) => {
     if (!data) return "";
     
-    const { history, examination, treatment, disposition, er_observation } = data;
-    let summary = "";
+    const { history, examination, treatment, disposition, er_observation, primary_assessment } = data;
+    const parts = [];
 
-    // Chief complaint
+    // 1. Chief complaint
     if (data.presenting_complaint?.text) {
-      summary += `Patient presented with ${data.presenting_complaint.text}. `;
+      parts.push(`Patient presented to the Emergency Department with ${data.presenting_complaint.text}.`);
     }
 
-    // HOPI
-    if (history?.hpi) {
-      summary += `${history.hpi} `;
+    // 2. HOPI
+    if (history?.hpi || history?.events_hopi) {
+      parts.push(history.hpi || history.events_hopi);
     }
 
-    // ER observation notes if available
+    // 3. Primary Assessment
+    if (primary_assessment) {
+      const airway = primary_assessment.airway_status || 'patent';
+      const breathing = primary_assessment.breathing_status || 'adequate';
+      const circulation = primary_assessment.circulation_status || 'stable';
+      parts.push(`Primary assessment: Airway ${airway}, breathing ${breathing}, circulation ${circulation}.`);
+    }
+
+    // 4. Vitals Summary
+    const vitals = data.vitals_at_arrival;
+    if (vitals?.hr || vitals?.bp_systolic) {
+      const vitalText = [];
+      if (vitals.hr) vitalText.push(`HR ${vitals.hr}/min`);
+      if (vitals.bp_systolic) vitalText.push(`BP ${vitals.bp_systolic}/${vitals.bp_diastolic || '-'} mmHg`);
+      if (vitals.rr) vitalText.push(`RR ${vitals.rr}/min`);
+      if (vitals.spo2) vitalText.push(`SpO2 ${vitals.spo2}%`);
+      if (vitalText.length) {
+        parts.push(`Vitals at arrival: ${vitalText.join(', ')}.`);
+      }
+    }
+
+    // 5. Examination findings
+    if (examination) {
+      const examParts = [];
+      if (examination.general_additional_notes) examParts.push(`General: ${examination.general_additional_notes}`);
+      if (examination.cvs_additional_notes) examParts.push(`CVS: ${examination.cvs_additional_notes}`);
+      if (examination.respiratory_additional_notes) examParts.push(`RS: ${examination.respiratory_additional_notes}`);
+      if (examination.abdomen_additional_notes) examParts.push(`Abdomen: ${examination.abdomen_additional_notes}`);
+      if (examination.cns_additional_notes) examParts.push(`CNS: ${examination.cns_additional_notes}`);
+      if (examParts.length) {
+        parts.push(`Examination: ${examParts.join('. ')}.`);
+      }
+    }
+
+    // 6. Investigations
+    const inv = data.investigations;
+    if (inv?.panels_selected?.length || inv?.imaging?.length) {
+      const invList = [...(inv.panels_selected || []), ...(inv.imaging || [])];
+      parts.push(`Investigations: ${invList.join(', ')}.`);
+    }
+    if (inv?.results_notes) {
+      parts.push(`Results: ${inv.results_notes}`);
+    }
+
+    // 7. ER observation notes
     if (er_observation?.notes) {
-      summary += `${er_observation.notes} `;
+      parts.push(er_observation.notes);
     }
-
-    // ER duration
     if (er_observation?.duration) {
-      summary += `Patient was observed in ER for ${er_observation.duration}. `;
+      parts.push(`Patient observed in ER for ${er_observation.duration}.`);
     }
 
-    // Treatment summary
+    // 8. Treatment
     if (treatment?.intervention_notes) {
-      summary += `Treatment: ${treatment.intervention_notes} `;
+      parts.push(`Treatment: ${treatment.intervention_notes}`);
     }
 
-    // Medications given
-    if (treatment?.medications) {
-      summary += `Medications administered as per treatment chart. `;
+    // 9. Drugs administered
+    const drugs = data.drugs_administered || [];
+    if (drugs.length) {
+      const drugList = drugs.map(d => `${d.name} ${d.dose}`).join(', ');
+      parts.push(`Medications: ${drugList}.`);
+    } else if (treatment?.medications) {
+      parts.push(`Medications as per treatment chart.`);
     }
 
-    // Disposition
+    // 10. Procedures
+    const procs = data.procedures_performed || [];
+    if (procs.length) {
+      const procList = procs.map(p => p.name).join(', ');
+      parts.push(`Procedures performed: ${procList}.`);
+    }
+
+    // 11. Diagnosis
+    if (treatment?.provisional_diagnoses?.length) {
+      parts.push(`Diagnosis: ${treatment.provisional_diagnoses.join(', ')}.`);
+    }
+
+    // 12. AI Red Flags
+    if (treatment?.ai_red_flags?.length) {
+      parts.push(`Red flags: ${treatment.ai_red_flags.join(', ')}.`);
+    }
+
+    // 13. Disposition
     if (disposition?.type) {
       const dispositionText = {
-        discharged: "discharged in stable condition",
-        "admitted-icu": "admitted to ICU",
-        "admitted-hdu": "admitted to HDU",
-        "admitted-ward": "admitted to ward",
-        referred: "referred to higher center",
-        dama: "left against medical advice",
-        death: "declared deceased"
+        discharged: "Patient was discharged in stable condition",
+        "admitted-icu": "Patient was admitted to ICU",
+        "admitted-hdu": "Patient was admitted to HDU",
+        "admitted-ward": "Patient was admitted to ward",
+        referred: "Patient was referred to higher center",
+        dama: "Patient left against medical advice",
+        death: "Patient was declared deceased"
       };
-      summary += `Patient was ${dispositionText[disposition.type] || disposition.type}. `;
+      parts.push(dispositionText[disposition.type] || `Disposition: ${disposition.type}.`);
     }
 
-    return summary.trim() || "Course documented in case sheet.";
+    return parts.join(' ') || "Course documented in case sheet.";
   };
 
   const generatePDF = async () => {
