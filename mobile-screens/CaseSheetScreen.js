@@ -933,6 +933,42 @@ export default function CaseSheetScreen({ route, navigation }) {
           support_system: fd.psych_support_system,
           notes: fd.psych_notes,
         },
+        // PAT - Pediatric Assessment Triangle (only for pediatric)
+        pediatric_assessment_triangle: isPediatric ? {
+          appearance: {
+            tone: fd.pat_appearance_tone,
+            interactivity: fd.pat_appearance_interactivity,
+            consolability: fd.pat_appearance_consolability,
+            look_gaze: fd.pat_appearance_look_gaze,
+            speech_cry: fd.pat_appearance_speech_cry,
+          },
+          work_of_breathing: fd.pat_work_of_breathing,
+          abnormal_sounds: fd.pat_abnormal_sounds || [],
+          abnormal_positioning: fd.pat_abnormal_positioning,
+          circulation: {
+            skin_color: fd.pat_circulation_skin_color,
+            crt: fd.pat_circulation_crt,
+          },
+          overall_impression: fd.pat_overall_impression,
+          notes: fd.pat_notes,
+        } : null,
+        // EFAST - for trauma
+        efast: {
+          heart: fd.efast_heart,
+          abdomen: fd.efast_abdomen,
+          lungs: fd.efast_lungs,
+          pelvis: fd.efast_pelvis,
+          notes: fd.efast_notes,
+        },
+        // HEENT - for pediatric
+        heent: isPediatric ? {
+          head: fd.heent_head,
+          eyes: fd.heent_eyes,
+          ears: fd.heent_ears,
+          nose: fd.heent_nose,
+          throat: fd.heent_throat,
+          notes: fd.heent_notes,
+        } : null,
         examination: {
           general_appearance: fd.general_appearance,
           general_pallor: fd.general_pallor,
