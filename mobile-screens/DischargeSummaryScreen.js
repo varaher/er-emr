@@ -240,6 +240,60 @@ export default function DischargeSummaryScreen({ route, navigation }) {
     return map[type] || "discharged";
   }
 
+  // Generate Course in ER summary automatically
+  const generateCourseInER = (data) => {
+    if (!data) return "";
+    
+    const { history, examination, treatment, disposition, er_observation } = data;
+    let summary = "";
+
+    // Chief complaint
+    if (data.presenting_complaint?.text) {
+      summary += `Patient presented with ${data.presenting_complaint.text}. `;
+    }
+
+    // HOPI
+    if (history?.hpi) {
+      summary += `${history.hpi} `;
+    }
+
+    // ER observation notes if available
+    if (er_observation?.notes) {
+      summary += `${er_observation.notes} `;
+    }
+
+    // ER duration
+    if (er_observation?.duration) {
+      summary += `Patient was observed in ER for ${er_observation.duration}. `;
+    }
+
+    // Treatment summary
+    if (treatment?.intervention_notes) {
+      summary += `Treatment: ${treatment.intervention_notes} `;
+    }
+
+    // Medications given
+    if (treatment?.medications) {
+      summary += `Medications administered as per treatment chart. `;
+    }
+
+    // Disposition
+    if (disposition?.type) {
+      const dispositionText = {
+        discharged: "discharged in stable condition",
+        "admitted-icu": "admitted to ICU",
+        "admitted-hdu": "admitted to HDU",
+        "admitted-ward": "admitted to ward",
+        referred: "referred to higher center",
+        dama: "left against medical advice",
+        death: "declared deceased"
+      };
+      summary += `Patient was ${dispositionText[disposition.type] || disposition.type}. `;
+    }
+
+    return summary.trim() || "Course documented in case sheet.";
+  };
+
   const generatePDF = async () => {
     if (!caseData) return;
 
