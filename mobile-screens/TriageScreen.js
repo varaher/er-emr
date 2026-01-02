@@ -836,7 +836,25 @@ export default function TriageScreen({ route, navigation }) {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="#1e293b" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>New Patient Triage</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <Text style={styles.headerTitle}>New Patient Triage</Text>
+          <View style={{
+            backgroundColor: patientType === 'pediatric' ? '#fce7f3' : '#dbeafe',
+            paddingHorizontal: 10,
+            paddingVertical: 4,
+            borderRadius: 12,
+            borderWidth: 1,
+            borderColor: patientType === 'pediatric' ? '#f9a8d4' : '#93c5fd',
+          }}>
+            <Text style={{
+              color: patientType === 'pediatric' ? '#be185d' : '#1d4ed8',
+              fontSize: 12,
+              fontWeight: '600',
+            }}>
+              {patientType === 'pediatric' ? '👶 Pediatric' : '🧑 Adult'}
+            </Text>
+          </View>
+        </View>
         <TouchableOpacity onPress={fillWithDefaults}>
           <Ionicons name="flash" size={24} color="#f59e0b" />
         </TouchableOpacity>
