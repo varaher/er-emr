@@ -4137,7 +4137,7 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
                     <div className="p-4 border-l-4 border-purple-400 bg-purple-50/50 rounded-r-lg">
                       <div className="flex items-center gap-2 text-purple-800">
                         <ClipboardList className="h-5 w-5" />
-                        <span className="font-medium">Procedures are documented in the "Notes" tab</span>
+                        <span className="font-medium">Procedures are documented in the Notes tab</span>
                       </div>
                       <p className="text-sm text-purple-600 mt-1">
                         Go to Notes tab to document all procedures performed with detailed notes.
@@ -4360,7 +4360,7 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
               <Card>
                 <CardHeader>
                   <CardTitle>Observation in ER</CardTitle>
-                  <CardDescription>Document patient's course in the emergency room</CardDescription>
+                  <CardDescription>Document the course in the emergency room</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
