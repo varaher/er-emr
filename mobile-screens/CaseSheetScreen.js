@@ -1858,6 +1858,33 @@ export default function CaseSheetScreen({ route, navigation }) {
           {/* ==================== EXAMINATION TAB ==================== */}
           {activeTab === "exam" && (
             <View style={styles.tabContent}>
+              {/* Quick "All Normal" Button */}
+              <TouchableOpacity 
+                style={styles.allNormalBtn}
+                onPress={() => {
+                  // Set all exam statuses to Normal
+                  setExamStatus({
+                    cvs: "Normal",
+                    respiratory: "Normal",
+                    abdomen: "Normal",
+                    cns: "Normal",
+                    extremities: "Normal",
+                  });
+                  // Also fill in the text fields with normal templates
+                  formDataRef.current.general_notes = NORMAL_EXAM_TEMPLATE.general;
+                  formDataRef.current.cvs_notes = NORMAL_EXAM_TEMPLATE.cvs;
+                  formDataRef.current.resp_notes = NORMAL_EXAM_TEMPLATE.rs;
+                  formDataRef.current.abd_notes = NORMAL_EXAM_TEMPLATE.abdomen;
+                  formDataRef.current.cns_notes = NORMAL_EXAM_TEMPLATE.cns;
+                  formDataRef.current.ext_notes = NORMAL_EXAM_TEMPLATE.extremities;
+                  forceUpdate();
+                  Alert.alert("✓ Done", "All examination sections marked as Normal");
+                }}
+              >
+                <Ionicons name="checkmark-done-circle" size={20} color="#fff" />
+                <Text style={styles.allNormalBtnText}>Mark All Examination Normal</Text>
+              </TouchableOpacity>
+
               {/* General Examination */}
               <View style={styles.card}>
                 <CollapsibleHeader title="General Examination" icon="person" section="generalExam" color="#0ea5e9" />
