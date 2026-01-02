@@ -1463,6 +1463,109 @@ export default function CaseSheetScreen({ route, navigation }) {
           {/* ==================== PRIMARY ASSESSMENT TAB ==================== */}
           {activeTab === "primary" && (
             <View style={styles.tabContent}>
+              
+              {/* PAT - Pediatric Assessment Triangle (Only for pediatric patients) */}
+              {isPediatric && (
+                <View style={[styles.card, { borderLeftWidth: 4, borderLeftColor: '#8b5cf6' }]}>
+                  <View style={styles.patHeader}>
+                    <Ionicons name="triangle" size={24} color="#8b5cf6" />
+                    <View>
+                      <Text style={styles.patTitle}>Pediatric Assessment Triangle (PAT)</Text>
+                      <Text style={styles.patSubtitle}>Quick visual assessment</Text>
+                    </View>
+                  </View>
+                  
+                  {/* Appearance */}
+                  <View style={styles.patSection}>
+                    <Text style={styles.patSectionTitle}>👶 APPEARANCE</Text>
+                    
+                    <Text style={styles.patLabel}>Tone (muscle tone & movement)</Text>
+                    <SelectButtons 
+                      options={["Moves spontaneously", "Resists examination", "Sits/Stands", "Floppy/Limp"]} 
+                      field="pat_appearance_tone" 
+                    />
+                    
+                    <Text style={styles.patLabel}>Interactivity</Text>
+                    <SelectButtons 
+                      options={["Alert & engaged", "Interacts well", "Reaches for objects", "Disinterested", "Lethargic"]} 
+                      field="pat_appearance_interactivity" 
+                    />
+                    
+                    <Text style={styles.patLabel}>Consolability</Text>
+                    <SelectButtons 
+                      options={["Easily consoled", "Consoled with holding", "Inconsolable"]} 
+                      field="pat_appearance_consolability" 
+                    />
+                    
+                    <Text style={styles.patLabel}>Look/Gaze</Text>
+                    <SelectButtons 
+                      options={["Eye contact", "Tracks visually", "Normal behavior", "Abnormal/Glassy"]} 
+                      field="pat_appearance_look_gaze" 
+                    />
+                    
+                    <Text style={styles.patLabel}>Speech/Cry</Text>
+                    <SelectButtons 
+                      options={["Age-appropriate", "Good cry", "Weak cry", "Hoarse", "No cry"]} 
+                      field="pat_appearance_speech_cry" 
+                    />
+                  </View>
+
+                  {/* Work of Breathing */}
+                  <View style={styles.patSection}>
+                    <Text style={styles.patSectionTitle}>🫁 WORK OF BREATHING</Text>
+                    
+                    <Text style={styles.patLabel}>Breathing Effort</Text>
+                    <SelectButtons 
+                      options={["Normal", "Mild increase", "Moderate increase", "Severe increase", "Minimal/Agonal"]} 
+                      field="pat_work_of_breathing" 
+                    />
+                    
+                    <Text style={styles.patLabel}>Abnormal Sounds (select all)</Text>
+                    <View style={styles.checkboxGrid}>
+                      {['Nasal flaring', 'Retractions', 'Grunting', 'Wheezing', 'Stridor', 'Snoring', 'Gurgling'].map(item => (
+                        <TouchableOpacity key={item} style={styles.checkboxItem} onPress={() => toggleIntervention('pat_abnormal_sounds', item)}>
+                          <Ionicons name={formDataRef.current.pat_abnormal_sounds?.includes(item) ? 'checkbox' : 'square-outline'} size={20} color="#8b5cf6" />
+                          <Text style={styles.checkboxText}>{item}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                    
+                    <Text style={styles.patLabel}>Abnormal Positioning</Text>
+                    <SelectButtons 
+                      options={["None", "Tripod", "Sniffing", "Prefers seated"]} 
+                      field="pat_abnormal_positioning" 
+                    />
+                  </View>
+
+                  {/* Circulation to Skin */}
+                  <View style={styles.patSection}>
+                    <Text style={styles.patSectionTitle}>❤️ CIRCULATION TO SKIN</Text>
+                    
+                    <Text style={styles.patLabel}>Skin Color</Text>
+                    <SelectButtons 
+                      options={["Pink", "Pale", "Mottled", "Cyanosed", "Flushed"]} 
+                      field="pat_circulation_skin_color" 
+                    />
+                    
+                    <Text style={styles.patLabel}>Capillary Refill Time</Text>
+                    <SelectButtons 
+                      options={["<2 sec (Normal)", "2-3 sec (Delayed)", ">3 sec (Severely delayed)"]} 
+                      field="pat_circulation_crt" 
+                    />
+                  </View>
+
+                  {/* Overall PAT Impression */}
+                  <View style={styles.patSection}>
+                    <Text style={styles.patSectionTitle}>📊 OVERALL IMPRESSION</Text>
+                    <SelectButtons 
+                      options={["Stable", "Respiratory distress", "Respiratory failure", "Shock", "CNS dysfunction", "Cardiopulmonary failure"]} 
+                      field="pat_overall_impression" 
+                    />
+                    <InputWithVoice label="PAT Notes" field="pat_notes" placeholder="Additional observations..." multiline />
+                  </View>
+                </View>
+              )}
+
               {/* A - Airway */}
               <View style={[styles.card, { borderLeftWidth: 4, borderLeftColor: '#ef4444' }]}>
                 <CollapsibleHeader title="A - AIRWAY" icon="medical" section="airway" color="#ef4444" />
