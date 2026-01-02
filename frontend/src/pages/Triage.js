@@ -115,14 +115,16 @@ export default function Triage() {
       return;
     }
     // Navigate to case creation with triage data
-    // Use pediatric route if age_group is pediatric
-    const route = formData.age_group === 'pediatric' ? '/case-pediatric/new' : '/case/new';
-    navigate(route, { 
+    // Always use the same route, but pass isPediatric flag
+    const isPediatric = formData.age_group === 'pediatric';
+    navigate('/case/new', { 
       state: { 
         triageId: triageResult.id,
         triagePriority: triageResult.priority_level,
         triageColor: triageResult.priority_color,
         age_group: formData.age_group,
+        isPediatric: isPediatric,
+        patient_age: formData.patient_age || '',
         // Pass recorded voice data
         chief_complaint: formData.chief_complaint,
         additional_notes: formData.additional_notes,
