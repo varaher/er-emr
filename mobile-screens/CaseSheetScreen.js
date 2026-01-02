@@ -2949,6 +2949,50 @@ const styles = StyleSheet.create({
   },
   allNormalBtnText: { color: "#fff", fontWeight: "700", fontSize: 15 },
   
+  // PAT (Pediatric Assessment Triangle) Styles
+  patHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 16,
+    paddingBottom: 8,
+    gap: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e9d5ff",
+    marginBottom: 8,
+  },
+  patTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#7c3aed",
+  },
+  patSubtitle: {
+    fontSize: 12,
+    color: "#a78bfa",
+  },
+  patSection: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f3e8ff",
+  },
+  patSectionTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#6d28d9",
+    marginBottom: 12,
+    backgroundColor: "#f5f3ff",
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 6,
+  },
+  patLabel: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#475569",
+    marginTop: 10,
+    marginBottom: 6,
+  },
+  
   // AI Diagnosis Styles
   aiDiagnosisBtn: {
     flexDirection: "row",
