@@ -648,6 +648,28 @@ export default function CaseSheetScreen({ route, navigation }) {
 
   const updateExamStatus = (exam, status) => {
     setExamStatus(prev => ({ ...prev, [exam]: status }));
+    
+    // Auto-fill detailed normal findings when "Normal" is selected
+    if (status === "Normal") {
+      switch (exam) {
+        case 'cvs':
+          formDataRef.current.cvs_notes = NORMAL_EXAM_TEMPLATE.cvs;
+          break;
+        case 'respiratory':
+          formDataRef.current.resp_notes = NORMAL_EXAM_TEMPLATE.rs;
+          break;
+        case 'abdomen':
+          formDataRef.current.abd_notes = NORMAL_EXAM_TEMPLATE.abdomen;
+          break;
+        case 'cns':
+          formDataRef.current.cns_notes = NORMAL_EXAM_TEMPLATE.cns;
+          break;
+        case 'extremities':
+          formDataRef.current.ext_notes = NORMAL_EXAM_TEMPLATE.extremities;
+          break;
+      }
+      forceUpdate();
+    }
   };
 
   // Toggle intervention in array field
