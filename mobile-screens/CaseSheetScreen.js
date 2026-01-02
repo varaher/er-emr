@@ -1858,6 +1858,40 @@ export default function CaseSheetScreen({ route, navigation }) {
                 )}
               </View>
 
+              {/* EFAST - Extended Focused Assessment with Sonography for Trauma */}
+              <View style={[styles.card, { borderLeftWidth: 4, borderLeftColor: '#06b6d4' }]}>
+                <CollapsibleHeader title="EFAST (Trauma Ultrasound)" icon="scan" section="efast" color="#06b6d4" />
+                {!collapsed.efast && (
+                  <View style={styles.collapsibleContent}>
+                    <Text style={styles.efastNote}>Extended Focused Assessment with Sonography for Trauma</Text>
+                    
+                    <View style={styles.efastGrid}>
+                      <View style={styles.efastItem}>
+                        <Text style={styles.efastLabel}>❤️ Heart (Pericardial)</Text>
+                        <SelectButtons options={["Not done", "Normal", "Effusion", "Tamponade signs"]} field="efast_heart" />
+                      </View>
+                      
+                      <View style={styles.efastItem}>
+                        <Text style={styles.efastLabel}>🩸 Abdomen (Free Fluid)</Text>
+                        <SelectButtons options={["Not done", "Normal", "RUQ fluid", "LUQ fluid", "Pelvis fluid"]} field="efast_abdomen" />
+                      </View>
+                      
+                      <View style={styles.efastItem}>
+                        <Text style={styles.efastLabel}>🫁 Lungs (Pneumothorax)</Text>
+                        <SelectButtons options={["Not done", "Normal", "PTX Right", "PTX Left", "PTX Bilateral"]} field="efast_lungs" />
+                      </View>
+                      
+                      <View style={styles.efastItem}>
+                        <Text style={styles.efastLabel}>🦴 Pelvis</Text>
+                        <SelectButtons options={["Not done", "Normal", "Fluid/Blood", "Fracture signs"]} field="efast_pelvis" />
+                      </View>
+                    </View>
+                    
+                    <InputWithVoice label="EFAST Notes" field="efast_notes" placeholder="Additional EFAST findings..." multiline />
+                  </View>
+                )}
+              </View>
+
               {/* R - Reassessment */}
               <View style={[styles.card, { borderLeftWidth: 4, borderLeftColor: '#8b5cf6' }]}>
                 <CollapsibleHeader title="R - REASSESSMENT" icon="refresh" section="reassessment" color="#8b5cf6" />
