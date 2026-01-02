@@ -2036,6 +2036,9 @@ export default function CaseSheetScreen({ route, navigation }) {
                   formDataRef.current.abd_notes = NORMAL_EXAM_TEMPLATE.abdomen;
                   formDataRef.current.cns_notes = NORMAL_EXAM_TEMPLATE.cns;
                   formDataRef.current.ext_notes = NORMAL_EXAM_TEMPLATE.extremities;
+                  if (isPediatric) {
+                    formDataRef.current.heent_notes = "Head normocephalic, fontanelles flat (if applicable). Eyes: Pupils equal, reactive. Ears: TM clear bilaterally. Nose: Patent, no discharge. Throat: Oral mucosa moist, tonsils not enlarged.";
+                  }
                   forceUpdate();
                   Alert.alert("✓ Done", "All examination sections marked as Normal");
                 }}
@@ -2043,6 +2046,35 @@ export default function CaseSheetScreen({ route, navigation }) {
                 <Ionicons name="checkmark-done-circle" size={20} color="#fff" />
                 <Text style={styles.allNormalBtnText}>Mark All Examination Normal</Text>
               </TouchableOpacity>
+
+              {/* HEENT - For Pediatric Patients */}
+              {isPediatric && (
+                <View style={styles.card}>
+                  <CollapsibleHeader title="HEENT Examination" icon="eye" section="heent" color="#f59e0b" />
+                  {!collapsed.heent && (
+                    <View style={styles.collapsibleContent}>
+                      <Text style={styles.heentSubtitle}>Head, Eyes, Ears, Nose, Throat</Text>
+                      
+                      <Text style={styles.heentLabel}>Head</Text>
+                      <SelectButtons options={["Normocephalic", "Fontanelle bulging", "Fontanelle sunken", "Trauma signs"]} field="heent_head" />
+                      
+                      <Text style={styles.heentLabel}>Eyes</Text>
+                      <SelectButtons options={["Normal", "Sunken", "Conjunctival pallor", "Icterus", "Discharge"]} field="heent_eyes" />
+                      
+                      <Text style={styles.heentLabel}>Ears</Text>
+                      <SelectButtons options={["Normal", "TM bulging", "Discharge", "Mastoid tenderness"]} field="heent_ears" />
+                      
+                      <Text style={styles.heentLabel}>Nose</Text>
+                      <SelectButtons options={["Patent", "Congested", "Discharge", "Flaring"]} field="heent_nose" />
+                      
+                      <Text style={styles.heentLabel}>Throat/Oropharynx</Text>
+                      <SelectButtons options={["Normal", "Erythema", "Exudates", "Tonsillar enlargement", "Dry mucosa"]} field="heent_throat" />
+                      
+                      <InputWithVoice label="HEENT Notes" field="heent_notes" placeholder="Additional HEENT findings..." multiline />
+                    </View>
+                  )}
+                </View>
+              )}
 
               {/* General Examination */}
               <View style={styles.card}>
