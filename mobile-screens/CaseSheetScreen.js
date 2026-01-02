@@ -2612,8 +2612,6 @@ export default function CaseSheetScreen({ route, navigation }) {
                 {/* Manual medication input */}
                 <InputWithVoice label="Other Medications" field="treatment_medications" placeholder="Additional drugs not in list..." multiline />
                 <InputWithVoice label="IV Fluids" field="treatment_fluids" placeholder="NS, RL, etc..." />
-                <InputWithVoice label="Procedures Done" field="treatment_procedures" placeholder="Any procedures..." multiline />
-                <InputWithVoice label="Course in ED" field="treatment_course" placeholder="Progress notes..." multiline />
               </View>
 
               {/* Addendum Notes Section */}
