@@ -1114,7 +1114,35 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
     }
   };
 
+  // Normal examination templates
+  const NORMAL_EXAM_TEMPLATES = {
+    cvs: "Cardiovascular examination: Pulse 72 bpm, regular rhythm, normal volume. JVP not elevated. S1 S2 heard, normal intensity, no murmurs, gallops, or rubs. Peripheral pulses well felt bilaterally.",
+    respiratory: "Respiratory examination: Chest shape normal, symmetric movement. Respiratory rate normal. Bilateral equal air entry, vesicular breath sounds, no added sounds (wheeze, crackles, rhonchi).",
+    abdomen: "Abdominal examination: Abdomen soft, non-distended. No tenderness, guarding, or rigidity. No organomegaly. Bowel sounds present, normal.",
+    cns: "CNS examination: Conscious, oriented, GCS 15/15 (E4 V5 M6). Speech clear. Cranial nerves intact. Pupils equal, round, reactive to light (PERL). Motor power 5/5 in all limbs. Reflexes normal.",
+    extremities: "Extremities examination: No pallor, cyanosis, or clubbing. No pedal edema. Peripheral pulses well felt. Capillary refill time <2 seconds.",
+  };
+
   const updateNestedField = (section, field, value) => {
+    // Auto-fill normal detailed findings when status is set to "Normal"
+    if (section === 'examination' && field.endsWith('_status') && value === 'Normal') {
+      const examType = field.replace('_status', '');
+      const findingsField = `${examType}_findings`;
+      const template = NORMAL_EXAM_TEMPLATES[examType];
+      
+      if (template) {
+        setFormData(prev => ({
+          ...prev,
+          [section]: {
+            ...prev[section],
+            [field]: value,
+            [findingsField]: template,
+          }
+        }));
+        return;
+      }
+    }
+    
     setFormData(prev => ({
       ...prev,
       [section]: {
