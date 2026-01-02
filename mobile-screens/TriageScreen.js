@@ -754,7 +754,12 @@ export default function TriageScreen({ route, navigation }) {
           updateTextField(field, t);
           // Also update state for key fields
           if (field === 'name') setPatientName(t);
-          if (field === 'age') setPatientAge(t);
+          if (field === 'age') {
+            setPatientAge(t);
+            // Auto-detect pediatric based on age
+            const isPed = checkIfPediatric(t, ageUnit);
+            setPatientType(isPed ? "pediatric" : "adult");
+          }
           if (field === 'chief_complaint') setChiefComplaint(t);
         }}
         placeholder={placeholder}
