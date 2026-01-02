@@ -120,3 +120,147 @@ export const PROCEDURE_CATEGORIES = [
   "Cardiac",
   "Monitoring"
 ];
+
+// Pediatric Normal Vital Signs by Age Group
+export const PEDIATRIC_VITALS = {
+  newborn: { // 0-1 month
+    ageRange: "0-1 month",
+    hr: [100, 160],
+    rr: [30, 60],
+    sbp: [60, 90],
+    dbp: [30, 60],
+    temp: [36.5, 37.5],
+    spo2: [95, 100],
+  },
+  infant: { // 1-12 months
+    ageRange: "1-12 months",
+    hr: [100, 160],
+    rr: [25, 50],
+    sbp: [70, 100],
+    dbp: [40, 65],
+    temp: [36.5, 37.5],
+    spo2: [95, 100],
+  },
+  toddler: { // 1-3 years
+    ageRange: "1-3 years",
+    hr: [90, 150],
+    rr: [20, 30],
+    sbp: [80, 110],
+    dbp: [50, 70],
+    temp: [36.5, 37.5],
+    spo2: [95, 100],
+  },
+  preschool: { // 3-6 years
+    ageRange: "3-6 years",
+    hr: [80, 140],
+    rr: [20, 25],
+    sbp: [80, 110],
+    dbp: [50, 70],
+    temp: [36.5, 37.5],
+    spo2: [95, 100],
+  },
+  schoolAge: { // 6-12 years
+    ageRange: "6-12 years",
+    hr: [70, 120],
+    rr: [15, 20],
+    sbp: [90, 120],
+    dbp: [55, 80],
+    temp: [36.5, 37.5],
+    spo2: [95, 100],
+  },
+  adolescent: { // 12-16 years
+    ageRange: "12-16 years",
+    hr: [60, 100],
+    rr: [12, 20],
+    sbp: [100, 130],
+    dbp: [60, 85],
+    temp: [36.5, 37.5],
+    spo2: [95, 100],
+  },
+  adult: { // >16 years
+    ageRange: ">16 years",
+    hr: [60, 100],
+    rr: [12, 20],
+    sbp: [90, 140],
+    dbp: [60, 90],
+    temp: [36.5, 37.5],
+    spo2: [95, 100],
+  },
+};
+
+// Get age group from age string
+export const getAgeGroup = (ageString) => {
+  if (!ageString) return 'adult';
+  
+  const age = String(ageString).toLowerCase();
+  let years = 0;
+  let months = 0;
+  
+  const yearMatch = age.match(/(\d+)\s*(y|year|years)/i);
+  const monthMatch = age.match(/(\d+)\s*(m|month|months)/i);
+  const dayMatch = age.match(/(\d+)\s*(d|day|days)/i);
+  const plainNumber = age.match(/^(\d+)$/);
+  
+  if (yearMatch) years = parseInt(yearMatch[1]);
+  if (monthMatch) months = parseInt(monthMatch[1]);
+  if (dayMatch) months = 0;
+  if (plainNumber) years = parseInt(plainNumber[1]);
+  
+  const totalMonths = (years * 12) + months;
+  
+  if (totalMonths <= 1) return 'newborn';
+  if (totalMonths <= 12) return 'infant';
+  if (years <= 3) return 'toddler';
+  if (years <= 6) return 'preschool';
+  if (years <= 12) return 'schoolAge';
+  if (years <= 16) return 'adolescent';
+  return 'adult';
+};
+
+// Check vital alerts
+export const getVitalAlerts = (vitals, ageString) => {
+  const ageGroup = getAgeGroup(ageString);
+  const norms = PEDIATRIC_VITALS[ageGroup];
+  const alerts = [];
+  
+  if (!norms) return alerts;
+  
+  const checkVital = (value, min, max) => {
+    if (!value || isNaN(parseFloat(value))) return 'unknown';
+    const numValue = parseFloat(value);
+    if (numValue < min) return 'low';
+    if (numValue > max) return 'high';
+    return 'normal';
+  };
+  
+  if (vitals.hr) {
+    const status = checkVital(vitals.hr, norms.hr[0], norms.hr[1]);
+    if (status === 'low') alerts.push({ type: 'danger', vital: 'HR', message: `Bradycardia: HR ${vitals.hr} (Normal: ${norms.hr[0]}-${norms.hr[1]} for ${norms.ageRange})` });
+    else if (status === 'high') alerts.push({ type: 'warning', vital: 'HR', message: `Tachycardia: HR ${vitals.hr} (Normal: ${norms.hr[0]}-${norms.hr[1]} for ${norms.ageRange})` });
+  }
+  
+  if (vitals.rr) {
+    const status = checkVital(vitals.rr, norms.rr[0], norms.rr[1]);
+    if (status === 'low') alerts.push({ type: 'danger', vital: 'RR', message: `Bradypnea: RR ${vitals.rr} (Normal: ${norms.rr[0]}-${norms.rr[1]} for ${norms.ageRange})` });
+    else if (status === 'high') alerts.push({ type: 'warning', vital: 'RR', message: `Tachypnea: RR ${vitals.rr} (Normal: ${norms.rr[0]}-${norms.rr[1]} for ${norms.ageRange})` });
+  }
+  
+  if (vitals.sbp) {
+    const status = checkVital(vitals.sbp, norms.sbp[0], norms.sbp[1]);
+    if (status === 'low') alerts.push({ type: 'danger', vital: 'SBP', message: `Hypotension: SBP ${vitals.sbp} (Normal: ${norms.sbp[0]}-${norms.sbp[1]} for ${norms.ageRange})` });
+    else if (status === 'high') alerts.push({ type: 'warning', vital: 'SBP', message: `Hypertension: SBP ${vitals.sbp} (Normal: ${norms.sbp[0]}-${norms.sbp[1]} for ${norms.ageRange})` });
+  }
+  
+  if (vitals.temp) {
+    const status = checkVital(vitals.temp, norms.temp[0], norms.temp[1]);
+    if (status === 'low') alerts.push({ type: 'danger', vital: 'Temp', message: `Hypothermia: ${vitals.temp}°C (Normal: 36.5-37.5°C)` });
+    else if (status === 'high') alerts.push({ type: 'warning', vital: 'Temp', message: `Fever: ${vitals.temp}°C (Normal: 36.5-37.5°C)` });
+  }
+  
+  if (vitals.spo2) {
+    const status = checkVital(vitals.spo2, norms.spo2[0], 100);
+    if (status === 'low') alerts.push({ type: 'danger', vital: 'SpO2', message: `Hypoxia: SpO2 ${vitals.spo2}% (Normal: ≥95%)` });
+  }
+  
+  return alerts;
+};
