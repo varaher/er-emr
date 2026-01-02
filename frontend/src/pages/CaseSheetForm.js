@@ -1911,6 +1911,68 @@ Generated: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} IST
 
           {/* Vitals Tab */}
           <TabsContent value="vitals">
+            {/* Vital Alerts - Show warnings for abnormal vitals */}
+            {(() => {
+              const vitals = {
+                hr: formData.vitals_at_arrival?.hr,
+                rr: formData.vitals_at_arrival?.rr,
+                sbp: formData.vitals_at_arrival?.bp_systolic,
+                temp: formData.vitals_at_arrival?.temperature,
+                spo2: formData.vitals_at_arrival?.spo2,
+              };
+              const alerts = getVitalAlerts(vitals, formData.patient?.age);
+              
+              if (alerts.length === 0) return null;
+              
+              return (
+                <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <div className="flex items-center gap-2 mb-3">
+                    <AlertTriangle className="h-5 w-5 text-red-600" />
+                    <span className="font-bold text-red-800">Vital Sign Alerts</span>
+                  </div>
+                  <div className="space-y-2">
+                    {alerts.map((alert, idx) => (
+                      <div 
+                        key={idx} 
+                        className={`flex items-start gap-2 p-2 rounded ${
+                          alert.type === 'danger' ? 'bg-red-100 text-red-900' : 'bg-amber-100 text-amber-900'
+                        }`}
+                      >
+                        <AlertCircle className={`h-4 w-4 mt-0.5 flex-shrink-0 ${
+                          alert.type === 'danger' ? 'text-red-600' : 'text-amber-600'
+                        }`} />
+                        <span className="text-sm">{alert.message}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Normal Range Reference for Pediatric */}
+            {formData.patient?.age && parseInt(formData.patient.age) < 16 && (() => {
+              const ageGroup = getAgeGroup(formData.patient.age);
+              const norms = PEDIATRIC_VITALS[ageGroup];
+              if (!norms) return null;
+              
+              return (
+                <div className="mb-4 p-3 bg-sky-50 border border-sky-200 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <AlertCircle className="h-4 w-4 text-sky-600" />
+                    <span className="text-sm font-semibold text-sky-800">
+                      Normal Ranges for {norms.ageRange}
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-2 text-xs">
+                    <span className="px-2 py-1 bg-sky-100 text-sky-800 rounded">HR: {norms.hr[0]}-{norms.hr[1]}</span>
+                    <span className="px-2 py-1 bg-sky-100 text-sky-800 rounded">RR: {norms.rr[0]}-{norms.rr[1]}</span>
+                    <span className="px-2 py-1 bg-sky-100 text-sky-800 rounded">SBP: {norms.sbp[0]}-{norms.sbp[1]}</span>
+                    <span className="px-2 py-1 bg-sky-100 text-sky-800 rounded">SpO2: ≥{norms.spo2[0]}%</span>
+                  </div>
+                </div>
+              );
+            })()}
+
             <Card>
               <CardHeader>
                 <CardTitle>Vitals at Arrival</CardTitle>
