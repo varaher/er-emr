@@ -2764,15 +2764,6 @@ export default function CaseSheetScreen({ route, navigation }) {
                 />
               </View>
 
-              {/* Discharge Advice - only show if disposition is Discharge */}
-              {formDataRef.current.disposition_type === "Discharge" && (
-                <View style={styles.card}>
-                  <Text style={styles.cardTitle}>Discharge Advice</Text>
-                  <InputWithVoice label="Medications" field="discharge_medications" placeholder="Discharge prescriptions..." multiline />
-                  <InputWithVoice label="Follow-up Instructions" field="discharge_followup" placeholder="When to return, warning signs..." multiline />
-                </View>
-              )}
-
               {/* Generate Discharge Summary Button - only for Discharge disposition */}
               {formDataRef.current.disposition_type === "Discharge" && (
                 <TouchableOpacity 
