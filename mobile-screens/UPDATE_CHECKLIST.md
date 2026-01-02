@@ -49,6 +49,16 @@ When an OTA update is available, the app will automatically:
 - Profile screen now has "Check for Updates" button
 - Allows manual checking for OTA updates
 
+### 6. Pediatric Case Sheet Features (NEW)
+- **PAT (Pediatric Assessment Triangle)** - Appears for patients <16 years
+  - Appearance: Tone, Interactivity, Consolability, Look/Gaze, Speech/Cry
+  - Work of Breathing: Effort, Abnormal sounds, Positioning
+  - Circulation to Skin: Color, CRT
+  - Overall Impression
+- **EFAST (Trauma Ultrasound)** - Heart, Abdomen, Lungs, Pelvis
+- **HEENT Examination** - Head, Eyes, Ears, Nose, Throat (Pediatric only)
+- Age-based case sheet selection (cutoff: 16 years)
+
 ---
 
 ## 📁 FILES TO COPY TO YOUR PROJECT
