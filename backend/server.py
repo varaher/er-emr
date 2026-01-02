@@ -680,6 +680,8 @@ class CaseSheetCreate(BaseModel):
     triage_color: Optional[str] = None
     em_resident: str
     em_consultant: str = ""
+    procedures_performed: Optional[List[ProcedurePerformed]] = []
+    drugs_administered: Optional[List[DrugAdministered]] = []
 
 class CaseSheetUpdate(BaseModel):
     patient: Optional[PatientInfo] = None
@@ -697,6 +699,8 @@ class CaseSheetUpdate(BaseModel):
     em_resident: Optional[str] = None
     em_consultant: Optional[str] = None
     status: Optional[str] = None
+    procedures_performed: Optional[List[ProcedurePerformed]] = None
+    drugs_administered: Optional[List[DrugAdministered]] = None
 
 class DischargeSummary(BaseModel):
     model_config = ConfigDict(extra="ignore")
