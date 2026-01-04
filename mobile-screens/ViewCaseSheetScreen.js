@@ -675,6 +675,32 @@ const styles = StyleSheet.create({
     color: "#334155",
     lineHeight: 20,
   },
+  procedureItem: {
+    marginBottom: 8,
+    paddingLeft: 4,
+  },
+  procedureName: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#1e293b",
+  },
+  procedureNotes: {
+    fontSize: 12,
+    color: "#64748b",
+    marginLeft: 12,
+    fontStyle: "italic",
+  },
+  addendumItem: {
+    marginBottom: 12,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e2e8f0",
+  },
+  addendumTimestamp: {
+    fontSize: 11,
+    color: "#64748b",
+    marginBottom: 4,
+  },
   vitalsGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
