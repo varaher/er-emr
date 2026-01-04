@@ -767,36 +767,24 @@ export default function CaseSheetScreen({ route, navigation }) {
 
     setAiDiagnosisLoading(true);
     try {
-      const token = await AsyncStorage.getItem("token");
-      
-      const response = await fetch(`${API_URL}/ai/generate`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          prompt_type: "diagnosis_suggestions",
-          case_context: clinicalContext,
-        }),
+      // Use axios (same as web app)
+      const response = await api.post('/ai/generate', {
+        prompt_type: "diagnosis_suggestions",
+        case_context: clinicalContext,
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        setAiDiagnosisResult(data.response || data.content || "");
-        
-        // Extract red flags from response
-        const redFlagMatch = data.response?.match(/RED FLAGS?:?([\s\S]*?)(?:SUGGESTED|DIFFERENTIAL|$)/i);
-        if (redFlagMatch) {
-          const flags = redFlagMatch[1].split(/[•\-\n]/).filter(f => f.trim().length > 3);
-          setAiRedFlags(flags.slice(0, 5));
-        }
-      } else {
-        throw new Error("AI request failed");
+      setAiDiagnosisResult(response.data.response || response.data.content || "");
+      
+      // Extract red flags from response
+      const redFlagMatch = response.data.response?.match(/RED FLAGS?:?([\s\S]*?)(?:SUGGESTED|DIFFERENTIAL|$)/i);
+      if (redFlagMatch) {
+        const flags = redFlagMatch[1].split(/[•\-\n]/).filter(f => f.trim().length > 3);
+        setAiRedFlags(flags.slice(0, 5));
       }
     } catch (err) {
       console.error("AI Diagnosis error:", err);
-      Alert.alert("Error", "Failed to get AI suggestions. Please try again.");
+      const errorMsg = err.response?.data?.detail || "Failed to get AI suggestions";
+      Alert.alert("Error", errorMsg);
     }
     setAiDiagnosisLoading(false);
   };
