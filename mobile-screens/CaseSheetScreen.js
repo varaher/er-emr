@@ -1493,46 +1493,16 @@ export default function CaseSheetScreen({ route, navigation }) {
         },
         em_resident: user?.name || fd.em_resident || "EM Resident",
       };
-      
-      // Debug log - remove in production
-      console.log("Saving payload:", JSON.stringify(payload, null, 2).substring(0, 500));
 
-      // Helper function to map disposition type
-      function mapDispositionType(type) {
-        const map = {
-          "Discharge": "discharged",
-          "Admit": "admitted-ward",
-          "Refer": "referred",
-          "LAMA": "dama",
-          "Absconded": "absconded",
-          "Death": "death",
-        };
-        return map[type] || "discharged";
-      }
-
+      // Save using axios (same as web app)
       let response;
       if (caseId) {
-        response = await fetch(`${API_URL}/cases/${caseId}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-          body: JSON.stringify(payload),
-        });
+        response = await api.put(`/cases/${caseId}`, payload);
       } else {
-        response = await fetch(`${API_URL}/cases`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-          body: JSON.stringify(payload),
-        });
+        response = await api.post('/cases', payload);
       }
 
-      // Check response and extract error if failed
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const errorDetail = errorData.detail || errorData.message || `Server error: ${response.status}`;
-        throw new Error(typeof errorDetail === 'string' ? errorDetail : JSON.stringify(errorDetail));
-      }
-
-      const savedCase = await response.json();
+      const savedCase = response.data;
       setCaseId(savedCase.id);
       setLastSaved(new Date());
       if (!silent) {
@@ -1542,7 +1512,12 @@ export default function CaseSheetScreen({ route, navigation }) {
     } catch (err) {
       console.error("Save error:", err);
       if (!silent) {
-        Alert.alert("Save Error", err.message || "Failed to save case. Check your connection.");
+        // Axios error handling - same pattern as web app
+        const errorMsg = err.response?.data?.detail 
+          || err.response?.data?.message 
+          || err.message 
+          || "Failed to save case";
+        Alert.alert("Save Error", typeof errorMsg === 'string' ? errorMsg : JSON.stringify(errorMsg));
       }
       return null;
     } finally {
