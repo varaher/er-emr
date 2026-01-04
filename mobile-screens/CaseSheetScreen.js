@@ -1518,25 +1518,29 @@ export default function CaseSheetScreen({ route, navigation }) {
 
       const savedCase = await response.json();
       setCaseId(savedCase.id);
-      Alert.alert("✅ Saved", "Case sheet saved!");
+      if (!silent) {
+        Alert.alert("✅ Saved", "Case sheet saved!");
+      }
       return savedCase.id;
     } catch (err) {
       console.error("Save error:", err);
-      // Properly format error message - CRITICAL FIX
-      let errorMsg = "Failed to save case";
-      if (err?.response?.data?.detail) {
-        errorMsg = err.response.data.detail;
-      } else if (err?.response?.data?.message) {
-        errorMsg = err.response.data.message;
-      } else if (err?.response?.data && typeof err.response.data === 'object') {
-        errorMsg = JSON.stringify(err.response.data);
-      } else if (err?.message) {
-        errorMsg = err.message;
+      if (!silent) {
+        // Properly format error message - CRITICAL FIX
+        let errorMsg = "Failed to save case";
+        if (err?.response?.data?.detail) {
+          errorMsg = err.response.data.detail;
+        } else if (err?.response?.data?.message) {
+          errorMsg = err.response.data.message;
+        } else if (err?.response?.data && typeof err.response.data === 'object') {
+          errorMsg = JSON.stringify(err.response.data);
+        } else if (err?.message) {
+          errorMsg = err.message;
+        }
+        Alert.alert("Error", errorMsg);
       }
-      Alert.alert("Error", errorMsg);
       return null;
     } finally {
-      setSaving(false);
+      if (!silent) setSaving(false);
     }
   };
 
