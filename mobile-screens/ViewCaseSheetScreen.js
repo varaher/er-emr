@@ -184,22 +184,35 @@ export default function ViewCaseSheetScreen({ route, navigation }) {
                 Priority {caseData.triage_priority} - {caseData.triage_color?.toUpperCase()}
               </Text>
             </View>
+            {/* Triage Vitals */}
+            <View style={styles.vitalsGrid}>
+              <VitalBox label="HR" value={vitals.hr} unit="bpm" />
+              <VitalBox label="BP" value={`${vitals.bp_systolic || "-"}/${vitals.bp_diastolic || "-"}`} unit="mmHg" />
+              <VitalBox label="RR" value={vitals.rr} unit="/min" />
+              <VitalBox label="SpO₂" value={vitals.spo2} unit="%" />
+              <VitalBox label="Temp" value={vitals.temperature} unit="°C" />
+              <VitalBox label="GCS" value={gcsTotal || "-"} unit={`E${vitals.gcs_e || "-"}V${vitals.gcs_v || "-"}M${vitals.gcs_m || "-"}`} />
+              <VitalBox label="GRBS" value={vitals.grbs} unit="mg/dL" />
+              <VitalBox label="Pain" value={vitals.pain_score} unit="/10" />
+            </View>
           </Section>
         )}
 
-        {/* Vitals */}
-        <Section title="💓 Vitals at Arrival">
-          <View style={styles.vitalsGrid}>
-            <VitalBox label="HR" value={vitals.hr} unit="bpm" />
-            <VitalBox label="BP" value={`${vitals.bp_systolic || "-"}/${vitals.bp_diastolic || "-"}`} unit="mmHg" />
-            <VitalBox label="RR" value={vitals.rr} unit="/min" />
-            <VitalBox label="SpO₂" value={vitals.spo2} unit="%" />
-            <VitalBox label="Temp" value={vitals.temperature} unit="°C" />
-            <VitalBox label="GCS" value={gcsTotal || "-"} unit={`E${vitals.gcs_e || "-"}V${vitals.gcs_v || "-"}M${vitals.gcs_m || "-"}`} />
-            <VitalBox label="GRBS" value={vitals.grbs} unit="mg/dL" />
-            <VitalBox label="Pain" value={vitals.pain_score} unit="/10" />
-          </View>
-        </Section>
+        {/* If no triage, still show vitals */}
+        {!caseData.triage_priority && (
+          <Section title="💓 Vitals at Arrival">
+            <View style={styles.vitalsGrid}>
+              <VitalBox label="HR" value={vitals.hr} unit="bpm" />
+              <VitalBox label="BP" value={`${vitals.bp_systolic || "-"}/${vitals.bp_diastolic || "-"}`} unit="mmHg" />
+              <VitalBox label="RR" value={vitals.rr} unit="/min" />
+              <VitalBox label="SpO₂" value={vitals.spo2} unit="%" />
+              <VitalBox label="Temp" value={vitals.temperature} unit="°C" />
+              <VitalBox label="GCS" value={gcsTotal || "-"} unit={`E${vitals.gcs_e || "-"}V${vitals.gcs_v || "-"}M${vitals.gcs_m || "-"}`} />
+              <VitalBox label="GRBS" value={vitals.grbs} unit="mg/dL" />
+              <VitalBox label="Pain" value={vitals.pain_score} unit="/10" />
+            </View>
+          </Section>
+        )}
 
         {/* Presenting Complaint */}
         <Section title="📋 Presenting Complaint">
