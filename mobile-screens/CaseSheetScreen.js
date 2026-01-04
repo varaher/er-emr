@@ -2897,35 +2897,9 @@ export default function CaseSheetScreen({ route, navigation }) {
             <View style={styles.tabContent}>
               <View style={styles.card}>
                 <Text style={styles.cardTitle}>Investigations</Text>
-                <InputWithVoice label="Labs Ordered" field="labs_ordered" placeholder="CBC, RFT, LFT, ABG..." multiline />
+                <InputWithVoice label="Labs Ordered" field="labs_ordered" placeholder="CBC, RFT, LFT..." multiline />
                 <InputWithVoice label="Imaging" field="imaging_ordered" placeholder="X-ray, CT, USG..." multiline />
                 <InputWithVoice label="Results Summary" field="investigation_results" placeholder="Key findings..." multiline />
-              </View>
-
-              <View style={styles.card}>
-                <Text style={styles.cardTitle}>VBG / ABG</Text>
-                <View style={styles.row}>
-                  <View style={{ flex: 1 }}><InputField label="pH" field="vbg_ph" placeholder="7.35-7.45" keyboardType="decimal-pad" /></View>
-                  <View style={{ flex: 1 }}><InputField label="pCO₂" field="vbg_pco2" placeholder="mmHg" keyboardType="decimal-pad" /></View>
-                </View>
-                <View style={styles.row}>
-                  <View style={{ flex: 1 }}><InputField label="pO₂" field="vbg_po2" placeholder="mmHg" keyboardType="decimal-pad" /></View>
-                  <View style={{ flex: 1 }}><InputField label="HCO₃" field="vbg_hco3" placeholder="mEq/L" keyboardType="decimal-pad" /></View>
-                </View>
-                <View style={styles.row}>
-                  <View style={{ flex: 1 }}><InputField label="Lactate" field="vbg_lactate" placeholder="mmol/L" keyboardType="decimal-pad" /></View>
-                  <View style={{ flex: 1 }}><InputField label="BE" field="vbg_be" placeholder="mEq/L" /></View>
-                </View>
-                <TouchableOpacity style={styles.interpretBtn} onPress={interpretVBG}>
-                  <Ionicons name="analytics" size={18} color="#fff" />
-                  <Text style={styles.interpretBtnText}>AI Interpret VBG</Text>
-                </TouchableOpacity>
-                {formDataRef.current.vbg_interpretation ? (
-                  <View style={styles.interpretResult}>
-                    <Text style={styles.interpretTitle}>Interpretation:</Text>
-                    <Text style={styles.interpretText}>{formDataRef.current.vbg_interpretation}</Text>
-                  </View>
-                ) : null}
               </View>
 
               {/* Provisional Diagnosis with AI */}
