@@ -389,6 +389,51 @@ export default function ViewCaseSheetScreen({ route, navigation }) {
           </SubSection>
         </Section>
 
+        {/* Procedures Performed */}
+        {(caseData.procedures_performed?.length > 0 || caseData.procedures?.procedures_performed?.length > 0) && (
+          <Section title="🔧 Procedures Performed">
+            {(caseData.procedures_performed || caseData.procedures?.procedures_performed || []).map((proc, idx) => (
+              <View key={idx} style={styles.procedureItem}>
+                <Text style={styles.procedureName}>• {proc.name}</Text>
+                {proc.notes && <Text style={styles.procedureNotes}>{proc.notes}</Text>}
+              </View>
+            ))}
+          </Section>
+        )}
+
+        {/* Drugs Administered */}
+        {(caseData.drugs_administered?.length > 0 || treatment.drugs_administered?.length > 0) && (
+          <Section title="💉 Drugs Administered">
+            {(caseData.drugs_administered || treatment.drugs_administered || []).map((drug, idx) => (
+              <InfoRow key={idx} label={drug.name} value={`${drug.dose} @ ${drug.time}`} />
+            ))}
+          </Section>
+        )}
+
+        {/* ER Observation */}
+        {caseData.er_observation?.notes && (
+          <Section title="🏥 ER Observation">
+            <Text style={styles.text}>{caseData.er_observation.notes}</Text>
+            {caseData.er_observation.duration && (
+              <InfoRow label="Duration" value={caseData.er_observation.duration} />
+            )}
+          </Section>
+        )}
+
+        {/* Addendum Notes */}
+        {caseData.addendums?.length > 0 && (
+          <Section title="📝 Addendum Notes">
+            {caseData.addendums.map((addendum, idx) => (
+              <View key={idx} style={styles.addendumItem}>
+                <Text style={styles.addendumTimestamp}>
+                  {new Date(addendum.timestamp).toLocaleString("en-IN")} - {addendum.added_by_name}
+                </Text>
+                <Text style={styles.text}>{addendum.note}</Text>
+              </View>
+            ))}
+          </Section>
+        )}
+
         {/* Disposition */}
         {disposition.type && (
           <Section title="🚪 Disposition">
