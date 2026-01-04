@@ -1262,8 +1262,8 @@ export default function CaseSheetScreen({ route, navigation }) {
   };
 
   /* ===================== SAVE ===================== */
-  const saveCaseSheet = async () => {
-    setSaving(true);
+  const saveCaseSheet = async (silent = false) => {
+    if (!silent) setSaving(true);
     
     // Apply default values to empty fields before saving
     applyDefaultValues();
