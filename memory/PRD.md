@@ -12,66 +12,100 @@ The case sheet structure has been finalized. Do NOT modify:
 
 ---
 
+## Latest Update: Real-Time Streaming Voice Transcription
+
+### New Feature: Live Voice Dictation
+
+**Architecture:**
+```
+Mobile App (PCM Audio)
+  └─► WebSocket (/ws/stt)
+         ├─► Sarvam Streaming STT (Primary - Indian languages)
+         │       └─► partial text updates
+         │
+         └─► OpenAI Medical Cleanup (Final refinement)
+                 └─► polished clinical text
+```
+
+**Features:**
+- 🎙️ Continuous speech recording (no stop/start)
+- 🌐 Multi-language support: English, Hindi, Malayalam
+- 🏥 Medical terminology cleanup via OpenAI
+- 🔐 JWT-secured WebSocket (no API keys in app)
+- 📝 Real-time text preview as you speak
+- ⚡ Works for 5-15 min dictation sessions
+
+**Audio Format (Important):**
+| Parameter | Value |
+|-----------|-------|
+| Encoding | PCM 16-bit |
+| Sample Rate | 16,000 Hz |
+| Channels | Mono |
+
+**Backend Environment Variables (Render):**
+```
+SARVAM_API_KEY=sk_sarvam_xxxx  # Get from sarvam.ai
+OPENAI_API_KEY=sk_openai_xxxx  # OR use EMERGENT_LLM_KEY
+```
+
+---
+
 ## Files to Update Before APK Rebuild
 
 ### 📱 MOBILE FILES (Copy these to VSCode):
 
 | # | File | What Changed |
 |---|------|--------------|
-| 1 | `CaseSheetScreen.js` | Save function fixed - added all required patient fields |
-| 2 | `TriageScreen.js` | Auto Adult/Pediatric detection based on age |
+| 1 | `CaseSheetScreen.js` | **NEW:** Streaming voice mode, language selection, voice settings modal |
+| 2 | `TriageScreen.js` | Auto Adult/Pediatric detection |
 | 3 | `DischargeSummaryScreen.js` | Enhanced Course in ER + Finish button |
-| 4 | `ViewCaseSheetScreen.js` | NEW: Shows procedures, drugs, exam notes, ER observation |
+| 4 | `ViewCaseSheetScreen.js` | Shows procedures, drugs, exam notes |
+| 5 | `StreamingVoiceInput.js` | **NEW FILE:** Reusable streaming voice component |
+
+### 🔧 BACKEND FILES:
+
+| File | What Changed |
+|------|--------------|
+| `server.py` | **NEW:** `/ws/stt` WebSocket endpoint for streaming STT |
 
 ---
 
-## Recent Fixes (Session 2)
+## Voice Settings UI (In Case Sheet Header)
 
-### ✅ Save Button Fix
-- Added all required fields to patient object:
-  - `phone`, `address`, `brought_by`, `informant_name`, `informant_reliability`, `identification_mark`
-- Added `course` to presenting_complaint
-- All fields now have fallback defaults to prevent validation errors
+Users can toggle between:
+1. **Standard Mode** (default) - Record → Stop → Transcribe
+2. **Streaming Mode** - Live transcription as you speak
 
-### ✅ ViewCaseSheet Now Shows:
-1. **Procedures Performed** - With notes for each procedure
-2. **Drugs Administered** - Drug name, dose, and time
-3. **Examination Detailed Notes** - Shows `cvs_additional_notes`, etc.
-4. **ER Observation** - Notes and duration
-5. **Addendum Notes** - Timestamp and content
-
-### ✅ Discharge Summary
-- Comprehensive `generateCourseInER()` function
-- Auto-populates from case sheet
-- "Finish & Dashboard" button
+Language options:
+- 🇬🇧 English (en-IN)
+- 🇮🇳 Hindi (hi-IN)  
+- 🇮🇳 Malayalam (ml-IN)
 
 ---
 
-## Core Architecture (DO NOT CHANGE)
+## How Streaming Voice Works
 
-### Case Sheet Tabs
-1. **Patient** - Demographics, UHID, MLC
-2. **Vitals** - HR, BP, RR, SpO2, Temp, GCS
-3. **Primary** - ABCDE assessment
-4. **History** - HOPI, PMH, PSH, Allergies
-5. **Exam** - General, CVS, RS, Abdomen, CNS, Extremities
-6. **Treatment** - Investigations, Diagnosis, Medications
-7. **Notes** - Procedures with individual notes
-8. **Disposition** - Discharge/Admit/Refer/LAMA
+1. **User taps mic** → WebSocket connects → JWT authenticated
+2. **App streams audio** → Binary PCM frames to backend
+3. **Sarvam processes** → Partial text sent back live
+4. **UI updates** → User sees text appear as they speak
+5. **User taps stop** → Backend sends accumulated text to OpenAI
+6. **Medical cleanup** → Drug names, vitals, abbreviations corrected
+7. **Final text** → Inserted into the field
 
-### Required Fields for Save
-```javascript
-patient: {
-  name, age, sex, phone, address, 
-  arrival_datetime, mode_of_arrival,
-  brought_by, informant_name, 
-  informant_reliability, identification_mark
-}
-presenting_complaint: {
-  text, duration, onset_type, course
-}
-em_resident: "Dr. Name"
-```
+---
+
+## API Endpoints
+
+### REST (Existing)
+- `POST /api/ai/voice-to-text` - File-based transcription
+- `POST /api/ai/extract-from-voice` - AI extraction from voice
+
+### WebSocket (NEW)
+- `ws://host/ws/stt` - Streaming speech-to-text
+  - Auth: `{ "token": "JWT", "language": "en-IN" }`
+  - Audio: Binary PCM frames
+  - Response: `{ "type": "partial|final", "text": "..." }`
 
 ---
 
