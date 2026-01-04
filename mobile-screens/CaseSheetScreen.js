@@ -1635,31 +1635,134 @@ export default function CaseSheetScreen({ route, navigation }) {
     </TouchableOpacity>
   );
 
+  // Voice Settings Modal
+  const [showVoiceSettings, setShowVoiceSettings] = useState(false);
+  
+  const VoiceSettingsModal = () => (
+    <Modal
+      visible={showVoiceSettings}
+      transparent
+      animationType="fade"
+      onRequestClose={() => setShowVoiceSettings(false)}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={styles.voiceSettingsModal}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>🎙️ Voice Settings</Text>
+            <TouchableOpacity onPress={() => setShowVoiceSettings(false)}>
+              <Ionicons name="close" size={24} color="#64748b" />
+            </TouchableOpacity>
+          </View>
+          
+          {/* Streaming Mode Toggle */}
+          <View style={styles.settingRow}>
+            <View style={styles.settingInfo}>
+              <Text style={styles.settingLabel}>Real-time Streaming</Text>
+              <Text style={styles.settingDescription}>
+                Live transcription as you speak (requires stable internet)
+              </Text>
+            </View>
+            <Switch
+              value={useStreamingVoice}
+              onValueChange={setUseStreamingVoice}
+              trackColor={{ false: "#e2e8f0", true: "#86efac" }}
+              thumbColor={useStreamingVoice ? "#22c55e" : "#94a3b8"}
+            />
+          </View>
+          
+          {/* Language Selection */}
+          <Text style={styles.settingSectionTitle}>Language</Text>
+          <View style={styles.languageOptions}>
+            {[
+              { code: "en-IN", label: "🇬🇧 English", emoji: "🔤" },
+              { code: "hi-IN", label: "🇮🇳 Hindi", emoji: "अ" },
+              { code: "ml-IN", label: "🇮🇳 Malayalam", emoji: "മ" },
+            ].map(lang => (
+              <TouchableOpacity
+                key={lang.code}
+                style={[
+                  styles.languageBtn,
+                  voiceLanguage === lang.code && styles.languageBtnActive,
+                ]}
+                onPress={() => setVoiceLanguage(lang.code)}
+              >
+                <Text style={styles.languageEmoji}>{lang.emoji}</Text>
+                <Text style={[
+                  styles.languageBtnText,
+                  voiceLanguage === lang.code && styles.languageBtnTextActive,
+                ]}>
+                  {lang.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          
+          {/* Info */}
+          <View style={styles.voiceInfoBox}>
+            <Ionicons name="information-circle" size={20} color="#3b82f6" />
+            <Text style={styles.voiceInfoText}>
+              {useStreamingVoice 
+                ? "Streaming mode uses Sarvam AI for live transcription + OpenAI for medical term cleanup"
+                : "Standard mode records audio and transcribes after you stop"}
+            </Text>
+          </View>
+          
+          <TouchableOpacity
+            style={styles.voiceSettingsDone}
+            onPress={() => setShowVoiceSettings(false)}
+          >
+            <Text style={styles.voiceSettingsDoneText}>Done</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  );
+  
   // Voice Input Button
   const VoiceButton = ({ field }) => (
-    <TouchableOpacity
-      style={[
-        styles.voiceBtn,
-        isRecording && activeVoiceField === field && styles.voiceBtnRecording,
-      ]}
-      onPress={() => {
-        if (isRecording && activeVoiceField === field) {
-          stopVoiceInput();
-        } else if (!isRecording) {
-          startVoiceInput(field);
-        }
-      }}
-      disabled={transcribing || (isRecording && activeVoiceField !== field)}
-    >
-      {transcribing && activeVoiceField === field ? (
-        <ActivityIndicator size="small" color="#fff" />
-      ) : (
-        <Ionicons 
-          name={isRecording && activeVoiceField === field ? "stop" : "mic"} 
-          size={16} 
-          color="#fff" 
-        />
+    <View style={styles.voiceBtnContainer}>
+      <TouchableOpacity
+        style={[
+          styles.voiceBtn,
+          isRecording && activeVoiceField === field && styles.voiceBtnRecording,
+          useStreamingVoice && styles.voiceBtnStreaming,
+        ]}
+        onPress={() => {
+          if (isRecording && activeVoiceField === field) {
+            stopVoiceInput();
+          } else if (!isRecording) {
+            startVoiceInput(field);
+          }
+        }}
+        disabled={transcribing || (isRecording && activeVoiceField !== field)}
+      >
+        {transcribing && activeVoiceField === field ? (
+          <ActivityIndicator size="small" color="#fff" />
+        ) : (
+          <Ionicons 
+            name={isRecording && activeVoiceField === field ? "stop" : "mic"} 
+            size={16} 
+            color="#fff" 
+          />
+        )}
+      </TouchableOpacity>
+      {/* Streaming indicator dot */}
+      {useStreamingVoice && (
+        <View style={styles.streamingDot} />
       )}
+    </View>
+  );
+  
+  // Voice Settings Button (shown in header)
+  const VoiceSettingsButton = () => (
+    <TouchableOpacity
+      style={styles.voiceSettingsBtn}
+      onPress={() => setShowVoiceSettings(true)}
+    >
+      <Ionicons name="settings-outline" size={16} color="#64748b" />
+      <Text style={styles.voiceSettingsBtnText}>
+        {useStreamingVoice ? "🔴 Live" : "🎙️"}
+      </Text>
     </TouchableOpacity>
   );
 
@@ -1670,6 +1773,13 @@ export default function CaseSheetScreen({ route, navigation }) {
         <Text style={styles.label}>{label}</Text>
         <VoiceButton field={field} />
       </View>
+      {/* Show streaming text preview when recording this field */}
+      {isRecording && activeVoiceField === field && streamingText && useStreamingVoice && (
+        <View style={styles.streamingPreview}>
+          <Text style={styles.streamingPreviewLabel}>🎤 Transcribing...</Text>
+          <Text style={styles.streamingPreviewText}>{streamingText}</Text>
+        </View>
+      )}
       <TextInput
         style={[styles.input, multiline && styles.textArea]}
         defaultValue={formDataRef.current[field]}
