@@ -712,6 +712,35 @@ export default function CaseSheetScreen({ route, navigation }) {
     };
   }, [caseId]);
 
+  /* ===================== AUTOSAVE ===================== */
+  const [lastSaved, setLastSaved] = useState(null);
+  const [autoSaving, setAutoSaving] = useState(false);
+  const autoSaveTimerRef = useRef(null);
+  
+  // Autosave every 30 seconds
+  useEffect(() => {
+    autoSaveTimerRef.current = setInterval(async () => {
+      // Only autosave if we have a case ID (case was created)
+      if (caseId && !saving && !autoSaving) {
+        try {
+          setAutoSaving(true);
+          await saveCaseSheet(true); // true = silent save
+          setLastSaved(new Date());
+        } catch (err) {
+          console.log("Autosave failed:", err);
+        } finally {
+          setAutoSaving(false);
+        }
+      }
+    }, 30000); // 30 seconds
+
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearInterval(autoSaveTimerRef.current);
+      }
+    };
+  }, [caseId, saving]);
+
   /* ===================== AI DIAGNOSIS FUNCTIONS ===================== */
   const getAIDiagnosisSuggestions = async () => {
     const fd = formDataRef.current;
