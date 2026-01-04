@@ -1322,14 +1322,32 @@ export default function CaseSheetScreen({ route, navigation }) {
           airway_status: toStringOrEmpty(fd.airway_status) || "Patent",
           airway_interventions: fd.airway_interventions || [],
           airway_additional_notes: toStringOrEmpty(fd.airway_notes),
+          // Breathing - include RR, SpO2
+          breathing_rr: toFloatOrNull(fd.breathing_rr),
+          breathing_spo2: toFloatOrNull(fd.breathing_spo2),
+          breathing_oxygen_device: toStringOrEmpty(fd.breathing_o2_device),
+          breathing_oxygen_flow: toFloatOrNull(fd.breathing_o2_flow),
           breathing_work: toStringOrEmpty(fd.breathing_wob) || "Normal",
           breathing_air_entry: [toStringOrEmpty(fd.breathing_air_entry) || "Equal"],
           breathing_additional_notes: toStringOrEmpty(fd.breathing_notes),
+          // Circulation - include HR, BP
+          circulation_hr: toFloatOrNull(fd.circulation_hr),
+          circulation_bp_systolic: toFloatOrNull(fd.vitals_bp_systolic),
+          circulation_bp_diastolic: toFloatOrNull(fd.vitals_bp_diastolic),
           circulation_crt: fd.circulation_crt === "Delayed" ? 3 : 2,
+          circulation_adjuncts: fd.circulation_interventions || [],
           circulation_additional_notes: toStringOrEmpty(fd.circulation_notes),
+          // Disability
           disability_avpu: toStringOrEmpty(fd.disability_avpu) || "Alert",
+          disability_gcs_e: toIntOrNull(fd.disability_gcs_e || fd.vitals_gcs_e),
+          disability_gcs_v: toIntOrNull(fd.disability_gcs_v || fd.vitals_gcs_v),
+          disability_gcs_m: toIntOrNull(fd.disability_gcs_m || fd.vitals_gcs_m),
+          disability_grbs: toFloatOrNull(fd.disability_grbs || fd.vitals_grbs),
           disability_pupils_size: toStringOrEmpty(fd.disability_pupils),
+          disability_pupils_reaction: toStringOrEmpty(fd.disability_pupils_reaction),
           disability_additional_notes: toStringOrEmpty(fd.disability_notes),
+          // Exposure
+          exposure_temperature: toFloatOrNull(fd.exposure_temperature || fd.vitals_temperature),
           exposure_additional_notes: toStringOrEmpty(fd.exposure_notes),
         },
         adjuvants: {
