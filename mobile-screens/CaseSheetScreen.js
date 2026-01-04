@@ -1148,7 +1148,6 @@ export default function CaseSheetScreen({ route, navigation }) {
 
     setLoading(true);
     try {
-      
       const vbgData = {
         ph: fd.vbg_ph,
         pco2: fd.vbg_pco2,
@@ -1161,30 +1160,20 @@ export default function CaseSheetScreen({ route, navigation }) {
         creatinine: fd.vbg_cr,
       };
 
-      const res = await fetch(`${API_URL}/ai/interpretation`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          case_sheet_id: caseId || "new",
-          type: "vbg",
-          data: vbgData,
-        }),
+      // Use axios (same as web app)
+      const response = await api.post('/ai/interpretation', {
+        case_sheet_id: caseId || "new",
+        type: "vbg",
+        data: vbgData,
       });
 
-      if (res.ok) {
-        const data = await res.json();
-        formDataRef.current.vbg_ai_interpretation = data.interpretation || data.response || "";
-        setSelectStates(prev => ({ ...prev }));
-        Alert.alert("✅ AI Interpretation", formDataRef.current.vbg_ai_interpretation);
-      } else {
-        throw new Error("Failed to get interpretation");
-      }
+      formDataRef.current.vbg_ai_interpretation = response.data.interpretation || response.data.response || "";
+      setSelectStates(prev => ({ ...prev }));
+      Alert.alert("✅ AI Interpretation", formDataRef.current.vbg_ai_interpretation);
     } catch (err) {
       console.error("VBG interpretation error:", err);
-      Alert.alert("Error", "Failed to get AI interpretation");
+      const errorMsg = err.response?.data?.detail || "Failed to get AI interpretation";
+      Alert.alert("Error", errorMsg);
     }
     setLoading(false);
   };
