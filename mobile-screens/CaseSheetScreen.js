@@ -1403,9 +1403,9 @@ export default function CaseSheetScreen({ route, navigation }) {
           head: toStringOrEmpty(fd.heent_head),
           eyes: toStringOrEmpty(fd.heent_eyes),
           ears: toStringOrEmpty(fd.heent_ears),
-          nose: fd.heent_nose,
-          throat: fd.heent_throat,
-          notes: fd.heent_notes,
+          nose: toStringOrEmpty(fd.heent_nose),
+          throat: toStringOrEmpty(fd.heent_throat),
+          notes: toStringOrEmpty(fd.heent_notes),
         } : null,
         examination: {
           // General examination - appearance is string, rest are BOOLEANS
