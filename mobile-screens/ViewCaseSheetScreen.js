@@ -713,6 +713,13 @@ const styles = StyleSheet.create({
     marginLeft: 12,
     fontStyle: "italic",
   },
+  examNotes: {
+    fontSize: 12,
+    color: "#64748b",
+    marginLeft: 120,
+    marginBottom: 6,
+    fontStyle: "italic",
+  },
   addendumItem: {
     marginBottom: 12,
     paddingBottom: 12,
