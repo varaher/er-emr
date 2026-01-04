@@ -4136,6 +4136,258 @@ async def get_save_history(case_sheet_id: str, current_user: UserResponse = Depe
     
     return saves
 
+
+# ========== STREAMING STT WEBSOCKET ==========
+
+# Sarvam Streaming WebSocket URL
+SARVAM_WS_URL = "wss://api.sarvam.ai/speech-to-text/transcribe"
+
+# Medical terminology cleanup prompt
+MEDICAL_CLEANUP_PROMPT = """You are a medical transcription assistant for an Emergency Room.
+Clean up and correct the following transcription:
+- Fix drug names (e.g., "para sit a mol" → "Paracetamol", "metpro lol" → "Metoprolol")
+- Correct anatomical terms
+- Fix vitals abbreviations (BP, HR, RR, SpO2, GCS)
+- Standardize medical abbreviations (c/o, s/p, h/o, NKDA)
+- Fix common Indian language interference patterns
+- Do NOT add new content or diagnoses
+- Return ONLY the cleaned text, no explanations
+
+Original transcription:"""
+
+
+async def refine_with_openai(text: str) -> str:
+    """Use OpenAI to clean up medical terminology in transcription"""
+    if not text.strip():
+        return text
+    
+    try:
+        chat = LlmChat(api_key=EMERGENT_LLM_KEY)
+        response = await chat.send_message_async(
+            messages=[
+                UserMessage(content=f"{MEDICAL_CLEANUP_PROMPT}\n\n{text}")
+            ],
+            model="gpt-4o-mini",
+            max_tokens=1000,
+            temperature=0.1
+        )
+        return response.content.strip()
+    except Exception as e:
+        logger.error(f"OpenAI refinement error: {e}")
+        return text  # Return original if refinement fails
+
+
+async def verify_ws_token(token: str) -> Optional[dict]:
+    """Verify JWT token for WebSocket connection"""
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        user_id = payload.get("sub")
+        if not user_id:
+            return None
+        user = await db.users.find_one({"id": user_id}, {"_id": 0, "password": 0})
+        return user
+    except jwt.PyJWTError:
+        return None
+
+
+@app.websocket("/ws/stt")
+async def websocket_streaming_stt(websocket: WebSocket):
+    """
+    Real-time streaming Speech-to-Text WebSocket endpoint.
+    
+    Mobile app sends:
+    - First message: JSON with { "token": "JWT_TOKEN", "language": "en-IN" or "hi-IN" or "auto" }
+    - Subsequent messages: Binary PCM audio frames (16-bit, 16kHz, mono)
+    - Text message "STOP" to end and get final refined transcript
+    
+    Backend responds:
+    - { "type": "connected", "message": "Ready for audio" }
+    - { "type": "partial", "text": "..." } - Live partial transcription
+    - { "type": "final", "text": "..." } - Final refined transcript
+    - { "type": "error", "message": "..." } - Error messages
+    """
+    await websocket.accept()
+    logger.info("WebSocket STT connection accepted")
+    
+    user = None
+    sarvam_ws = None
+    accumulated_text = ""
+    language_code = "en-IN"
+    
+    try:
+        # Step 1: Wait for authentication message
+        auth_data = await asyncio.wait_for(websocket.receive_json(), timeout=10.0)
+        token = auth_data.get("token")
+        language_code = auth_data.get("language", "en-IN")
+        
+        if not token:
+            await websocket.send_json({"type": "error", "message": "No token provided"})
+            await websocket.close()
+            return
+        
+        user = await verify_ws_token(token)
+        if not user:
+            await websocket.send_json({"type": "error", "message": "Invalid token"})
+            await websocket.close()
+            return
+        
+        logger.info(f"WebSocket STT authenticated for user: {user.get('email')}")
+        
+        # Check if Sarvam API key is configured
+        if not SARVAM_API_KEY:
+            await websocket.send_json({
+                "type": "error", 
+                "message": "Sarvam API key not configured on server"
+            })
+            await websocket.close()
+            return
+        
+        # Step 2: Connect to Sarvam Streaming WebSocket
+        sarvam_headers = {
+            "api-subscription-key": SARVAM_API_KEY
+        }
+        
+        # Build Sarvam WebSocket URL with parameters
+        sarvam_url = (
+            f"{SARVAM_WS_URL}?"
+            f"language_code={language_code}&"
+            f"model=saarika:v2.5&"
+            f"sample_rate=16000&"
+            f"input_audio_codec=pcm_s16le&"
+            f"high_vad_sensitivity=true&"
+            f"vad_signals=true"
+        )
+        
+        logger.info(f"Connecting to Sarvam: {sarvam_url}")
+        
+        async with websockets.connect(
+            sarvam_url,
+            extra_headers=sarvam_headers,
+            ping_interval=30,
+            ping_timeout=10
+        ) as sarvam_ws:
+            
+            await websocket.send_json({
+                "type": "connected",
+                "message": "Ready for audio",
+                "language": language_code
+            })
+            
+            # Task to receive from Sarvam and forward to mobile
+            async def receive_from_sarvam():
+                nonlocal accumulated_text
+                try:
+                    async for message in sarvam_ws:
+                        try:
+                            data = json.loads(message)
+                            msg_type = data.get("type", "")
+                            
+                            if msg_type == "speech_start":
+                                await websocket.send_json({
+                                    "type": "speech_start",
+                                    "message": "Speech detected"
+                                })
+                            elif msg_type == "speech_end":
+                                await websocket.send_json({
+                                    "type": "speech_end",
+                                    "message": "Speech ended"
+                                })
+                            elif msg_type == "transcript" or "text" in data:
+                                text = data.get("text", data.get("transcript", ""))
+                                if text:
+                                    accumulated_text += " " + text
+                                    await websocket.send_json({
+                                        "type": "partial",
+                                        "text": text
+                                    })
+                        except json.JSONDecodeError:
+                            logger.warning(f"Non-JSON message from Sarvam: {message[:100]}")
+                except websockets.exceptions.ConnectionClosed:
+                    logger.info("Sarvam WebSocket closed")
+                except Exception as e:
+                    logger.error(f"Error receiving from Sarvam: {e}")
+            
+            # Start receiving from Sarvam in background
+            sarvam_receive_task = asyncio.create_task(receive_from_sarvam())
+            
+            # Main loop: receive from mobile and forward to Sarvam
+            try:
+                while True:
+                    message = await websocket.receive()
+                    
+                    if message["type"] == "websocket.disconnect":
+                        break
+                    
+                    # Binary audio data
+                    if "bytes" in message:
+                        audio_bytes = message["bytes"]
+                        # Encode to base64 and send to Sarvam
+                        audio_b64 = base64.b64encode(audio_bytes).decode("utf-8")
+                        await sarvam_ws.send(json.dumps({
+                            "audio": audio_b64,
+                            "encoding": "audio/pcm",
+                            "sample_rate": 16000
+                        }))
+                    
+                    # Text message (could be STOP command)
+                    elif "text" in message:
+                        text_msg = message["text"]
+                        if text_msg.upper() == "STOP":
+                            logger.info("Received STOP command")
+                            break
+                        elif text_msg.upper() == "FLUSH":
+                            # Force flush Sarvam buffer
+                            await sarvam_ws.send(json.dumps({"flush": True}))
+                        
+            except WebSocketDisconnect:
+                logger.info("Mobile WebSocket disconnected")
+            finally:
+                sarvam_receive_task.cancel()
+                try:
+                    await sarvam_receive_task
+                except asyncio.CancelledError:
+                    pass
+        
+        # Step 3: Refine accumulated text with OpenAI
+        if accumulated_text.strip():
+            logger.info(f"Refining transcript ({len(accumulated_text)} chars)")
+            refined_text = await refine_with_openai(accumulated_text)
+            
+            await websocket.send_json({
+                "type": "final",
+                "text": refined_text,
+                "raw_text": accumulated_text.strip()
+            })
+            logger.info("Sent final refined transcript")
+        else:
+            await websocket.send_json({
+                "type": "final",
+                "text": "",
+                "message": "No speech detected"
+            })
+    
+    except asyncio.TimeoutError:
+        await websocket.send_json({"type": "error", "message": "Authentication timeout"})
+    except websockets.exceptions.InvalidStatusCode as e:
+        logger.error(f"Sarvam connection failed: {e}")
+        await websocket.send_json({
+            "type": "error", 
+            "message": f"Sarvam connection failed: {str(e)}"
+        })
+    except Exception as e:
+        logger.error(f"WebSocket STT error: {e}")
+        try:
+            await websocket.send_json({"type": "error", "message": str(e)})
+        except:
+            pass
+    finally:
+        try:
+            await websocket.close()
+        except:
+            pass
+        logger.info("WebSocket STT connection closed")
+
+
 # Include API router
 app.include_router(api_router)
 
