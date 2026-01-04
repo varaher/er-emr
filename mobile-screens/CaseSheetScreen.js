@@ -1463,43 +1463,47 @@ export default function CaseSheetScreen({ route, navigation }) {
           extremities_additional_notes: toStringOrEmpty(fd.ext_notes),
         },
         treatment: {
-          intervention_notes: fd.treatment_interventions,
-          medications: fd.treatment_medications,
-          fluids: fd.treatment_fluids,
-          differential_diagnoses: fd.diagnosis_differential ? fd.diagnosis_differential.split(",").map(s => s.trim()).filter(Boolean) : [],
-          provisional_diagnoses: fd.diagnosis_primary ? [fd.diagnosis_primary.trim()] : [],
-          ai_diagnosis_suggestions: aiDiagnosisResult || "",
+          intervention_notes: toStringOrEmpty(fd.treatment_interventions),
+          medications: toStringOrEmpty(fd.treatment_medications),
+          fluids: toStringOrEmpty(fd.treatment_fluids),
+          differential_diagnoses: toStringOrEmpty(fd.diagnosis_differential).split(",").map(s => s.trim()).filter(Boolean),
+          provisional_diagnoses: toStringOrEmpty(fd.diagnosis_primary).trim() ? [toStringOrEmpty(fd.diagnosis_primary).trim()] : [],
+          ai_diagnosis_suggestions: toStringOrEmpty(aiDiagnosisResult),
           ai_red_flags: aiRedFlags || [],
-          drugs_administered: selectedDrugs.map(d => ({ name: d.name, dose: d.dose, time: d.time })),
+          drugs_administered: selectedDrugs.map(d => ({ 
+            name: toStringOrEmpty(d.name), 
+            dose: toStringOrEmpty(d.dose), 
+            time: toStringOrEmpty(d.time) 
+          })),
         },
         procedures: {
           procedures_performed: selectedProcedures.map(pId => {
             const proc = PROCEDURE_OPTIONS.find(p => p.id === pId);
             return {
-              id: pId,
-              name: proc?.name || pId,
-              category: proc?.category || "Other",
-              notes: procedureNotes[pId] || "",
+              id: toStringOrEmpty(pId),
+              name: toStringOrEmpty(proc?.name || pId),
+              category: toStringOrEmpty(proc?.category) || "Other",
+              notes: toStringOrEmpty(procedureNotes[pId]),
               timestamp: new Date().toISOString(),
             };
           }),
         },
-        addendum_notes: addendumNotes,
+        addendum_notes: addendumNotes || [],
         investigations: {
-          panels_selected: fd.labs_ordered ? fd.labs_ordered.split(",").map(s => s.trim()).filter(Boolean) : [],
-          imaging: fd.imaging_ordered ? fd.imaging_ordered.split(",").map(s => s.trim()).filter(Boolean) : [],
-          results_notes: fd.investigation_results || "",
+          panels_selected: toStringOrEmpty(fd.labs_ordered).split(",").map(s => s.trim()).filter(Boolean),
+          imaging: toStringOrEmpty(fd.imaging_ordered).split(",").map(s => s.trim()).filter(Boolean),
+          results_notes: toStringOrEmpty(fd.investigation_results),
         },
         er_observation: {
-          notes: fd.er_observation_notes || "",
-          duration: fd.er_duration || "",
+          notes: toStringOrEmpty(fd.er_observation_notes),
+          duration: toStringOrEmpty(fd.er_duration),
         },
         disposition: {
           type: mapDispositionType(fd.disposition_type),
-          destination: fd.disposition_ward || fd.disposition_refer_hospital || "",
+          destination: toStringOrEmpty(fd.disposition_ward || fd.disposition_refer_hospital),
           discharge_vitals: null,
         },
-        em_resident: user?.name || fd.em_resident || "EM Resident",
+        em_resident: toStringOrEmpty(user?.name || fd.em_resident) || "EM Resident",
       };
 
       // Save using axios (same as web app)
