@@ -1965,12 +1965,25 @@ export default function CaseSheetScreen({ route, navigation }) {
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={24} color="#1e293b" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>
-            {isPediatric ? "👶 Pediatric" : "🏥 Adult"} Case Sheet
-          </Text>
+          <View style={{ alignItems: 'center' }}>
+            <Text style={styles.headerTitle}>
+              {isPediatric ? "👶 Pediatric" : "🏥 Adult"} Case Sheet
+            </Text>
+            {/* Autosave Status */}
+            {lastSaved && (
+              <Text style={{ fontSize: 10, color: '#22c55e' }}>
+                ✓ Saved {lastSaved.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+              </Text>
+            )}
+            {autoSaving && (
+              <Text style={{ fontSize: 10, color: '#f59e0b' }}>
+                Saving...
+              </Text>
+            )}
+          </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
             <VoiceSettingsButton />
-            <TouchableOpacity onPress={saveCaseSheet} disabled={saving}>
+            <TouchableOpacity onPress={() => saveCaseSheet(false)} disabled={saving}>
               {saving ? (
                 <ActivityIndicator size="small" color="#2563eb" />
               ) : (
