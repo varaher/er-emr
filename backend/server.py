@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Depends, status, File, UploadFile, Form
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, status, File, UploadFile, Form, WebSocket, WebSocketDisconnect
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
@@ -18,6 +18,10 @@ import openai
 import tempfile
 import re
 import httpx
+import asyncio
+import base64
+import json
+import websockets
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
