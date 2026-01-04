@@ -1925,14 +1925,20 @@ export default function CaseSheetScreen({ route, navigation }) {
           <Text style={styles.headerTitle}>
             {isPediatric ? "👶 Pediatric" : "🏥 Adult"} Case Sheet
           </Text>
-          <TouchableOpacity onPress={saveCaseSheet} disabled={saving}>
-            {saving ? (
-              <ActivityIndicator size="small" color="#2563eb" />
-            ) : (
-              <Ionicons name="save" size={24} color="#2563eb" />
-            )}
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            <VoiceSettingsButton />
+            <TouchableOpacity onPress={saveCaseSheet} disabled={saving}>
+              {saving ? (
+                <ActivityIndicator size="small" color="#2563eb" />
+              ) : (
+                <Ionicons name="save" size={24} color="#2563eb" />
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
+        
+        {/* Voice Settings Modal */}
+        <VoiceSettingsModal />
 
         {/* Tabs */}
         <View style={styles.tabBar}>
