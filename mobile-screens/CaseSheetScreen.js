@@ -1119,19 +1119,29 @@ export default function CaseSheetScreen({ route, navigation }) {
 
       if (res.ok) {
         const data = await res.json();
-        if (data.transcription && activeVoiceField) {
+        // Handle transcription - ensure it's a string
+        const transcriptionText = data.transcription || data.text || "";
+        if (transcriptionText && typeof transcriptionText === 'string' && activeVoiceField) {
           const currentValue = formDataRef.current[activeVoiceField] || "";
           formDataRef.current[activeVoiceField] = currentValue 
-            ? `${currentValue}\n${data.transcription}` 
-            : data.transcription;
+            ? `${currentValue}\n${transcriptionText}` 
+            : transcriptionText;
           // Force re-render
           setSelectStates(prev => ({ ...prev }));
+          Alert.alert("✅ Done", "Voice transcribed successfully");
+        } else if (!transcriptionText) {
+          Alert.alert("No Speech", "Could not detect any speech. Try again.");
         }
+      } else {
+        const errorData = await res.json().catch(() => ({}));
+        const errorMsg = errorData.detail || errorData.message || "Transcription failed";
+        Alert.alert("Error", typeof errorMsg === 'string' ? errorMsg : JSON.stringify(errorMsg));
       }
       setTranscribing(false);
       setActiveVoiceField(null);
     } catch (err) {
       console.error("Voice error:", err);
+      Alert.alert("Error", "Voice transcription failed. Please try again.");
       setTranscribing(false);
       setActiveVoiceField(null);
     }
