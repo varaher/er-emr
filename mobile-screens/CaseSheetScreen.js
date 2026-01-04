@@ -1167,8 +1167,10 @@ export default function CaseSheetScreen({ route, navigation }) {
   };
 
   /* ===================== DEFAULT VALUES ===================== */
+  // NOTE: Boolean fields MUST use actual booleans (true/false), NOT strings like "Absent"
+  // The backend Pydantic model expects bool types for these fields
   const DEFAULT_NORMAL_VALUES = {
-    // Primary Assessment
+    // Primary Assessment (these are strings - OK)
     airway_status: "Patent",
     breathing_wob: "Normal",
     breathing_air_entry: "Equal",
@@ -1179,37 +1181,55 @@ export default function CaseSheetScreen({ route, navigation }) {
     disability_avpu: "Alert",
     disability_pupils: "Equal, Reactive",
     exposure_status: "Normal",
-    // Examination defaults
+    // Examination defaults - STRINGS for string fields
     general_appearance: "Conscious, alert, oriented",
-    general_pallor: "Absent",
-    general_icterus: "Absent",
-    general_cyanosis: "Absent",
-    general_clubbing: "Absent",
-    general_lymphadenopathy: "Absent",
-    general_edema: "Absent",
     cvs_s1_s2: "Normal",
-    cvs_murmur: "Absent",
+    cvs_precordial_heave: "Normal", // Backend expects string for this field
     resp_percussion: "Resonant",
     resp_breath_sounds: "Vesicular",
-    abd_inspection: "Normal",
-    abd_tenderness: "Absent",
-    abd_guarding_rigidity: "Absent",
-    abd_organomegaly: "Absent",
+    abd_umbilical: "Normal",
     abd_bowel_sounds: "Present",
-    cns_gcs: "15/15",
-    cns_pupils: "Equal, reactive",
-    cns_tone: "Normal",
-    cns_power: "5/5",
-    cns_reflexes: "Normal",
-    cns_sensation: "Intact",
+    cns_higher_mental: "Intact",
+    cns_cranial_nerves: "Intact",
+    cns_sensory: "Intact",
     cns_motor: "Normal",
-    ext_inspection: "Normal",
-    ext_deformity: "Nil",
-    ext_swelling: "Nil",
-    ext_tenderness: "Nil",
-    ext_movement: "Full ROM",
-    ext_pulses: "Present",
-    ext_sensation: "Intact",
+    cns_reflexes: "Normal",
+    cns_romberg: "Negative",
+    cns_cerebellar: "Normal",
+    ext_findings: "Normal",
+  };
+  
+  // Type conversion helpers for payload
+  const toBoolean = (value) => {
+    if (typeof value === 'boolean') return value;
+    if (value === null || value === undefined || value === '') return false;
+    if (typeof value === 'string') {
+      const lower = value.toLowerCase();
+      // "Absent", "No", "None", "Nil", "false", "0" -> false
+      if (['absent', 'no', 'none', 'nil', 'false', '0', 'negative'].includes(lower)) return false;
+      // "Present", "Yes", "true", "1" -> true
+      if (['present', 'yes', 'true', '1', 'positive'].includes(lower)) return true;
+      return false; // Default to false for unknown strings
+    }
+    return Boolean(value);
+  };
+  
+  const toIntOrNull = (value) => {
+    if (value === null || value === undefined || value === '') return null;
+    const parsed = parseInt(value, 10);
+    return isNaN(parsed) ? null : parsed;
+  };
+  
+  const toFloatOrNull = (value) => {
+    if (value === null || value === undefined || value === '') return null;
+    const parsed = parseFloat(value);
+    return isNaN(parsed) ? null : parsed;
+  };
+  
+  const toStringOrEmpty = (value) => {
+    if (value === null || value === undefined) return "";
+    if (typeof value === 'boolean') return value ? "Present" : "Normal";
+    return String(value);
   };
 
   const applyDefaultValues = () => {
