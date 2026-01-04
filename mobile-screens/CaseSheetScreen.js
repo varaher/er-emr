@@ -20,9 +20,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { Audio } from "expo-av";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
-// Import StreamingVoiceInput component (optional - for real-time streaming)
-// import StreamingVoiceInput from './StreamingVoiceInput';
+import api from "./api"; // Using axios like web app
 
 const API_URL = "https://er-emr-backend.onrender.com/api";
 const WS_URL = "wss://er-emr-backend.onrender.com";
