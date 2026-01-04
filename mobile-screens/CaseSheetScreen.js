@@ -1281,6 +1281,19 @@ export default function CaseSheetScreen({ route, navigation }) {
       const user = JSON.parse(await AsyncStorage.getItem("user") || "{}");
       const fd = formDataRef.current;
 
+      // Helper function to map disposition type
+      const mapDispositionType = (type) => {
+        const map = {
+          "Discharge": "discharged",
+          "Admit": "admitted-ward",
+          "Refer": "referred",
+          "LAMA": "dama",
+          "Absconded": "absconded",
+          "Death": "death",
+        };
+        return map[type] || "discharged";
+      };
+
       const payload = {
         case_type: patientType,
         patient: {
