@@ -241,120 +241,86 @@ export default function DischargeSummaryScreen({ route, navigation }) {
   }
 
   // Generate comprehensive Course in ER summary automatically
+  // Template: "The patient presented to the Emergency Department with the above complaints. 
+  // Initial triage and assessment were performed. Necessary investigations were initiated, 
+  // and appropriate treatment was given. The patient was monitored in the ER, showed clinical 
+  // improvement, and remained stable throughout the stay."
   const generateCourseInER = (data) => {
-    if (!data) return "";
+    if (!data) return "The patient presented to the Emergency Department with the above complaints. Initial triage and assessment were performed. Necessary investigations were initiated, and appropriate treatment was given. The patient was monitored in the ER, showed clinical improvement, and remained stable throughout the stay.";
     
-    const { history, examination, treatment, disposition, er_observation, primary_assessment } = data;
+    const { treatment, disposition, er_observation, investigations } = data;
     const parts = [];
 
-    // 1. Chief complaint
+    // 1. Opening - Chief complaint
     if (data.presenting_complaint?.text) {
-      parts.push(`Patient presented to the Emergency Department with ${data.presenting_complaint.text}.`);
+      parts.push(`The patient presented to the Emergency Department with ${data.presenting_complaint.text}.`);
+    } else {
+      parts.push("The patient presented to the Emergency Department with the above complaints.");
     }
 
-    // 2. HOPI
-    if (history?.hpi || history?.events_hopi) {
-      parts.push(history.hpi || history.events_hopi);
-    }
+    // 2. Triage and Assessment
+    parts.push("Initial triage and assessment were performed.");
 
-    // 3. Primary Assessment
-    if (primary_assessment) {
-      const airway = primary_assessment.airway_status || 'patent';
-      const breathing = primary_assessment.breathing_status || 'adequate';
-      const circulation = primary_assessment.circulation_status || 'stable';
-      parts.push(`Primary assessment: Airway ${airway}, breathing ${breathing}, circulation ${circulation}.`);
-    }
-
-    // 4. Vitals Summary
-    const vitals = data.vitals_at_arrival;
-    if (vitals?.hr || vitals?.bp_systolic) {
-      const vitalText = [];
-      if (vitals.hr) vitalText.push(`HR ${vitals.hr}/min`);
-      if (vitals.bp_systolic) vitalText.push(`BP ${vitals.bp_systolic}/${vitals.bp_diastolic || '-'} mmHg`);
-      if (vitals.rr) vitalText.push(`RR ${vitals.rr}/min`);
-      if (vitals.spo2) vitalText.push(`SpO2 ${vitals.spo2}%`);
-      if (vitalText.length) {
-        parts.push(`Vitals at arrival: ${vitalText.join(', ')}.`);
-      }
-    }
-
-    // 5. Examination findings
-    if (examination) {
-      const examParts = [];
-      if (examination.general_additional_notes) examParts.push(`General: ${examination.general_additional_notes}`);
-      if (examination.cvs_additional_notes) examParts.push(`CVS: ${examination.cvs_additional_notes}`);
-      if (examination.respiratory_additional_notes) examParts.push(`RS: ${examination.respiratory_additional_notes}`);
-      if (examination.abdomen_additional_notes) examParts.push(`Abdomen: ${examination.abdomen_additional_notes}`);
-      if (examination.cns_additional_notes) examParts.push(`CNS: ${examination.cns_additional_notes}`);
-      if (examParts.length) {
-        parts.push(`Examination: ${examParts.join('. ')}.`);
-      }
-    }
-
-    // 6. Investigations
-    const inv = data.investigations;
+    // 3. Investigations
+    const inv = investigations;
     if (inv?.panels_selected?.length || inv?.imaging?.length) {
-      const invList = [...(inv.panels_selected || []), ...(inv.imaging || [])];
-      parts.push(`Investigations: ${invList.join(', ')}.`);
-    }
-    if (inv?.results_notes) {
-      parts.push(`Results: ${inv.results_notes}`);
-    }
-
-    // 7. ER observation notes
-    if (er_observation?.notes) {
-      parts.push(er_observation.notes);
-    }
-    if (er_observation?.duration) {
-      parts.push(`Patient observed in ER for ${er_observation.duration}.`);
+      const invList = [...(inv.panels_selected || []), ...(inv.imaging || [])].join(', ');
+      parts.push(`Necessary investigations (${invList}) were initiated.`);
+    } else {
+      parts.push("Necessary investigations were initiated.");
     }
 
-    // 8. Treatment
+    // 4. Treatment
     if (treatment?.intervention_notes) {
-      parts.push(`Treatment: ${treatment.intervention_notes}`);
+      parts.push(`Appropriate treatment was given: ${treatment.intervention_notes}.`);
+    } else {
+      parts.push("Appropriate treatment was given.");
     }
 
-    // 9. Drugs administered
+    // 5. Drugs administered
     const drugs = data.drugs_administered || [];
     if (drugs.length) {
       const drugList = drugs.map(d => `${d.name} ${d.dose}`).join(', ');
-      parts.push(`Medications: ${drugList}.`);
-    } else if (treatment?.medications) {
-      parts.push(`Medications as per treatment chart.`);
+      parts.push(`Medications administered: ${drugList}.`);
     }
 
-    // 10. Procedures
+    // 6. Procedures
     const procs = data.procedures_performed || [];
     if (procs.length) {
       const procList = procs.map(p => p.name).join(', ');
       parts.push(`Procedures performed: ${procList}.`);
     }
 
-    // 11. Diagnosis
+    // 7. ER observation
+    if (er_observation?.duration) {
+      parts.push(`The patient was monitored in the ER for ${er_observation.duration}.`);
+    } else {
+      parts.push("The patient was monitored in the ER.");
+    }
+
+    // 8. Outcome based on disposition
+    const dispositionOutcome = {
+      "discharged": "Patient showed clinical improvement and remained stable throughout the stay.",
+      "admitted-icu": "Patient required ICU admission for further monitoring and management.",
+      "admitted-hdu": "Patient required HDU admission for close monitoring.",
+      "admitted-ward": "Patient was stabilized and admitted to ward for further care.",
+      "referred": "Patient was stabilized and referred to a higher center for specialized care.",
+      "dama": "Patient opted to leave against medical advice after being counseled about risks.",
+      "death": "Despite resuscitative efforts, the patient could not be revived."
+    };
+    
+    if (disposition?.type && dispositionOutcome[disposition.type]) {
+      parts.push(dispositionOutcome[disposition.type]);
+    } else {
+      parts.push("Patient showed clinical improvement and remained stable throughout the stay.");
+    }
+
+    // 9. Diagnosis (if available)
     if (treatment?.provisional_diagnoses?.length) {
-      parts.push(`Diagnosis: ${treatment.provisional_diagnoses.join(', ')}.`);
+      parts.push(`Final diagnosis: ${treatment.provisional_diagnoses.join(', ')}.`);
     }
 
-    // 12. AI Red Flags
-    if (treatment?.ai_red_flags?.length) {
-      parts.push(`Red flags: ${treatment.ai_red_flags.join(', ')}.`);
-    }
-
-    // 13. Disposition
-    if (disposition?.type) {
-      const dispositionText = {
-        discharged: "Patient was discharged in stable condition",
-        "admitted-icu": "Patient was admitted to ICU",
-        "admitted-hdu": "Patient was admitted to HDU",
-        "admitted-ward": "Patient was admitted to ward",
-        referred: "Patient was referred to higher center",
-        dama: "Patient left against medical advice",
-        death: "Patient was declared deceased"
-      };
-      parts.push(dispositionText[disposition.type] || `Disposition: ${disposition.type}.`);
-    }
-
-    return parts.join(' ') || "Course documented in case sheet.";
+    return parts.join(' ');
   };
 
   const generatePDF = async () => {
