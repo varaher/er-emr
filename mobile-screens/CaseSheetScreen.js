@@ -364,6 +364,12 @@ export default function CaseSheetScreen({ route, navigation }) {
   const [isRecording, setIsRecording] = useState(false);
   const [activeVoiceField, setActiveVoiceField] = useState(null);
   const [transcribing, setTranscribing] = useState(false);
+  
+  // Streaming voice mode
+  const [useStreamingVoice, setUseStreamingVoice] = useState(false);
+  const [streamingWs, setStreamingWs] = useState(null);
+  const [streamingText, setStreamingText] = useState("");
+  const [voiceLanguage, setVoiceLanguage] = useState("en-IN"); // en-IN, hi-IN, ml-IN
 
   /* ===================== FORM DATA REF ===================== */
   const formDataRef = useRef({
