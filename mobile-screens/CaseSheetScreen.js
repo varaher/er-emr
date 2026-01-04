@@ -1,5 +1,6 @@
 // CaseSheetScreen_V2.js - Enhanced UI with Dropdowns, Collapsible Sections, Voice Input
 // Features: ABCDE with notes, VBG with AI, Examination dropdowns, Psychological Assessment
+// Now with Streaming Voice Input support
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
@@ -20,7 +21,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { Audio } from "expo-av";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+// Import StreamingVoiceInput component (optional - for real-time streaming)
+// import StreamingVoiceInput from './StreamingVoiceInput';
+
 const API_URL = "https://er-emr-backend.onrender.com/api";
+const WS_URL = "wss://er-emr-backend.onrender.com";
 
 // Normal Exam Auto-fill Template - DETAILED examination results
 const NORMAL_EXAM_TEMPLATE = {
