@@ -848,7 +848,192 @@ export default function CaseSheetScreen({ route, navigation }) {
   };
 
   /* ===================== VOICE RECORDING ===================== */
+  
+  // Start streaming voice input
+  const startStreamingVoice = async (field) => {
+    try {
+      const { status } = await Audio.requestPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert("Permission Denied", "Microphone access required");
+        return;
+      }
+      
+      const token = await AsyncStorage.getItem("token");
+      if (!token) {
+        Alert.alert("Error", "Not authenticated");
+        return;
+      }
+      
+      setActiveVoiceField(field);
+      setStreamingText("");
+      setIsRecording(true);
+      
+      // Connect to WebSocket
+      const ws = new WebSocket(`${WS_URL}/ws/stt`);
+      
+      ws.onopen = () => {
+        console.log("WS connected, sending auth...");
+        ws.send(JSON.stringify({
+          token: token,
+          language: voiceLanguage,
+        }));
+      };
+      
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          console.log("WS message:", data.type);
+          
+          if (data.type === "connected") {
+            console.log("STT ready, starting audio capture");
+            startAudioForStreaming(ws);
+          } else if (data.type === "partial") {
+            setStreamingText(prev => prev + " " + data.text);
+          } else if (data.type === "final") {
+            // Apply final text to field
+            const currentValue = formDataRef.current[field] || "";
+            formDataRef.current[field] = currentValue 
+              ? `${currentValue}\n${data.text}` 
+              : data.text;
+            setSelectStates(prev => ({ ...prev }));
+            setStreamingText("");
+            Alert.alert("✅ Done", "Voice transcription complete");
+          } else if (data.type === "error") {
+            Alert.alert("Error", data.message);
+          }
+        } catch (e) {
+          console.error("WS parse error:", e);
+        }
+      };
+      
+      ws.onerror = (error) => {
+        console.error("WS error:", error);
+        Alert.alert("Connection Error", "Failed to connect to voice server");
+        setIsRecording(false);
+      };
+      
+      ws.onclose = () => {
+        console.log("WS closed");
+        setStreamingWs(null);
+      };
+      
+      setStreamingWs(ws);
+      
+    } catch (err) {
+      console.error("Streaming voice error:", err);
+      Alert.alert("Error", "Failed to start streaming voice");
+      setIsRecording(false);
+    }
+  };
+  
+  // Start audio capture for streaming
+  const startAudioForStreaming = async (ws) => {
+    try {
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+        staysActiveInBackground: true,
+      });
+      
+      const { recording: rec } = await Audio.Recording.createAsync({
+        android: {
+          extension: '.wav',
+          outputFormat: Audio.AndroidOutputFormat.DEFAULT,
+          audioEncoder: Audio.AndroidAudioEncoder.DEFAULT,
+          sampleRate: 16000,
+          numberOfChannels: 1,
+          bitRate: 128000,
+        },
+        ios: {
+          extension: '.wav',
+          audioQuality: Audio.IOSAudioQuality.HIGH,
+          sampleRate: 16000,
+          numberOfChannels: 1,
+          bitRate: 128000,
+          linearPCMBitDepth: 16,
+          linearPCMIsBigEndian: false,
+          linearPCMIsFloat: false,
+        },
+        web: {},
+      });
+      
+      setRecording(rec);
+      console.log("Audio recording started for streaming");
+      
+    } catch (err) {
+      console.error("Audio start error:", err);
+    }
+  };
+  
+  // Stop streaming voice and get final result
+  const stopStreamingVoice = async () => {
+    try {
+      setIsRecording(false);
+      
+      // Stop recording and get audio file
+      if (recording) {
+        await recording.stopAndUnloadAsync();
+        const uri = recording.getURI();
+        setRecording(null);
+        
+        // Send audio to WebSocket and trigger final processing
+        if (uri && streamingWs?.readyState === WebSocket.OPEN) {
+          setTranscribing(true);
+          
+          // Read audio file
+          const response = await fetch(uri);
+          const blob = await response.blob();
+          const reader = new FileReader();
+          
+          reader.onloadend = () => {
+            const base64Audio = reader.result.split(',')[1];
+            if (streamingWs?.readyState === WebSocket.OPEN) {
+              // Send final audio chunk
+              streamingWs.send(JSON.stringify({
+                audio: base64Audio,
+                encoding: 'audio/wav',
+                sample_rate: 16000,
+              }));
+              
+              // Send STOP command
+              setTimeout(() => {
+                if (streamingWs?.readyState === WebSocket.OPEN) {
+                  streamingWs.send("STOP");
+                }
+              }, 500);
+            }
+          };
+          
+          reader.readAsDataURL(blob);
+        }
+      }
+      
+      // Close WebSocket after delay
+      setTimeout(() => {
+        if (streamingWs) {
+          streamingWs.close();
+          setStreamingWs(null);
+        }
+        setTranscribing(false);
+        setActiveVoiceField(null);
+      }, 3000);
+      
+    } catch (err) {
+      console.error("Stop streaming error:", err);
+      setTranscribing(false);
+      setActiveVoiceField(null);
+    }
+  };
+  
+  // Original file-based voice input (fallback)
   const startVoiceInput = async (field) => {
+    // Use streaming mode if enabled
+    if (useStreamingVoice) {
+      await startStreamingVoice(field);
+      return;
+    }
+    
+    // Original file-based approach
     try {
       const { status } = await Audio.requestPermissionsAsync();
       if (status !== "granted") {
@@ -875,6 +1060,13 @@ export default function CaseSheetScreen({ route, navigation }) {
   };
 
   const stopVoiceInput = async () => {
+    // Use streaming mode if enabled
+    if (useStreamingVoice) {
+      await stopStreamingVoice();
+      return;
+    }
+    
+    // Original file-based approach
     try {
       setIsRecording(false);
       await recording.stopAndUnloadAsync();
@@ -888,7 +1080,7 @@ export default function CaseSheetScreen({ route, navigation }) {
       const formData = new FormData();
       formData.append("file", { uri, name: "voice.m4a", type: "audio/m4a" });
       formData.append("engine", "auto");
-      formData.append("language", "en");
+      formData.append("language", voiceLanguage.split('-')[0]); // Extract lang code
 
       const res = await fetch(`${API_URL}/ai/voice-to-text`, {
         method: "POST",
