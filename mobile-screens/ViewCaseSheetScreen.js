@@ -334,11 +334,34 @@ export default function ViewCaseSheetScreen({ route, navigation }) {
         {/* Examination */}
         <Section title="🩺 Examination">
           <InfoRow label="General" value={getGeneralExam(examination)} />
+          {examination.general_additional_notes && (
+            <Text style={styles.examNotes}>{examination.general_additional_notes}</Text>
+          )}
+          
           <InfoRow label="CVS" value={examination.cvs_status || "Normal"} />
+          {examination.cvs_additional_notes && (
+            <Text style={styles.examNotes}>{examination.cvs_additional_notes}</Text>
+          )}
+          
           <InfoRow label="Respiratory" value={examination.respiratory_status || "Normal"} />
+          {examination.respiratory_additional_notes && (
+            <Text style={styles.examNotes}>{examination.respiratory_additional_notes}</Text>
+          )}
+          
           <InfoRow label="Abdomen" value={examination.abdomen_status || "Normal"} />
+          {examination.abdomen_additional_notes && (
+            <Text style={styles.examNotes}>{examination.abdomen_additional_notes}</Text>
+          )}
+          
           <InfoRow label="CNS" value={examination.cns_status || "Normal"} />
+          {examination.cns_additional_notes && (
+            <Text style={styles.examNotes}>{examination.cns_additional_notes}</Text>
+          )}
+          
           <InfoRow label="Extremities" value={examination.extremities_status || "Normal"} />
+          {examination.extremities_additional_notes && (
+            <Text style={styles.examNotes}>{examination.extremities_additional_notes}</Text>
+          )}
         </Section>
 
         {/* Investigations */}
