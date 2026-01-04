@@ -1524,10 +1524,16 @@ export default function CaseSheetScreen({ route, navigation }) {
         });
       }
 
-      if (!response.ok) throw new Error("Failed to save");
+      // Check response and extract error if failed
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const errorDetail = errorData.detail || errorData.message || `Server error: ${response.status}`;
+        throw new Error(typeof errorDetail === 'string' ? errorDetail : JSON.stringify(errorDetail));
+      }
 
       const savedCase = await response.json();
       setCaseId(savedCase.id);
+      setLastSaved(new Date());
       if (!silent) {
         Alert.alert("✅ Saved", "Case sheet saved!");
       }
@@ -1535,18 +1541,7 @@ export default function CaseSheetScreen({ route, navigation }) {
     } catch (err) {
       console.error("Save error:", err);
       if (!silent) {
-        // Properly format error message - CRITICAL FIX
-        let errorMsg = "Failed to save case";
-        if (err?.response?.data?.detail) {
-          errorMsg = err.response.data.detail;
-        } else if (err?.response?.data?.message) {
-          errorMsg = err.response.data.message;
-        } else if (err?.response?.data && typeof err.response.data === 'object') {
-          errorMsg = JSON.stringify(err.response.data);
-        } else if (err?.message) {
-          errorMsg = err.message;
-        }
-        Alert.alert("Error", errorMsg);
+        Alert.alert("Save Error", err.message || "Failed to save case. Check your connection.");
       }
       return null;
     } finally {
