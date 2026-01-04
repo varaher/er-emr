@@ -1107,39 +1107,31 @@ export default function CaseSheetScreen({ route, navigation }) {
       const formData = new FormData();
       formData.append("file", { uri, name: "voice.m4a", type: "audio/m4a" });
       formData.append("engine", "auto");
-      formData.append("language", voiceLanguage.split('-')[0]); // Extract lang code
+      formData.append("language", voiceLanguage.split('-')[0]);
 
-      const res = await fetch(`${API_URL}/ai/voice-to-text`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
+      // Use axios for voice transcription (same as web app)
+      const response = await api.post('/ai/voice-to-text', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
 
-      if (res.ok) {
-        const data = await res.json();
-        // Handle transcription - ensure it's a string
-        const transcriptionText = data.transcription || data.text || "";
-        if (transcriptionText && typeof transcriptionText === 'string' && activeVoiceField) {
-          const currentValue = formDataRef.current[activeVoiceField] || "";
-          formDataRef.current[activeVoiceField] = currentValue 
-            ? `${currentValue}\n${transcriptionText}` 
-            : transcriptionText;
-          // Force re-render
-          setSelectStates(prev => ({ ...prev }));
-          Alert.alert("✅ Done", "Voice transcribed successfully");
-        } else if (!transcriptionText) {
-          Alert.alert("No Speech", "Could not detect any speech. Try again.");
-        }
+      const transcriptionText = response.data.transcription || response.data.text || "";
+      if (transcriptionText && typeof transcriptionText === 'string' && activeVoiceField) {
+        const currentValue = formDataRef.current[activeVoiceField] || "";
+        formDataRef.current[activeVoiceField] = currentValue 
+          ? `${currentValue}\n${transcriptionText}` 
+          : transcriptionText;
+        setSelectStates(prev => ({ ...prev }));
+        Alert.alert("✅ Done", "Voice transcribed successfully");
       } else {
-        const errorData = await res.json().catch(() => ({}));
-        const errorMsg = errorData.detail || errorData.message || "Transcription failed";
-        Alert.alert("Error", typeof errorMsg === 'string' ? errorMsg : JSON.stringify(errorMsg));
+        Alert.alert("No Speech", "Could not detect any speech. Try again.");
       }
+      
       setTranscribing(false);
       setActiveVoiceField(null);
     } catch (err) {
       console.error("Voice error:", err);
-      Alert.alert("Error", "Voice transcription failed. Please try again.");
+      const errorMsg = err.response?.data?.detail || err.message || "Voice transcription failed";
+      Alert.alert("Error", typeof errorMsg === 'string' ? errorMsg : "Transcription failed");
       setTranscribing(false);
       setActiveVoiceField(null);
     }
@@ -1156,7 +1148,6 @@ export default function CaseSheetScreen({ route, navigation }) {
 
     setLoading(true);
     try {
-      const token = await AsyncStorage.getItem("token");
       
       const vbgData = {
         ph: fd.vbg_ph,
