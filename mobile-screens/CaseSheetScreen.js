@@ -1482,7 +1482,7 @@ export default function CaseSheetScreen({ route, navigation }) {
         investigations: {
           panels_selected: fd.labs_ordered ? fd.labs_ordered.split(",").map(s => s.trim()).filter(Boolean) : [],
           imaging: fd.imaging_ordered ? fd.imaging_ordered.split(",").map(s => s.trim()).filter(Boolean) : [],
-          results_notes: fd.investigation_results,
+          results_notes: fd.investigation_results || "",
         },
         er_observation: {
           notes: fd.er_observation_notes || "",
@@ -1493,8 +1493,11 @@ export default function CaseSheetScreen({ route, navigation }) {
           destination: fd.disposition_ward || fd.disposition_refer_hospital || "",
           discharge_vitals: null,
         },
-        em_resident: user.name || "",
+        em_resident: user?.name || fd.em_resident || "EM Resident",
       };
+      
+      // Debug log - remove in production
+      console.log("Saving payload:", JSON.stringify(payload, null, 2).substring(0, 500));
 
       // Helper function to map disposition type
       function mapDispositionType(type) {
