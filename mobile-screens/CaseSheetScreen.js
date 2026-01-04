@@ -547,7 +547,7 @@ export default function CaseSheetScreen({ route, navigation }) {
     cvs_pulse: "Regular",
     cvs_pulse_rate: "",
     cvs_apex_beat: "Normal",
-    cvs_precordial_heave: false,
+    cvs_precordial_heave: "",  // Backend expects string, not boolean
     cvs_added_sounds: "",
     cvs_murmurs: "",
     cvs_notes: "",
