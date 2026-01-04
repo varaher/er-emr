@@ -3,6 +3,32 @@
 
 ---
 
+## 🔧 Latest Fix: Mobile Save Bug (January 4, 2025)
+
+### Issue Fixed: Data Type Mismatch in Case Sheet Save
+
+**Problem:** Mobile app was sending incorrect data types to backend:
+- Boolean fields (general_pallor, general_icterus, etc.) sent as string "Absent" instead of `false`
+- Integer field (cvs_pulse_rate) sent as empty string `""` instead of `null`
+- String field (cvs_precordial_heave) sent as boolean `false` instead of `"Normal"`
+
+**Solution:** Added type conversion helper functions in `CaseSheetScreen.js`:
+```javascript
+toBoolean(value)      // Converts "Absent"/"Present"/etc to true/false
+toIntOrNull(value)    // Converts "" to null, "72" to 72
+toFloatOrNull(value)  // For decimal values
+toStringOrEmpty(value) // For string fields, handles booleans
+```
+
+**Files Modified:**
+| File | Changes |
+|------|---------|
+| `CaseSheetScreen.js` | Added type helpers (lines 1169-1213), Applied conversions throughout payload builder |
+
+**Test Results:** All 12 backend tests passed - see `/app/test_reports/iteration_5.json`
+
+---
+
 ## ⚠️ IMPORTANT: Do NOT Change Basic Case Sheet Structure
 
 The case sheet structure has been finalized. Do NOT modify:
