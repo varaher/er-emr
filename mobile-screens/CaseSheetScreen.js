@@ -692,6 +692,204 @@ export default function CaseSheetScreen({ route, navigation }) {
     forceUpdate();
   };
 
+  /* ===================== LOAD EXISTING CASE DATA ===================== */
+  useEffect(() => {
+    if (existingCaseId) {
+      loadExistingCaseData(existingCaseId);
+    }
+  }, [existingCaseId]);
+
+  const loadExistingCaseData = async (id) => {
+    try {
+      setLoading(true);
+      const response = await api.get(`/cases/${id}`);
+      const caseData = response.data;
+      
+      // Populate formDataRef with existing case data
+      const fd = formDataRef.current;
+      
+      // Patient info
+      if (caseData.patient) {
+        fd.patient_name = caseData.patient.name || "";
+        fd.patient_age = caseData.patient.age || "";
+        fd.patient_sex = caseData.patient.sex || "Male";
+        fd.patient_phone = caseData.patient.phone || "";
+        fd.patient_uhid = caseData.patient.uhid || "";
+        fd.patient_address = caseData.patient.address || "";
+        fd.patient_mode_of_arrival = caseData.patient.mode_of_arrival || "Walk-in";
+        fd.patient_brought_by = caseData.patient.brought_by || "";
+        fd.patient_informant_name = caseData.patient.informant_name || "";
+        fd.patient_informant_reliability = caseData.patient.informant_reliability || "";
+        fd.patient_identification_mark = caseData.patient.identification_mark || "";
+        fd.patient_mlc = caseData.patient.mlc || false;
+        setShowMlcFields(caseData.patient.mlc || false);
+      }
+      
+      // Presenting complaint
+      if (caseData.presenting_complaint) {
+        fd.complaint_text = caseData.presenting_complaint.text || "";
+        fd.complaint_duration = caseData.presenting_complaint.duration || "";
+        fd.complaint_onset = caseData.presenting_complaint.onset_type || "";
+        fd.complaint_course = caseData.presenting_complaint.course || "";
+      }
+      
+      // Vitals
+      if (caseData.vitals_at_arrival) {
+        fd.vitals_hr = caseData.vitals_at_arrival.hr?.toString() || "";
+        fd.vitals_rr = caseData.vitals_at_arrival.rr?.toString() || "";
+        fd.vitals_bp_systolic = caseData.vitals_at_arrival.bp_systolic?.toString() || "";
+        fd.vitals_bp_diastolic = caseData.vitals_at_arrival.bp_diastolic?.toString() || "";
+        fd.vitals_spo2 = caseData.vitals_at_arrival.spo2?.toString() || "";
+        fd.vitals_temperature = caseData.vitals_at_arrival.temperature?.toString() || "";
+        fd.vitals_gcs_e = caseData.vitals_at_arrival.gcs_e?.toString() || "";
+        fd.vitals_gcs_v = caseData.vitals_at_arrival.gcs_v?.toString() || "";
+        fd.vitals_gcs_m = caseData.vitals_at_arrival.gcs_m?.toString() || "";
+        fd.vitals_grbs = caseData.vitals_at_arrival.grbs?.toString() || "";
+        fd.vitals_pain_score = caseData.vitals_at_arrival.pain_score?.toString() || "";
+      }
+      
+      // Primary Assessment
+      if (caseData.primary_assessment) {
+        const pa = caseData.primary_assessment;
+        fd.airway_status = pa.airway_status || "";
+        fd.airway_notes = pa.airway_additional_notes || "";
+        fd.breathing_rr = pa.breathing_rr?.toString() || "";
+        fd.breathing_spo2 = pa.breathing_spo2?.toString() || "";
+        fd.breathing_wob = pa.breathing_work || "";
+        fd.breathing_air_entry = Array.isArray(pa.breathing_air_entry) ? pa.breathing_air_entry[0] : pa.breathing_air_entry || "";
+        fd.breathing_notes = pa.breathing_additional_notes || "";
+        fd.circulation_hr = pa.circulation_hr?.toString() || "";
+        fd.circulation_notes = pa.circulation_additional_notes || "";
+        fd.disability_avpu = pa.disability_avpu || "Alert";
+        fd.disability_gcs_e = pa.disability_gcs_e?.toString() || "";
+        fd.disability_gcs_v = pa.disability_gcs_v?.toString() || "";
+        fd.disability_gcs_m = pa.disability_gcs_m?.toString() || "";
+        fd.disability_grbs = pa.disability_grbs?.toString() || "";
+        fd.disability_pupils = pa.disability_pupils_size || "";
+        fd.disability_notes = pa.disability_additional_notes || "";
+        fd.exposure_temperature = pa.exposure_temperature?.toString() || "";
+        fd.exposure_notes = pa.exposure_additional_notes || "";
+      }
+      
+      // History
+      if (caseData.history) {
+        fd.history_hpi = caseData.history.hpi || "";
+        fd.history_signs_symptoms = caseData.history.signs_and_symptoms || "";
+        fd.history_allergies = Array.isArray(caseData.history.allergies) ? caseData.history.allergies.join(", ") : "";
+        fd.history_medications = caseData.history.drug_history || "";
+        fd.history_past_medical = Array.isArray(caseData.history.past_medical) ? caseData.history.past_medical.join(", ") : "";
+        fd.history_past_surgical = caseData.history.past_surgical || "";
+        fd.history_last_meal = caseData.history.last_meal_lmp || "";
+        fd.history_family_gynae = caseData.history.family_gyn_additional_notes || "";
+      }
+      
+      // Examination
+      if (caseData.examination) {
+        const ex = caseData.examination;
+        fd.general_pallor = ex.general_pallor || false;
+        fd.general_icterus = ex.general_icterus || false;
+        fd.general_clubbing = ex.general_clubbing || false;
+        fd.general_lymphadenopathy = ex.general_lymphadenopathy || false;
+        fd.general_notes = ex.general_notes || "";
+        fd.general_additional_notes = ex.general_additional_notes || "";
+        fd.cvs_s1_s2 = ex.cvs_s1_s2 || "";
+        fd.cvs_pulse = ex.cvs_pulse || "";
+        fd.cvs_pulse_rate = ex.cvs_pulse_rate?.toString() || "";
+        fd.cvs_notes = ex.cvs_additional_notes || "";
+        fd.resp_percussion = ex.respiratory_percussion || "";
+        fd.resp_breath_sounds = ex.respiratory_breath_sounds || "";
+        fd.resp_notes = ex.respiratory_additional_notes || "";
+        fd.abd_bowel_sounds = ex.abdomen_bowel_sounds || "";
+        fd.abd_notes = ex.abdomen_additional_notes || "";
+        fd.cns_higher_mental = ex.cns_higher_mental || "";
+        fd.cns_reflexes = ex.cns_reflexes || "";
+        fd.cns_notes = ex.cns_additional_notes || "";
+        fd.ext_findings = ex.extremities_findings || "";
+        fd.ext_notes = ex.extremities_additional_notes || "";
+        
+        // Set exam status
+        setExamStatus({
+          cvs: ex.cvs_status || "Normal",
+          respiratory: ex.respiratory_status || "Normal",
+          abdomen: ex.abdomen_status || "Normal",
+          cns: ex.cns_status || "Normal",
+          extremities: ex.extremities_status || "Normal",
+        });
+      }
+      
+      // Treatment
+      if (caseData.treatment) {
+        fd.treatment_interventions = caseData.treatment.intervention_notes || "";
+        fd.treatment_medications = caseData.treatment.medications || "";
+        fd.diagnosis_primary = Array.isArray(caseData.treatment.provisional_diagnoses) ? caseData.treatment.provisional_diagnoses.join(", ") : "";
+        fd.diagnosis_differential = Array.isArray(caseData.treatment.differential_diagnoses) ? caseData.treatment.differential_diagnoses.join(", ") : "";
+        
+        // Load AI suggestions if present
+        if (caseData.treatment.ai_diagnosis_suggestions) {
+          setAiDiagnosisResult(caseData.treatment.ai_diagnosis_suggestions);
+        }
+        if (caseData.treatment.ai_red_flags) {
+          setAiRedFlags(caseData.treatment.ai_red_flags);
+        }
+      }
+      
+      // Drugs administered
+      if (caseData.drugs_administered && caseData.drugs_administered.length > 0) {
+        setSelectedDrugs(caseData.drugs_administered.map((d, idx) => ({
+          id: idx,
+          name: d.name,
+          dose: d.dose,
+          time: d.time,
+        })));
+      }
+      
+      // Procedures
+      if (caseData.procedures_performed && caseData.procedures_performed.length > 0) {
+        const procIds = caseData.procedures_performed.map(p => p.id);
+        setSelectedProcedures(procIds);
+        const notes = {};
+        caseData.procedures_performed.forEach(p => {
+          notes[p.id] = p.notes || "";
+        });
+        setProcedureNotes(notes);
+      }
+      
+      // Investigations
+      if (caseData.investigations) {
+        fd.labs_ordered = Array.isArray(caseData.investigations.panels_selected) ? caseData.investigations.panels_selected.join(", ") : "";
+        fd.imaging_ordered = Array.isArray(caseData.investigations.imaging) ? caseData.investigations.imaging.join(", ") : "";
+        fd.investigation_results = caseData.investigations.results_notes || "";
+      }
+      
+      // ER Observation
+      if (caseData.er_observation) {
+        fd.er_observation_notes = caseData.er_observation.notes || "";
+        fd.er_duration = caseData.er_observation.duration || "";
+      }
+      
+      // Disposition
+      if (caseData.disposition) {
+        fd.disposition_type = caseData.disposition.type || "under_observation";
+        fd.disposition_ward = caseData.disposition.destination || "";
+      }
+      
+      // Addendums
+      if (caseData.addendum_notes && caseData.addendum_notes.length > 0) {
+        setAddendumNotes(caseData.addendum_notes);
+      }
+      
+      // Force re-render by updating a state
+      setLastSaved(new Date());
+      
+      console.log("✅ Loaded existing case data:", id);
+    } catch (error) {
+      console.error("Failed to load case data:", error);
+      Alert.alert("Error", "Failed to load case data. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   /* ===================== ADDENDUM TIMER ===================== */
   useEffect(() => {
     // Set up 2-hour reminder for addendum notes
