@@ -325,16 +325,16 @@ export default function DischargeSummaryNew() {
           {/* History of Present Illness */}
           <div className="mb-3">
             <p className="font-semibold text-sm mb-1">History of Present Illness:</p>
-            <p className="text-sm whitespace-pre-wrap">{caseData.history?.hpi || caseData.sample?.events_hopi || 'N/A'}</p>
+            <p className="text-sm whitespace-pre-wrap">{caseData.history?.hpi || 'N/A'}</p>
           </div>
 
           {/* Past Medical/Surgical Histories */}
           <div className="mb-3">
             <p className="font-semibold text-sm mb-1">Past Medical/Surgical Histories:</p>
             <p className="text-sm">
-              Medical: {caseData.history?.past_medical?.join(', ') || caseData.sample?.past_medical_history || 'None'}
+              Medical: {caseData.history?.past_medical?.join(', ') || 'None'}
               <br />
-              Surgical: {caseData.history?.past_surgical || caseData.sample?.past_surgeries || 'None'}
+              Surgical: {caseData.history?.past_surgical || 'None'}
             </p>
           </div>
 
@@ -342,11 +342,11 @@ export default function DischargeSummaryNew() {
           <div className="mb-3 grid grid-cols-2 gap-4 text-sm">
             <div>
               <span className="font-semibold">Family / Gynae History: </span>
-              {caseData.history?.family_gyn_additional_notes || caseData.sample?.family_gynae_history || 'Not significant'}
+              {caseData.history?.family_history || caseData.history?.gyn_history || caseData.history?.family_gyn_additional_notes || 'Not significant'}
             </div>
             <div>
               <span className="font-semibold">LMP: </span>
-              {caseData.history?.last_meal_lmp || caseData.sample?.last_meal_time || 'N/A'}
+              {caseData.history?.lmp || 'N/A'}
             </div>
           </div>
 
