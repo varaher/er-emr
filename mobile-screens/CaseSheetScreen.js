@@ -3217,43 +3217,64 @@ export default function CaseSheetScreen({ route, navigation }) {
                 <InputWithVoice label="Primary Diagnosis" field="diagnosis_primary" placeholder="Main diagnosis..." />
                 <InputWithVoice label="Differential Diagnoses" field="diagnosis_differential" placeholder="Other possibilities..." multiline />
                 
-                {/* AI Diagnosis Button */}
-                <TouchableOpacity 
-                  style={[styles.aiDiagnosisBtn, aiDiagnosisLoading && styles.btnDisabled]} 
-                  onPress={getAIDiagnosisSuggestions}
-                  disabled={aiDiagnosisLoading}
-                >
-                  {aiDiagnosisLoading ? (
-                    <ActivityIndicator size="small" color="#fff" />
-                  ) : (
-                    <>
-                      <Ionicons name="sparkles" size={18} color="#fff" />
-                      <Text style={styles.aiDiagnosisBtnText}>AI Suggest Diagnosis & Red Flags</Text>
-                    </>
-                  )}
-                </TouchableOpacity>
-
-                {/* AI Diagnosis Result */}
-                {aiDiagnosisResult && (
-                  <View style={styles.aiDiagnosisResult}>
-                    <Text style={styles.aiResultHeader}>AI Suggestions</Text>
-                    <Text style={styles.aiResultContent}>{aiDiagnosisResult}</Text>
-                  </View>
-                )}
+                {/* AI Buttons Row */}
+                <View style={styles.aiButtonsRow}>
+                  {/* AI Red Flags Button */}
+                  <TouchableOpacity 
+                    style={[styles.aiRedFlagsBtn, aiDiagnosisLoading && styles.btnDisabled]} 
+                    onPress={getAIRedFlags}
+                    disabled={aiDiagnosisLoading}
+                  >
+                    {aiDiagnosisLoading ? (
+                      <ActivityIndicator size="small" color="#fff" />
+                    ) : (
+                      <>
+                        <Ionicons name="warning" size={18} color="#fff" />
+                        <Text style={styles.aiRedFlagsBtnText}>Red Flags</Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                  
+                  {/* AI Diagnosis Button */}
+                  <TouchableOpacity 
+                    style={[styles.aiDiagnosisBtn, aiDiagnosisLoading && styles.btnDisabled]} 
+                    onPress={getAIDiagnosisSuggestions}
+                    disabled={aiDiagnosisLoading}
+                  >
+                    {aiDiagnosisLoading ? (
+                      <ActivityIndicator size="small" color="#fff" />
+                    ) : (
+                      <>
+                        <Ionicons name="sparkles" size={18} color="#fff" />
+                        <Text style={styles.aiDiagnosisBtnText}>AI Diagnosis</Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                </View>
 
                 {/* Red Flags Section */}
                 {aiRedFlags.length > 0 && (
                   <View style={styles.redFlagsContainer}>
                     <View style={styles.redFlagsHeader}>
                       <Ionicons name="warning" size={18} color="#dc2626" />
-                      <Text style={styles.redFlagsTitle}>Red Flags to Consider</Text>
+                      <Text style={styles.redFlagsTitle}>Critical Findings & Red Flags</Text>
                     </View>
                     {aiRedFlags.map((flag, idx) => (
                       <View key={idx} style={styles.redFlagItem}>
                         <Ionicons name="alert-circle" size={14} color="#dc2626" />
-                        <Text style={styles.redFlagText}>{flag.trim()}</Text>
+                        <Text style={styles.redFlagText}>{flag}</Text>
                       </View>
                     ))}
+                  </View>
+                )}
+
+                {/* AI Diagnosis Result */}
+                {aiDiagnosisResult && (
+                  <View style={styles.aiDiagnosisResult}>
+                    <Text style={styles.aiResultHeader}>AI Analysis</Text>
+                    <ScrollView style={{ maxHeight: 300 }} nestedScrollEnabled>
+                      <Text style={styles.aiResultContent}>{aiDiagnosisResult}</Text>
+                    </ScrollView>
                   </View>
                 )}
               </View>
