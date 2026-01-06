@@ -388,15 +388,23 @@ export default function CaseSheetForm() {
     }
   }, [id]);
 
+  // FIX: Keep formDataRef updated whenever formData changes
+  useEffect(() => {
+    formDataRef.current = formData;
+  }, [formData]);
+
   // Auto-save effect - saves every 30 seconds if there are changes
+  // FIX: Removed formData from dependencies to prevent interval reset on every keystroke
   useEffect(() => {
     if (!id || id === 'new' || isLocked) return;
 
     const autoSaveInterval = setInterval(async () => {
       try {
         setAutoSaving(true);
-        await api.put(`/cases/${id}?lock_case=false`, formData);
+        // FIX: Use formDataRef.current to get the latest formData without causing re-renders
+        await api.put(`/cases/${id}?lock_case=false`, formDataRef.current);
         setLastSaved(new Date());
+        console.log('Auto-save completed at', new Date().toLocaleTimeString());
       } catch (error) {
         console.error('Auto-save failed:', error);
       } finally {
@@ -405,7 +413,7 @@ export default function CaseSheetForm() {
     }, 30000); // Auto-save every 30 seconds
 
     return () => clearInterval(autoSaveInterval);
-  }, [id, formData, isLocked]);
+  }, [id, isLocked]); // FIX: Removed formData from dependencies
 
   // NEW: Addendum reminder timer - every 2 hours
   useEffect(() => {
