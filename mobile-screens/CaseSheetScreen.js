@@ -4285,19 +4285,40 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   
+  // AI Buttons Row
+  aiButtonsRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 12,
+    marginHorizontal: 16,
+    gap: 10,
+  },
+  
+  // AI Red Flags Button
+  aiRedFlagsBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#dc2626",
+    padding: 12,
+    borderRadius: 10,
+    gap: 6,
+  },
+  aiRedFlagsBtnText: { color: "#fff", fontWeight: "700", fontSize: 13 },
+  
   // AI Diagnosis Styles
   aiDiagnosisBtn: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#7c3aed",
-    padding: 14,
+    padding: 12,
     borderRadius: 10,
-    marginTop: 12,
-    marginHorizontal: 16,
-    gap: 8,
+    gap: 6,
   },
-  aiDiagnosisBtnText: { color: "#fff", fontWeight: "700", fontSize: 14 },
+  aiDiagnosisBtnText: { color: "#fff", fontWeight: "700", fontSize: 13 },
   aiDiagnosisResult: {
     backgroundColor: "#f5f3ff",
     padding: 14,
