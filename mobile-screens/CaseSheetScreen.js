@@ -3458,6 +3458,7 @@ export default function CaseSheetScreen({ route, navigation }) {
 
           <View style={{ height: 40 }} />
         </ScrollView>
+        </Animated.View>
       </View>
 
       {/* ==================== DRUG SELECTION MODAL ==================== */}
