@@ -345,36 +345,84 @@ export default function ViewCaseSheetScreen({ route, navigation }) {
         </Section>
 
         {/* Examination */}
-        <Section title="🩺 Examination">
-          <InfoRow label="General" value={getGeneralExam(examination)} />
-          {examination.general_additional_notes && (
-            <Text style={styles.examNotes}>{examination.general_additional_notes}</Text>
-          )}
+        <Section title="🩺 Physical Examination">
+          {/* General Examination */}
+          <View style={styles.examSection}>
+            <Text style={styles.examSectionTitle}>General Examination</Text>
+            <Text style={styles.examDetail}>
+              {examination.general_additional_notes || 
+               (examination.cvs_status === "Normal" ? 
+                "Patient is conscious, alert, and oriented. No pallor, icterus, cyanosis, clubbing, lymphadenopathy, or edema noted." : 
+                `Pallor: ${examination.general_pallor ? "Present" : "Absent"}, Icterus: ${examination.general_icterus ? "Present" : "Absent"}, Clubbing: ${examination.general_clubbing ? "Present" : "Absent"}, Lymphadenopathy: ${examination.general_lymphadenopathy ? "Present" : "Absent"}`
+               )
+              }
+            </Text>
+          </View>
           
-          <InfoRow label="CVS" value={examination.cvs_status || "Normal"} />
-          {examination.cvs_additional_notes && (
-            <Text style={styles.examNotes}>{examination.cvs_additional_notes}</Text>
-          )}
+          {/* CVS */}
+          <View style={styles.examSection}>
+            <Text style={styles.examSectionTitle}>Cardiovascular System (CVS): {examination.cvs_status || "Normal"}</Text>
+            <Text style={styles.examDetail}>
+              {examination.cvs_additional_notes || 
+               (examination.cvs_status === "Normal" ? 
+                "S1 S2 heard, normal intensity. No murmurs, gallops, or rubs. JVP not elevated. Peripheral pulses well felt bilaterally." :
+                `S1/S2: ${examination.cvs_s1_s2 || "Normal"}, Pulse: ${examination.cvs_pulse || "-"}, Rate: ${examination.cvs_pulse_rate || "-"} bpm, Added sounds: ${examination.cvs_added_sounds || "None"}, Murmurs: ${examination.cvs_murmurs || "None"}`
+               )
+              }
+            </Text>
+          </View>
           
-          <InfoRow label="Respiratory" value={examination.respiratory_status || "Normal"} />
-          {examination.respiratory_additional_notes && (
-            <Text style={styles.examNotes}>{examination.respiratory_additional_notes}</Text>
-          )}
+          {/* Respiratory */}
+          <View style={styles.examSection}>
+            <Text style={styles.examSectionTitle}>Respiratory System: {examination.respiratory_status || "Normal"}</Text>
+            <Text style={styles.examDetail}>
+              {examination.respiratory_additional_notes || 
+               (examination.respiratory_status === "Normal" ? 
+                "Bilateral equal air entry. Vesicular breath sounds. No wheeze, crackles, or rhonchi. Normal percussion notes." :
+                `Percussion: ${examination.respiratory_percussion || "-"}, Breath sounds: ${examination.respiratory_breath_sounds || "-"}, Added sounds: ${examination.respiratory_added_sounds || "None"}`
+               )
+              }
+            </Text>
+          </View>
           
-          <InfoRow label="Abdomen" value={examination.abdomen_status || "Normal"} />
-          {examination.abdomen_additional_notes && (
-            <Text style={styles.examNotes}>{examination.abdomen_additional_notes}</Text>
-          )}
+          {/* Abdomen */}
+          <View style={styles.examSection}>
+            <Text style={styles.examSectionTitle}>Abdomen: {examination.abdomen_status || "Normal"}</Text>
+            <Text style={styles.examDetail}>
+              {examination.abdomen_additional_notes || 
+               (examination.abdomen_status === "Normal" ? 
+                "Soft, non-distended, non-tender. No guarding or rigidity. No organomegaly. Bowel sounds present and normal." :
+                `Bowel sounds: ${examination.abdomen_bowel_sounds || "-"}, Organomegaly: ${examination.abdomen_organomegaly || "None"}, Tenderness: ${examination.abdomen_tenderness || "None"}`
+               )
+              }
+            </Text>
+          </View>
           
-          <InfoRow label="CNS" value={examination.cns_status || "Normal"} />
-          {examination.cns_additional_notes && (
-            <Text style={styles.examNotes}>{examination.cns_additional_notes}</Text>
-          )}
+          {/* CNS */}
+          <View style={styles.examSection}>
+            <Text style={styles.examSectionTitle}>Central Nervous System: {examination.cns_status || "Normal"}</Text>
+            <Text style={styles.examDetail}>
+              {examination.cns_additional_notes || 
+               (examination.cns_status === "Normal" ? 
+                "Conscious, oriented to time, place, and person. GCS 15/15. Cranial nerves intact. Pupils BERL. Motor power 5/5 in all limbs. Reflexes normal." :
+                `Higher mental: ${examination.cns_higher_mental || "-"}, Cranial nerves: ${examination.cns_cranial_nerves || "-"}, Motor: ${examination.cns_motor_system || "-"}, Sensory: ${examination.cns_sensory_system || "-"}, Reflexes: ${examination.cns_reflexes || "-"}`
+               )
+              }
+            </Text>
+          </View>
           
-          <InfoRow label="Extremities" value={examination.extremities_status || "Normal"} />
-          {examination.extremities_additional_notes && (
-            <Text style={styles.examNotes}>{examination.extremities_additional_notes}</Text>
-          )}
+          {/* Extremities */}
+          <View style={styles.examSection}>
+            <Text style={styles.examSectionTitle}>Extremities: {examination.extremities_status || "Normal"}</Text>
+            <Text style={styles.examDetail}>
+              {examination.extremities_additional_notes || examination.extremities_findings ||
+               (examination.extremities_status === "Normal" ? 
+                "No edema, cyanosis, or clubbing. Peripheral pulses well felt. Full range of motion. No deformity or swelling." :
+                "Abnormal findings documented"
+               )
+              }
+            </Text>
+          </View>
         </Section>
 
         {/* Investigations */}
