@@ -1,6 +1,6 @@
 // CaseSheetScreen_V2.js - Enhanced UI with Dropdowns, Collapsible Sections, Voice Input
 // Features: ABCDE with notes, VBG with AI, Examination dropdowns, Psychological Assessment
-// Now with Streaming Voice Input support
+// Now with Streaming Voice Input support and Swipe Navigation
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
@@ -16,6 +16,9 @@ import {
   KeyboardAvoidingView,
   Platform,
   Modal,
+  PanResponder,
+  Dimensions,
+  Animated,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Audio } from "expo-av";
@@ -24,6 +27,7 @@ import api from "./api"; // Using axios like web app
 
 const API_URL = "https://er-emr-backend.onrender.com/api";
 const WS_URL = "wss://er-emr-backend.onrender.com";
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 // Normal Exam Auto-fill Template - DETAILED examination results
 const NORMAL_EXAM_TEMPLATE = {
