@@ -943,50 +943,96 @@ export default function CaseSheetScreen({ route, navigation }) {
 
   /* ===================== AI DIAGNOSIS FUNCTIONS ===================== */
   const getAIDiagnosisSuggestions = async () => {
+    // Need a saved case ID to use AI features
+    if (!caseId) {
+      Alert.alert(
+        "Save Required", 
+        "Please save the case first before using AI suggestions.",
+        [
+          { text: "Save Now", onPress: () => saveCaseSheet() },
+          { text: "Cancel", style: "cancel" }
+        ]
+      );
+      return;
+    }
+
     const fd = formDataRef.current;
     
-    // Build clinical context
-    const clinicalContext = {
-      age: fd.patient_age,
-      sex: fd.patient_sex,
-      presenting_complaint: fd.complaint_text,
-      vitals: {
-        hr: fd.vitals_hr,
-        rr: fd.vitals_rr,
-        bp: `${fd.vitals_bp_systolic}/${fd.vitals_bp_diastolic}`,
-        spo2: fd.vitals_spo2,
-        temp: fd.vitals_temperature,
-      },
-      history: fd.history_hpi,
-      examination_findings: fd.general_notes || "",
-      current_diagnosis: fd.diagnosis_primary || "",
-    };
-
-    if (!clinicalContext.presenting_complaint && !clinicalContext.history) {
+    // Validate we have some clinical data
+    if (!fd.complaint_text && !fd.history_hpi) {
       Alert.alert("Insufficient Data", "Please enter presenting complaint or history first");
       return;
     }
 
     setAiDiagnosisLoading(true);
     try {
-      // Use axios (same as web app)
+      // Call backend AI endpoint - it expects case_sheet_id and prompt_type
       const response = await api.post('/ai/generate', {
+        case_sheet_id: caseId,
         prompt_type: "diagnosis_suggestions",
-        case_context: clinicalContext,
       });
 
-      setAiDiagnosisResult(response.data.response || response.data.content || "");
+      const aiContent = response.data.response || response.data.content || "";
+      setAiDiagnosisResult(aiContent);
       
       // Extract red flags from response
-      const redFlagMatch = response.data.response?.match(/RED FLAGS?:?([\s\S]*?)(?:SUGGESTED|DIFFERENTIAL|$)/i);
+      const redFlagMatch = aiContent.match(/DON'T MISS|⚠️|RED FLAGS?:?([\s\S]*?)(?:NEXT DIAGNOSTIC|📊|$)/i);
       if (redFlagMatch) {
-        const flags = redFlagMatch[1].split(/[•\-\n]/).filter(f => f.trim().length > 3);
-        setAiRedFlags(flags.slice(0, 5));
+        const flagSection = redFlagMatch[0];
+        const flags = flagSection.split(/[•\n]/).filter(f => f.trim().length > 10 && f.includes(':'));
+        setAiRedFlags(flags.slice(0, 5).map(f => f.trim()));
       }
+      
+      Alert.alert("✅ AI Analysis Complete", "Review the suggestions below");
     } catch (err) {
       console.error("AI Diagnosis error:", err);
-      const errorMsg = err.response?.data?.detail || "Failed to get AI suggestions";
+      const errorDetail = err.response?.data?.detail;
+      let errorMsg = "Failed to get AI suggestions. Please try again.";
+      
+      if (typeof errorDetail === 'object') {
+        errorMsg = errorDetail.message || errorDetail.error || errorMsg;
+        if (errorDetail.upgrade_required) {
+          errorMsg = "AI credits exhausted. Please upgrade your plan.";
+        }
+      } else if (typeof errorDetail === 'string') {
+        errorMsg = errorDetail;
+      }
+      
       Alert.alert("Error", errorMsg);
+    }
+    setAiDiagnosisLoading(false);
+  };
+
+  // Separate function for Red Flags analysis
+  const getAIRedFlags = async () => {
+    if (!caseId) {
+      Alert.alert("Save Required", "Please save the case first before using AI analysis.");
+      return;
+    }
+
+    setAiDiagnosisLoading(true);
+    try {
+      const response = await api.post('/ai/generate', {
+        case_sheet_id: caseId,
+        prompt_type: "red_flags",
+      });
+
+      const aiContent = response.data.response || "";
+      
+      // Parse red flags from response
+      const criticalMatch = aiContent.match(/CRITICAL|🚨|RED FLAGS?:?([\s\S]*?)(?:RECOMMENDATIONS|ACTION|$)/i);
+      if (criticalMatch) {
+        const flags = aiContent.split(/[•\n]/).filter(f => 
+          f.trim().length > 10 && (f.includes('🚨') || f.includes('⚠️') || f.includes('CRITICAL'))
+        );
+        setAiRedFlags(flags.slice(0, 8).map(f => f.trim()));
+      }
+      
+      setAiDiagnosisResult(aiContent);
+      Alert.alert("✅ Red Flags Analysis Complete", "Review critical findings below");
+    } catch (err) {
+      console.error("AI Red Flags error:", err);
+      Alert.alert("Error", err.response?.data?.detail?.message || "Failed to analyze red flags");
     }
     setAiDiagnosisLoading(false);
   };
