@@ -307,7 +307,7 @@ export default function DischargeSummaryNew() {
           {/* MLC & Allergy */}
           <div className="mb-3 grid grid-cols-2 gap-4 text-sm">
             <div><span className="font-semibold">MLC:</span> {caseData.patient?.mlc ? 'Yes' : 'No'}</div>
-            <div><span className="font-semibold">Allergy:</span> {caseData.history?.allergies?.join(', ') || caseData.sample?.allergies?.join(', ') || 'NKDA'}</div>
+            <div><span className="font-semibold">Allergy:</span> {caseData.history?.allergies?.join(', ') || 'NKDA'}</div>
           </div>
 
           {/* Vitals at Arrival - Single Line */}
