@@ -1759,6 +1759,56 @@ export default function CaseSheetScreen({ route, navigation }) {
 
   // Tab navigation order
   const TAB_ORDER = ["patient", "primary", "history", "exam", "treatment", "notes", "disposition"];
+  
+  // Swipe Animation
+  const swipeAnim = useRef(new Animated.Value(0)).current;
+  
+  // Swipe Gesture Handler for Tab Navigation
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        // Only activate for horizontal swipes
+        const { dx, dy } = gestureState;
+        return Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 20;
+      },
+      onPanResponderMove: (_, gestureState) => {
+        // Visual feedback during swipe
+        swipeAnim.setValue(gestureState.dx);
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        const { dx, vx } = gestureState;
+        const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.25; // 25% of screen width
+        const VELOCITY_THRESHOLD = 0.3;
+        
+        // Check if swipe is strong enough
+        if (Math.abs(dx) > SWIPE_THRESHOLD || Math.abs(vx) > VELOCITY_THRESHOLD) {
+          if (dx > 0) {
+            // Swipe right -> Previous tab
+            goToPrevious();
+          } else {
+            // Swipe left -> Next tab
+            goToNext();
+          }
+        }
+        
+        // Reset animation
+        Animated.spring(swipeAnim, {
+          toValue: 0,
+          useNativeDriver: true,
+          friction: 8,
+        }).start();
+      },
+    })
+  ).current;
+  
+  // Simple next/prev navigation (without saving)
+  const goToNext = () => {
+    const currentIndex = TAB_ORDER.indexOf(activeTab);
+    if (currentIndex < TAB_ORDER.length - 1) {
+      setActiveTab(TAB_ORDER[currentIndex + 1]);
+    }
+  };
 
   const proceedNext = async () => {
     // Save if not saved yet and has patient name
