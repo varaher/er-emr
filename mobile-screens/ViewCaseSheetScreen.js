@@ -781,6 +781,23 @@ const styles = StyleSheet.create({
     marginBottom: 6,
     fontStyle: "italic",
   },
+  examSection: {
+    marginBottom: 12,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f1f5f9",
+  },
+  examSectionTitle: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#1e293b",
+    marginBottom: 4,
+  },
+  examDetail: {
+    fontSize: 12,
+    color: "#475569",
+    lineHeight: 18,
+  },
   addendumItem: {
     marginBottom: 12,
     paddingBottom: 12,
