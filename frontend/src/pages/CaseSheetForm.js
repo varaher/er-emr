@@ -87,6 +87,10 @@ export default function CaseSheetForm() {
   const addendumTimerRef = useRef(null);
   const [addendumReminderCount, setAddendumReminderCount] = useState(0);
   
+  // FIX: Use ref for autosave to prevent interval reset on every formData change
+  // Initialize with null, will be updated via useEffect after formData is declared
+  const formDataRef = useRef(null);
+  
   // Tab navigation - UPDATED to include notes tab
   const tabs = ['patient', 'vitals', 'primary', 'history', 'examination', 'investigations', 'treatment', 'notes'];
   const currentTabIndex = tabs.indexOf(activeTab);
