@@ -117,6 +117,32 @@ export default function DischargeSummaryNew() {
     fetchCaseData();
   }, [caseId]);
 
+  // FIX: Auto-populate discharge data when caseData is loaded
+  useEffect(() => {
+    if (caseData) {
+      const treatment = caseData.treatment || {};
+      const drugs = caseData.drugs_administered || [];
+      const disposition = caseData.disposition || {};
+      
+      // Build drug list from drugs_administered
+      let drugList = '';
+      if (drugs.length > 0) {
+        drugList = drugs.map(d => `${d.name} ${d.dose || ''} ${d.time ? `@ ${d.time}` : ''}`).join('\n');
+      } else if (treatment.intervention_notes) {
+        drugList = treatment.intervention_notes;
+      }
+      
+      // Auto-populate discharge medications and follow-up advice
+      setDischargeData(prev => ({
+        ...prev,
+        discharge_medications: prev.discharge_medications || drugList,
+        follow_up_advice: prev.follow_up_advice || disposition.advice || '',
+        ed_resident: prev.ed_resident || caseData.em_resident || '',
+        ed_consultant: prev.ed_consultant || caseData.em_consultant || ''
+      }));
+    }
+  }, [caseData]);
+
   const fetchCaseData = async () => {
     try {
       setLoading(true);
