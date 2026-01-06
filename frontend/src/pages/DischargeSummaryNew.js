@@ -11,6 +11,91 @@ import { VoiceTextarea } from '@/components/VoiceTextInput';
 import { toast } from 'sonner';
 import { ArrowLeft, Save, Printer, Download, Mic } from 'lucide-react';
 
+/**
+ * Generate comprehensive Course in ER summary from case sheet data
+ * Template: "The patient presented to the Emergency Department with the above complaints. 
+ * Initial triage and assessment were performed. Necessary investigations were initiated, 
+ * and appropriate treatment was given. The patient was monitored in the ER, showed clinical 
+ * improvement, and remained stable throughout the stay."
+ */
+const generateCourseInER = (caseData) => {
+  if (!caseData) return "The patient presented to the Emergency Department with the above complaints. Initial triage and assessment were performed. Necessary investigations were initiated, and appropriate treatment was given. The patient was monitored in the ER, showed clinical improvement, and remained stable throughout the stay.";
+  
+  const { treatment, disposition, er_observation, investigations } = caseData;
+  const parts = [];
+
+  // 1. Opening - Chief complaint
+  if (caseData.presenting_complaint?.text) {
+    parts.push(`The patient presented to the Emergency Department with ${caseData.presenting_complaint.text}.`);
+  } else {
+    parts.push("The patient presented to the Emergency Department with the above complaints.");
+  }
+
+  // 2. Triage and Assessment
+  parts.push("Initial triage and assessment were performed.");
+
+  // 3. Investigations
+  const inv = investigations;
+  if (inv?.panels_selected?.length || inv?.imaging?.length) {
+    const invList = [...(inv.panels_selected || []), ...(inv.imaging || [])].join(', ');
+    parts.push(`Necessary investigations (${invList}) were initiated.`);
+  } else {
+    parts.push("Necessary investigations were initiated.");
+  }
+
+  // 4. Treatment
+  if (treatment?.intervention_notes) {
+    parts.push(`Appropriate treatment was given: ${treatment.intervention_notes}.`);
+  } else {
+    parts.push("Appropriate treatment was given.");
+  }
+
+  // 5. Drugs administered
+  const drugs = caseData.drugs_administered || [];
+  if (drugs.length) {
+    const drugList = drugs.map(d => `${d.name} ${d.dose}`).join(', ');
+    parts.push(`Medications administered: ${drugList}.`);
+  }
+
+  // 6. Procedures
+  const procs = caseData.procedures_performed || [];
+  if (procs.length) {
+    const procList = procs.map(p => p.name).join(', ');
+    parts.push(`Procedures performed: ${procList}.`);
+  }
+
+  // 7. ER observation
+  if (er_observation?.duration) {
+    parts.push(`The patient was monitored in the ER for ${er_observation.duration}.`);
+  } else {
+    parts.push("The patient was monitored in the ER.");
+  }
+
+  // 8. Outcome based on disposition
+  const dispositionOutcome = {
+    "discharged": "Patient showed clinical improvement and remained stable throughout the stay.",
+    "admitted-icu": "Patient required ICU admission for further monitoring and management.",
+    "admitted-hdu": "Patient required HDU admission for close monitoring.",
+    "admitted-ward": "Patient was stabilized and admitted to ward for further care.",
+    "referred": "Patient was stabilized and referred to a higher center for specialized care.",
+    "dama": "Patient opted to leave against medical advice after being counseled about risks.",
+    "death": "Despite resuscitative efforts, the patient could not be revived."
+  };
+  
+  if (disposition?.type && dispositionOutcome[disposition.type]) {
+    parts.push(dispositionOutcome[disposition.type]);
+  } else {
+    parts.push("Patient showed clinical improvement and remained stable throughout the stay.");
+  }
+
+  // 9. Diagnosis (if available)
+  if (treatment?.provisional_diagnoses?.length) {
+    parts.push(`Final diagnosis: ${treatment.provisional_diagnoses.join(', ')}.`);
+  }
+
+  return parts.join(' ');
+};
+
 export default function DischargeSummaryNew() {
   const navigate = useNavigate();
   const { caseId } = useParams();
