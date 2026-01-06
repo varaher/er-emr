@@ -3596,6 +3596,19 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 8,
   },
+  swipeHint: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#f1f5f9",
+    paddingVertical: 4,
+    gap: 8,
+  },
+  swipeHintText: {
+    fontSize: 11,
+    color: "#94a3b8",
+    fontStyle: "italic",
+  },
   tabBtn: {
     flexDirection: "row",
     alignItems: "center",
