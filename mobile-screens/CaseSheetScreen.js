@@ -2249,11 +2249,10 @@ export default function CaseSheetScreen({ route, navigation }) {
         {/* Voice Settings Modal */}
         <VoiceSettingsModal />
 
-        {/* Tabs */}
+        {/* Tabs with Swipe Indicator */}
         <View style={styles.tabBar}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <TabButton id="patient" label="Patient" icon="person" />
-            <TabButton id="vitals" label="Vitals" icon="heart" />
             <TabButton id="primary" label="Primary" icon="fitness" />
             <TabButton id="history" label="History" icon="document-text" />
             <TabButton id="exam" label="Exam" icon="body" />
@@ -2262,8 +2261,20 @@ export default function CaseSheetScreen({ route, navigation }) {
             <TabButton id="disposition" label="Disposition" icon="exit" />
           </ScrollView>
         </View>
+        
+        {/* Swipe Hint */}
+        <View style={styles.swipeHint}>
+          <Ionicons name="chevron-back" size={16} color="#94a3b8" />
+          <Text style={styles.swipeHintText}>Swipe left/right to navigate</Text>
+          <Ionicons name="chevron-forward" size={16} color="#94a3b8" />
+        </View>
 
-        <ScrollView style={styles.content} keyboardShouldPersistTaps="handled">
+        {/* Main Content with Swipe Gesture */}
+        <Animated.View 
+          style={{ flex: 1, transform: [{ translateX: swipeAnim }] }}
+          {...panResponder.panHandlers}
+        >
+          <ScrollView style={styles.content} keyboardShouldPersistTaps="handled">
           
           {/* ==================== PATIENT TAB ==================== */}
           {activeTab === "patient" && (
