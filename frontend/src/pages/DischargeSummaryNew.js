@@ -377,7 +377,7 @@ export default function DischargeSummaryNew() {
           {/* Course in Hospital */}
           <div className="mb-3">
             <p className="font-semibold text-sm mb-1">Course in Hospital with Medications and Procedure:</p>
-            <p className="text-sm whitespace-pre-wrap">{caseData.treatment?.course_in_hospital || 'N/A'}</p>
+            <p className="text-sm whitespace-pre-wrap">{caseData.treatment?.course_in_hospital || caseData.er_observation?.notes || generateCourseInER(caseData)}</p>
           </div>
 
           {/* Investigations */}
