@@ -1899,6 +1899,49 @@ async def update_case(
     
     return updated_case
 
+@api_router.get("/cases/{case_id}/edit-status")
+async def get_case_edit_status(case_id: str, current_user: UserResponse = Depends(get_current_user)):
+    """
+    Check if a case can be edited based on subscription and edit count.
+    Returns edit status, remaining edits, and subscription info.
+    """
+    case = await db.cases.find_one({"id": case_id}, {"_id": 0, "edit_count": 1, "is_locked": 1})
+    if not case:
+        raise HTTPException(status_code=404, detail="Case not found")
+    
+    edit_count = case.get('edit_count', 0)
+    is_locked = case.get('is_locked', False)
+    user_tier = current_user.subscription_tier
+    
+    FREE_EDIT_LIMIT = 2
+    
+    # Determine edit status
+    can_edit = True
+    edits_remaining = -1  # -1 means unlimited
+    reason = None
+    
+    if is_locked:
+        can_edit = False
+        edits_remaining = 0
+        reason = "Case is locked for legal/audit compliance"
+    elif user_tier == "free":
+        edits_remaining = max(0, FREE_EDIT_LIMIT - edit_count)
+        if edit_count >= FREE_EDIT_LIMIT:
+            can_edit = False
+            reason = f"Free plan allows {FREE_EDIT_LIMIT} edits per case"
+    
+    return {
+        "case_id": case_id,
+        "can_edit": can_edit,
+        "edit_count": edit_count,
+        "edits_remaining": edits_remaining,
+        "free_edit_limit": FREE_EDIT_LIMIT,
+        "is_locked": is_locked,
+        "subscription_tier": user_tier,
+        "reason": reason,
+        "upgrade_required": not can_edit and not is_locked
+    }
+
 @api_router.delete("/cases/{case_id}")
 async def delete_case(case_id: str, current_user: UserResponse = Depends(get_current_user)):
     result = await db.cases.delete_one({"id": case_id})
