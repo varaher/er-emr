@@ -1826,6 +1826,25 @@ async def update_case(
             detail="Case is locked and cannot be edited. This is for legal and audit compliance. Use addendum feature to add additional notes."
         )
     
+    # Check edit count for subscription-based limits
+    edit_count = case.get('edit_count', 0)
+    user_tier = current_user.subscription_tier
+    
+    # Free users get 2 free edits per case sheet
+    FREE_EDIT_LIMIT = 2
+    
+    if user_tier == "free" and edit_count >= FREE_EDIT_LIMIT:
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "error": "edit_limit_reached",
+                "message": f"Free plan allows {FREE_EDIT_LIMIT} edits per case. Please upgrade for unlimited edits.",
+                "edit_count": edit_count,
+                "limit": FREE_EDIT_LIMIT,
+                "upgrade_required": True
+            }
+        )
+    
     # Validate custom timestamp if provided
     save_timestamp = datetime.now(timezone.utc)
     if custom_timestamp:
