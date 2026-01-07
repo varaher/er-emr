@@ -2804,66 +2804,85 @@ Disability: AVPU {case['primary_assessment'].get('disability_avpu', 'Alert')} | 
 Keep responses CONCISE and ACTIONABLE. Focus on what ER doctor should DO right now. Reference Indian protocols where applicable (NICE, ACLS, ATLS).
 """
     elif request.prompt_type == "diagnosis_suggestions":
+        # Get comprehensive patient context
+        patient_age = case['patient'].get('age', 'Unknown')
+        patient_sex = case['patient'].get('sex', 'Unknown')
+        case_type = case.get('case_type', 'adult')
+        
+        past_medical = case['history'].get('past_medical', [])
+        drug_history = case['history'].get('drug_history', '')
+        family_history = case['history'].get('family_history', '')
+        hopi = case['history'].get('hpi', case['history'].get('events_hopi', ''))
+        
+        # Get examination findings
+        exam = case.get('examination', {})
+        general_notes = exam.get('general_additional_notes', exam.get('general_notes', ''))
+        cvs_notes = exam.get('cvs_additional_notes', '')
+        resp_notes = exam.get('respiratory_additional_notes', '')
+        abd_notes = exam.get('abdomen_additional_notes', '')
+        cns_notes = exam.get('cns_additional_notes', '')
+        
         prompt = f"""
-You are an expert emergency medicine physician. Provide evidence-based DIFFERENTIAL DIAGNOSIS suggestions for this case.
+You are a senior emergency medicine consultant providing DIFFERENTIAL DIAGNOSIS analysis.
 
-=== PATIENT PRESENTATION ===
+=== PATIENT PROFILE ===
+Age: {patient_age} | Sex: {patient_sex} | Type: {case_type.upper()}
+
+=== PRESENTING COMPLAINT ===
 Chief Complaint: {case['presenting_complaint']['text']}
 Duration: {case['presenting_complaint'].get('duration', 'Not specified')}
 Onset: {case['presenting_complaint'].get('onset_type', 'Not specified')}
+Course: {case['presenting_complaint'].get('course', 'Not specified')}
 
-Vital Signs:
-• HR: {case['vitals_at_arrival'].get('hr', 'N/A')} bpm
-• BP: {case['vitals_at_arrival'].get('bp_systolic', 'N/A')}/{case['vitals_at_arrival'].get('bp_diastolic', 'N/A')} mmHg  
-• RR: {case['vitals_at_arrival'].get('rr', 'N/A')} /min
-• SpO2: {case['vitals_at_arrival'].get('spo2', 'N/A')}%
-• Temperature: {case['vitals_at_arrival'].get('temperature', 'N/A')}°C
+=== HISTORY ===
+HPI: {hopi if hopi else 'Not documented'}
+Past Medical: {', '.join(past_medical) if past_medical else 'None'}
+Drug History: {drug_history if drug_history else 'None'}
+Family History: {family_history if family_history else 'Non-contributory'}
 
-History of Present Illness:
-{case['history'].get('hpi', 'Not documented')}
+=== VITALS ===
+HR: {case['vitals_at_arrival'].get('hr', 'N/A')} | BP: {case['vitals_at_arrival'].get('bp_systolic', 'N/A')}/{case['vitals_at_arrival'].get('bp_diastolic', 'N/A')} | RR: {case['vitals_at_arrival'].get('rr', 'N/A')}
+SpO2: {case['vitals_at_arrival'].get('spo2', 'N/A')}% | Temp: {case['vitals_at_arrival'].get('temperature', 'N/A')}°C | GCS: {(case['vitals_at_arrival'].get('gcs_e', 0) or 0) + (case['vitals_at_arrival'].get('gcs_v', 0) or 0) + (case['vitals_at_arrival'].get('gcs_m', 0) or 0)}/15
 
-Past Medical History: {', '.join(case['history'].get('past_medical', ['None documented']))}
+=== EXAMINATION ===
+General: {general_notes if general_notes else case.get('examination', {}).get('general_status', 'Not documented')}
+CVS: {cvs_notes if cvs_notes else exam.get('cvs_status', 'Normal')}
+Respiratory: {resp_notes if resp_notes else exam.get('respiratory_status', 'Normal')}
+Abdomen: {abd_notes if abd_notes else exam.get('abdomen_status', 'Normal')}
+CNS: {cns_notes if cns_notes else exam.get('cns_status', 'Normal')}
 
-Examination:
-General: {case['examination'].get('general_notes', 'Not documented')}
-Respiratory: {case['examination'].get('respiratory_summary', 'Not documented')}
-CVS: {case['examination'].get('cvs_summary', 'Not documented')}
-Abdomen: {case['examination'].get('abdomen_summary', 'Not documented')}
+=== PROVIDE STRUCTURED DIFFERENTIAL DIAGNOSIS ===
 
-=== REQUIRED OUTPUT FORMAT ===
+🎯 TOP 3 DIFFERENTIAL DIAGNOSES:
 
-🎯 MOST LIKELY DIAGNOSES (in order of probability):
+1️⃣ [MOST LIKELY] _____
+   • Supporting features: [List 2-3 key findings from THIS patient that support this diagnosis]
+   • To confirm: [Specific test - e.g., "Troponin + ECG" not generic "cardiac workup"]
+   • Initial Rx: [If confirmed, what to start immediately]
 
-1. [Diagnosis Name]
-   📌 Why: [Key supporting features]
-   🔬 To confirm: [Specific tests/findings needed]
-   ⚡ If this: [Key management step]
-   📚 Reference: [Clinical guideline or study]
+2️⃣ [CONSIDER] _____
+   • Supporting features: [Findings supporting this]
+   • To confirm: [Specific test]
+   • Initial Rx: [If confirmed]
 
-2. [Diagnosis Name]
-   📌 Why: [Key supporting features]
-   🔬 To confirm: [Specific tests/findings needed]
-   ⚡ If this: [Key management step]
-   📚 Reference: [Clinical guideline or study]
+3️⃣ [RULE OUT] _____
+   • Supporting features: [Findings suggesting this]
+   • To confirm: [Specific test]
+   • Initial Rx: [If confirmed]
 
-3. [Continue for 4-6 differential diagnoses, each with reference]
+⚠️ MUST NOT MISS:
+[1-2 dangerous diagnoses that MUST be ruled out even if unlikely - with specific test to exclude]
 
-⚠️ DON'T MISS (Rule these out):
-• [Dangerous diagnosis 1]: [Why to consider / How to rule out] [Reference guideline]
-• [Dangerous diagnosis 2]: [Why to consider / How to rule out] [Reference guideline]
+📊 RECOMMENDED WORKUP:
+[Prioritized list of 4-6 investigations with expected findings. Be specific: "ECG looking for ST changes" not just "ECG"]
 
-📊 NEXT DIAGNOSTIC STEPS (Priority order):
-1. [Test/Exam]
-2. [Test/Exam]
-3. [Test/Exam]
+💊 EMPIRICAL TREATMENT:
+[If diagnosis uncertain, what can be started safely while awaiting workup? Include doses for Indian setting]
 
-💡 CLINICAL PEARLS:
-[Any helpful clinical tips or patterns that apply to this case]
+📝 WORKING DIAGNOSIS:
+[Single line - what would you write as provisional diagnosis based on current info?]
 
-📚 KEY REFERENCES:
-List the main clinical guidelines, studies, or protocols used in this analysis (e.g., "AHA/ACC Chest Pain Guidelines 2021", "NICE Guidelines", "UpToDate", etc.)
-
-Be specific, practical, and help the ER doctor think through the case systematically. Base all recommendations on current evidence-based medicine and cite relevant guidelines.
+Be SPECIFIC to this patient. Avoid generic differentials. Focus on practical ER decision-making.
 """
     else:
         raise HTTPException(status_code=400, detail="Invalid prompt type")
