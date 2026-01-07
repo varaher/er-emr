@@ -1803,11 +1803,32 @@ export default function CaseSheetScreen({ route, navigation }) {
     }
   };
 
-  // Tab navigation order
+  // Tab navigation order - matches the tab buttons
   const TAB_ORDER = ["patient", "primary", "history", "exam", "treatment", "notes", "disposition"];
+  
+  // Use ref to track current tab for swipe handlers (avoids stale closure)
+  const activeTabRef = useRef(activeTab);
+  useEffect(() => {
+    activeTabRef.current = activeTab;
+  }, [activeTab]);
   
   // Swipe Animation
   const swipeAnim = useRef(new Animated.Value(0)).current;
+  
+  // Simple next/prev navigation functions using ref
+  const goToNextTab = useCallback(() => {
+    const currentIndex = TAB_ORDER.indexOf(activeTabRef.current);
+    if (currentIndex < TAB_ORDER.length - 1) {
+      setActiveTab(TAB_ORDER[currentIndex + 1]);
+    }
+  }, []);
+  
+  const goToPrevTab = useCallback(() => {
+    const currentIndex = TAB_ORDER.indexOf(activeTabRef.current);
+    if (currentIndex > 0) {
+      setActiveTab(TAB_ORDER[currentIndex - 1]);
+    }
+  }, []);
   
   // Swipe Gesture Handler for Tab Navigation
   const panResponder = useRef(
@@ -1824,17 +1845,17 @@ export default function CaseSheetScreen({ route, navigation }) {
       },
       onPanResponderRelease: (_, gestureState) => {
         const { dx, vx } = gestureState;
-        const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.25; // 25% of screen width
+        const SWIPE_THRESHOLD = 80; // Fixed threshold in pixels
         const VELOCITY_THRESHOLD = 0.3;
         
         // Check if swipe is strong enough
         if (Math.abs(dx) > SWIPE_THRESHOLD || Math.abs(vx) > VELOCITY_THRESHOLD) {
           if (dx > 0) {
             // Swipe right -> Previous tab
-            goToPrevious();
+            goToPrevTab();
           } else {
             // Swipe left -> Next tab
-            goToNext();
+            goToNextTab();
           }
         }
         
@@ -1848,7 +1869,7 @@ export default function CaseSheetScreen({ route, navigation }) {
     })
   ).current;
   
-  // Simple next/prev navigation (without saving)
+  // Simple next/prev navigation (without saving) - for button use
   const goToNext = () => {
     const currentIndex = TAB_ORDER.indexOf(activeTab);
     if (currentIndex < TAB_ORDER.length - 1) {
