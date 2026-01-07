@@ -8,7 +8,7 @@
 ### New Features Implemented:
 
 #### 1. Hospital-Specific Triage System (Priority I-V)
-**File:** `TriageScreen.js` (Complete Rewrite)
+**File:** `TriageScreen.js` (Complete Rewrite - Updated)
 
 Based on hospital's TRIAGE.pdf protocol, implementing 5-level priority system:
 
@@ -25,7 +25,10 @@ Based on hospital's TRIAGE.pdf protocol, implementing 5-level priority system:
 - Interactive condition checkboxes that auto-calculate priority
 - Real-time vital signs analysis with automatic priority escalation
 - Pediatric-specific criteria: CRT, fever thresholds by age, GRBS in infants
-- Voice input with AI extraction
+- Voice input with AI-powered extraction (uses `/api/ai/extract-triage-data`)
+- **Triage result card shown at BOTTOM** (not top)
+- **"Go to Case Sheet" button** (auto-creates case and navigates directly)
+- Auto-fills patient info from voice (name, age, sex, vitals, chief complaint)
 
 #### 2. Comprehensive Discharge Summary Export
 **File:** `DischargeSummaryScreen.js`
