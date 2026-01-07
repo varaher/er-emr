@@ -1873,6 +1873,9 @@ async def update_case(
     update_data = case_update.model_dump(exclude_unset=True)
     update_data['updated_at'] = save_timestamp.isoformat()
     
+    # Increment edit count
+    update_data['edit_count'] = edit_count + 1
+    
     if custom_timestamp:
         update_data['custom_save_timestamp'] = save_timestamp.isoformat()
     
