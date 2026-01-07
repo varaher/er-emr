@@ -4507,6 +4507,77 @@ const styles = StyleSheet.create({
     flex: 1,
     lineHeight: 18,
   },
+  // Structured Flag Sections
+  criticalFlagsSection: {
+    backgroundColor: "#fee2e2",
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 10,
+    borderLeftWidth: 4,
+    borderLeftColor: "#dc2626",
+  },
+  flagSectionTitle: {
+    fontSize: 12,
+    fontWeight: "800",
+    color: "#dc2626",
+    marginBottom: 6,
+  },
+  criticalFlagItem: {
+    marginBottom: 4,
+    paddingLeft: 8,
+  },
+  criticalFlagText: {
+    fontSize: 13,
+    color: "#7f1d1d",
+    fontWeight: "600",
+    lineHeight: 18,
+  },
+  urgentFlagsSection: {
+    backgroundColor: "#fff7ed",
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 10,
+    borderLeftWidth: 4,
+    borderLeftColor: "#f97316",
+  },
+  flagSectionTitleOrange: {
+    fontSize: 12,
+    fontWeight: "800",
+    color: "#ea580c",
+    marginBottom: 6,
+  },
+  urgentFlagItem: {
+    marginBottom: 4,
+    paddingLeft: 8,
+  },
+  urgentFlagText: {
+    fontSize: 13,
+    color: "#9a3412",
+    lineHeight: 18,
+  },
+  actionFlagsSection: {
+    backgroundColor: "#eff6ff",
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 10,
+    borderLeftWidth: 4,
+    borderLeftColor: "#2563eb",
+  },
+  flagSectionTitleBlue: {
+    fontSize: 12,
+    fontWeight: "800",
+    color: "#1d4ed8",
+    marginBottom: 6,
+  },
+  actionFlagItem: {
+    marginBottom: 4,
+    paddingLeft: 8,
+  },
+  actionFlagText: {
+    fontSize: 13,
+    color: "#1e40af",
+    lineHeight: 18,
+  },
   
   // Drug Section Styles
   drugSection: { 
