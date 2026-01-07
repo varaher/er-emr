@@ -966,7 +966,7 @@ export default function CaseSheetScreen({ route, navigation }) {
 
     setAiDiagnosisLoading(true);
     try {
-      // Call backend AI endpoint - it expects case_sheet_id and prompt_type
+      // Call backend AI endpoint
       const response = await api.post('/ai/generate', {
         case_sheet_id: caseId,
         prompt_type: "diagnosis_suggestions",
@@ -975,15 +975,29 @@ export default function CaseSheetScreen({ route, navigation }) {
       const aiContent = response.data.response || response.data.content || "";
       setAiDiagnosisResult(aiContent);
       
-      // Extract red flags from response
-      const redFlagMatch = aiContent.match(/DON'T MISS|⚠️|RED FLAGS?:?([\s\S]*?)(?:NEXT DIAGNOSTIC|📊|$)/i);
-      if (redFlagMatch) {
-        const flagSection = redFlagMatch[0];
-        const flags = flagSection.split(/[•\n]/).filter(f => f.trim().length > 10 && f.includes(':'));
-        setAiRedFlags(flags.slice(0, 5).map(f => f.trim()));
+      // Extract working diagnosis to auto-fill
+      const workingDxMatch = aiContent.match(/WORKING DIAGNOSIS:?\s*\n?([^\n]+)/i);
+      if (workingDxMatch && workingDxMatch[1]) {
+        const suggestedDx = workingDxMatch[1].trim().replace(/^[\[\]•\-\s]+/, '');
+        if (suggestedDx && suggestedDx.length > 3) {
+          Alert.alert(
+            "AI Suggestion",
+            `Suggested working diagnosis:\n\n"${suggestedDx}"\n\nWould you like to use this as your provisional diagnosis?`,
+            [
+              { 
+                text: "Yes, Use It", 
+                onPress: () => {
+                  formDataRef.current.diagnosis_primary = suggestedDx;
+                  forceUpdate();
+                }
+              },
+              { text: "No, Thanks", style: "cancel" }
+            ]
+          );
+        }
+      } else {
+        Alert.alert("✅ AI Analysis Complete", "Review the differential diagnosis below");
       }
-      
-      Alert.alert("✅ AI Analysis Complete", "Review the suggestions below");
     } catch (err) {
       console.error("AI Diagnosis error:", err);
       const errorDetail = err.response?.data?.detail;
@@ -1019,17 +1033,65 @@ export default function CaseSheetScreen({ route, navigation }) {
 
       const aiContent = response.data.response || "";
       
-      // Parse red flags from response
-      const criticalMatch = aiContent.match(/CRITICAL|🚨|RED FLAGS?:?([\s\S]*?)(?:RECOMMENDATIONS|ACTION|$)/i);
-      if (criticalMatch) {
-        const flags = aiContent.split(/[•\n]/).filter(f => 
-          f.trim().length > 10 && (f.includes('🚨') || f.includes('⚠️') || f.includes('CRITICAL'))
-        );
-        setAiRedFlags(flags.slice(0, 8).map(f => f.trim()));
+      // Parse structured red flags from response
+      const parsedFlags = [];
+      
+      // Extract critical red flags
+      const criticalSection = aiContent.match(/🚨\s*CRITICAL[^:]*:?\s*([\s\S]*?)(?=⚠️|⚡|🔍|📋|$)/i);
+      if (criticalSection && criticalSection[1]) {
+        const criticalItems = criticalSection[1].split(/[\n•\-]/).filter(f => f.trim().length > 5);
+        criticalItems.forEach(item => {
+          if (item.trim()) parsedFlags.push({ type: 'critical', text: item.trim() });
+        });
       }
       
+      // Extract urgent concerns
+      const urgentSection = aiContent.match(/⚠️\s*URGENT[^:]*:?\s*([\s\S]*?)(?=⚡|🔍|📋|$)/i);
+      if (urgentSection && urgentSection[1]) {
+        const urgentItems = urgentSection[1].split(/[\n•\-]/).filter(f => f.trim().length > 5);
+        urgentItems.forEach(item => {
+          if (item.trim()) parsedFlags.push({ type: 'urgent', text: item.trim() });
+        });
+      }
+      
+      // Extract immediate actions
+      const actionsSection = aiContent.match(/⚡\s*IMMEDIATE[^:]*:?\s*([\s\S]*?)(?=🔍|📋|$)/i);
+      if (actionsSection && actionsSection[1]) {
+        const actionItems = actionsSection[1].split(/[\n•\-\d\.]/).filter(f => f.trim().length > 5);
+        actionItems.forEach(item => {
+          if (item.trim()) parsedFlags.push({ type: 'action', text: item.trim() });
+        });
+      }
+      
+      // If parsing didn't work well, fall back to simple extraction
+      if (parsedFlags.length === 0) {
+        const allFlags = aiContent.split(/[\n•]/).filter(f => 
+          f.trim().length > 10 && (
+            f.includes('🚨') || f.includes('⚠️') || 
+            f.toLowerCase().includes('rule out') ||
+            f.toLowerCase().includes('critical') ||
+            f.toLowerCase().includes('urgent')
+          )
+        );
+        allFlags.slice(0, 8).forEach(f => {
+          parsedFlags.push({ type: 'general', text: f.trim() });
+        });
+      }
+      
+      setAiRedFlags(parsedFlags.slice(0, 10));
       setAiDiagnosisResult(aiContent);
-      Alert.alert("✅ Red Flags Analysis Complete", "Review critical findings below");
+      
+      if (parsedFlags.length > 0) {
+        const criticalCount = parsedFlags.filter(f => f.type === 'critical').length;
+        Alert.alert(
+          "✅ Red Flags Analysis Complete", 
+          criticalCount > 0 
+            ? `Found ${criticalCount} CRITICAL finding(s). Review carefully!`
+            : "Review the analysis below"
+        );
+      } else {
+        Alert.alert("✅ Analysis Complete", "No critical red flags identified based on current data");
+      }
     } catch (err) {
       console.error("AI Red Flags error:", err);
       Alert.alert("Error", err.response?.data?.detail?.message || "Failed to analyze red flags");
