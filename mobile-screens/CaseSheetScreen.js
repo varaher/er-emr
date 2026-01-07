@@ -1815,20 +1815,9 @@ export default function CaseSheetScreen({ route, navigation }) {
   // Swipe Animation
   const swipeAnim = useRef(new Animated.Value(0)).current;
   
-  // Simple next/prev navigation functions using ref
-  const goToNextTab = useCallback(() => {
-    const currentIndex = TAB_ORDER.indexOf(activeTabRef.current);
-    if (currentIndex < TAB_ORDER.length - 1) {
-      setActiveTab(TAB_ORDER[currentIndex + 1]);
-    }
-  }, []);
-  
-  const goToPrevTab = useCallback(() => {
-    const currentIndex = TAB_ORDER.indexOf(activeTabRef.current);
-    if (currentIndex > 0) {
-      setActiveTab(TAB_ORDER[currentIndex - 1]);
-    }
-  }, []);
+  // Navigation function refs - will be set after definition
+  const goToNextTabRef = useRef(null);
+  const goToPrevTabRef = useRef(null);
   
   // Swipe Gesture Handler for Tab Navigation
   const panResponder = useRef(
@@ -1852,10 +1841,10 @@ export default function CaseSheetScreen({ route, navigation }) {
         if (Math.abs(dx) > SWIPE_THRESHOLD || Math.abs(vx) > VELOCITY_THRESHOLD) {
           if (dx > 0) {
             // Swipe right -> Previous tab
-            goToPrevTab();
+            if (goToPrevTabRef.current) goToPrevTabRef.current();
           } else {
             // Swipe left -> Next tab
-            goToNextTab();
+            if (goToNextTabRef.current) goToNextTabRef.current();
           }
         }
         
@@ -1868,6 +1857,27 @@ export default function CaseSheetScreen({ route, navigation }) {
       },
     })
   ).current;
+  
+  // Navigation functions - use activeTabRef for current value
+  const goToNextTab = useCallback(() => {
+    const currentIndex = TAB_ORDER.indexOf(activeTabRef.current);
+    if (currentIndex < TAB_ORDER.length - 1) {
+      setActiveTab(TAB_ORDER[currentIndex + 1]);
+    }
+  }, []);
+  
+  const goToPrevTab = useCallback(() => {
+    const currentIndex = TAB_ORDER.indexOf(activeTabRef.current);
+    if (currentIndex > 0) {
+      setActiveTab(TAB_ORDER[currentIndex - 1]);
+    }
+  }, []);
+  
+  // Set the refs after functions are defined
+  useEffect(() => {
+    goToNextTabRef.current = goToNextTab;
+    goToPrevTabRef.current = goToPrevTab;
+  }, [goToNextTab, goToPrevTab]);
   
   // Simple next/prev navigation (without saving) - for button use
   const goToNext = () => {
