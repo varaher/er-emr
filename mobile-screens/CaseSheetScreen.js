@@ -3345,19 +3345,59 @@ export default function CaseSheetScreen({ route, navigation }) {
                   </TouchableOpacity>
                 </View>
 
-                {/* Red Flags Section */}
+                {/* Red Flags Section - Improved Display */}
                 {aiRedFlags.length > 0 && (
                   <View style={styles.redFlagsContainer}>
                     <View style={styles.redFlagsHeader}>
                       <Ionicons name="warning" size={18} color="#dc2626" />
-                      <Text style={styles.redFlagsTitle}>Critical Findings & Red Flags</Text>
+                      <Text style={styles.redFlagsTitle}>Risk Analysis</Text>
                     </View>
-                    {aiRedFlags.map((flag, idx) => (
-                      <View key={idx} style={styles.redFlagItem}>
-                        <Ionicons name="alert-circle" size={14} color="#dc2626" />
-                        <Text style={styles.redFlagText}>{flag}</Text>
+                    
+                    {/* Critical Flags */}
+                    {aiRedFlags.filter(f => f.type === 'critical').length > 0 && (
+                      <View style={styles.criticalFlagsSection}>
+                        <Text style={styles.flagSectionTitle}>🚨 CRITICAL</Text>
+                        {aiRedFlags.filter(f => f.type === 'critical').map((flag, idx) => (
+                          <View key={`crit-${idx}`} style={styles.criticalFlagItem}>
+                            <Text style={styles.criticalFlagText}>{flag.text}</Text>
+                          </View>
+                        ))}
                       </View>
-                    ))}
+                    )}
+                    
+                    {/* Urgent Flags */}
+                    {aiRedFlags.filter(f => f.type === 'urgent').length > 0 && (
+                      <View style={styles.urgentFlagsSection}>
+                        <Text style={styles.flagSectionTitleOrange}>⚠️ URGENT</Text>
+                        {aiRedFlags.filter(f => f.type === 'urgent').map((flag, idx) => (
+                          <View key={`urg-${idx}`} style={styles.urgentFlagItem}>
+                            <Text style={styles.urgentFlagText}>{flag.text}</Text>
+                          </View>
+                        ))}
+                      </View>
+                    )}
+                    
+                    {/* Action Items */}
+                    {aiRedFlags.filter(f => f.type === 'action').length > 0 && (
+                      <View style={styles.actionFlagsSection}>
+                        <Text style={styles.flagSectionTitleBlue}>⚡ IMMEDIATE ACTIONS</Text>
+                        {aiRedFlags.filter(f => f.type === 'action').map((flag, idx) => (
+                          <View key={`act-${idx}`} style={styles.actionFlagItem}>
+                            <Text style={styles.actionFlagText}>{idx + 1}. {flag.text}</Text>
+                          </View>
+                        ))}
+                      </View>
+                    )}
+                    
+                    {/* General flags (fallback) */}
+                    {aiRedFlags.filter(f => f.type === 'general').length > 0 && aiRedFlags.filter(f => f.type !== 'general').length === 0 && (
+                      aiRedFlags.filter(f => f.type === 'general').map((flag, idx) => (
+                        <View key={`gen-${idx}`} style={styles.redFlagItem}>
+                          <Ionicons name="alert-circle" size={14} color="#dc2626" />
+                          <Text style={styles.redFlagText}>{flag.text}</Text>
+                        </View>
+                      ))
+                    )}
                   </View>
                 )}
 
