@@ -3,7 +3,69 @@
 
 ---
 
-## 🔧 Latest Fix: Mobile Save Bug (January 4, 2025)
+## 🔧 Latest Update: December 2025
+
+### New Features Implemented:
+
+#### 1. Hospital-Specific Triage System (Priority I-V)
+**File:** `TriageScreen.js` (Complete Rewrite)
+
+Based on hospital's TRIAGE.pdf protocol, implementing 5-level priority system:
+
+| Priority | Color | Name | Timeframe | Examples |
+|----------|-------|------|-----------|----------|
+| I | Red | IMMEDIATE | 0 min | Cardiac arrest, GCS <8, SpO2 <90% |
+| II | Orange | VERY URGENT | 5 min | Chest pain, stroke, DKA, open fractures |
+| III | Yellow | URGENT | 30 min | Moderate trauma, dehydration, UTI |
+| IV | Green | STANDARD | 60 min | Minor injuries, fever, cough/cold |
+| V | Blue | NON-URGENT | 120 min | Elective procedures, BP checking |
+
+**Features:**
+- Separate Adult and Pediatric condition lists (auto-detected by age)
+- Interactive condition checkboxes that auto-calculate priority
+- Real-time vital signs analysis with automatic priority escalation
+- Pediatric-specific criteria: CRT, fever thresholds by age, GRBS in infants
+- Voice input with AI extraction
+
+#### 2. Comprehensive Discharge Summary Export
+**File:** `DischargeSummaryScreen.js`
+
+Enhanced PDF/Word export includes ALL case sheet sections:
+- Patient Information (UHID, demographics, MLC status)
+- Allergy Status
+- Vitals at Arrival (complete with GCS breakdown, GRBS, Pain Score)
+- Presenting Complaints with duration and onset
+- Full HOPI (History of Present Illness)
+- Past Medical/Surgical/Drug/Family History
+- Primary Assessment (ABCDE with detailed findings)
+- Systemic Examination (General, CVS, Respiratory, Abdomen, CNS, Extremities)
+- Investigations ordered and results
+- Medications Administered in ER
+- Procedures Performed
+- Course in Emergency Department (auto-generated or manual)
+- Diagnosis at Discharge
+- Discharge Medications
+- Disposition and Condition at Discharge
+- Vitals at Discharge
+- Follow-up Advice
+- General Instructions (warning signs)
+- Signatures (ED Resident and Consultant)
+
+#### 3. Subscription-Based Edit Limits
+**Backend:** `server.py`
+
+New endpoints:
+- `GET /api/cases/{case_id}/edit-status` - Check if case can be edited
+- Edit count tracking on each case update
+
+Rules:
+- Free users: **2 free edits per case sheet**
+- After limit: Upgrade required for unlimited edits
+- Locked cases cannot be edited (legal/audit compliance)
+
+---
+
+## 🔧 Previous Fix: Mobile Save Bug (January 4, 2025)
 
 ### Issue Fixed: Data Type Mismatch in Case Sheet Save
 
