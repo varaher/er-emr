@@ -962,6 +962,11 @@ function buildPrintableHTML(caseData, dischargeData, showWatermark = false) {
   const treatment = caseData.treatment || {};
   const investigations = caseData.investigations || {};
   const primaryAssessment = caseData.primary_assessment || {};
+  const examination = caseData.examination || {};
+  const drugs = caseData.drugs_administered || [];
+  const procedures = caseData.procedures_performed || [];
+  const isPediatric = caseData.case_type === "pediatric";
+  const erObservation = caseData.er_observation || {};
   
   const watermarkCSS = showWatermark ? `
     .watermark {
@@ -991,99 +996,444 @@ function buildPrintableHTML(caseData, dischargeData, showWatermark = false) {
   
   const watermarkFooter = showWatermark ? `
     <div class="watermark-footer">
-      🏥 Generated using ERmate - AI Assisted ER Documentation | www.ermate.app
+      Generated using ERmate - AI Assisted ER Documentation | www.ermate.app
     </div>
   ` : '';
-  const examination = caseData.examination || {};
-  const isPediatric = caseData.case_type === "pediatric";
 
   const gcsTotal =
     (vitalsAtArrival.gcs_e || 0) +
     (vitalsAtArrival.gcs_v || 0) +
     (vitalsAtArrival.gcs_m || 0);
 
-  const dischargeVitals = dischargeData.discharge_vitals;
+  const dischargeVitals = dischargeData.discharge_vitals || {};
+  
+  // Build Primary Assessment Text
+  const buildPrimaryText = () => {
+    let text = "";
+    text += `Airway: ${primaryAssessment.airway_status || "Patent"}`;
+    if (primaryAssessment.airway_interventions?.length > 0) {
+      text += ` (${primaryAssessment.airway_interventions.join(", ")})`;
+    }
+    if (primaryAssessment.airway_additional_notes) {
+      text += ` - ${primaryAssessment.airway_additional_notes}`;
+    }
+    text += `<br/>Breathing: RR - ${primaryAssessment.breathing_rr || vitalsAtArrival.rr || "-"}/min, SpO2 - ${primaryAssessment.breathing_spo2 || vitalsAtArrival.spo2 || "-"}%, WOB - ${primaryAssessment.breathing_work || "Normal"}`;
+    if (primaryAssessment.breathing_additional_notes) {
+      text += ` - ${primaryAssessment.breathing_additional_notes}`;
+    }
+    text += `<br/>Circulation: HR - ${primaryAssessment.circulation_hr || vitalsAtArrival.hr || "-"}/min, BP - ${primaryAssessment.circulation_bp_systolic || vitalsAtArrival.bp_systolic || "-"}/${primaryAssessment.circulation_bp_diastolic || vitalsAtArrival.bp_diastolic || "-"} mmHg, CRT - ${primaryAssessment.circulation_crt || "-"}s`;
+    if (primaryAssessment.circulation_additional_notes) {
+      text += ` - ${primaryAssessment.circulation_additional_notes}`;
+    }
+    text += `<br/>Disability: ${primaryAssessment.disability_avpu || "Alert"}, GCS - E${primaryAssessment.disability_gcs_e || vitalsAtArrival.gcs_e || "-"}V${primaryAssessment.disability_gcs_v || vitalsAtArrival.gcs_v || "-"}M${primaryAssessment.disability_gcs_m || vitalsAtArrival.gcs_m || "-"}, Pupils - ${primaryAssessment.disability_pupils_size || "Normal"} ${primaryAssessment.disability_pupils_reaction || "Reactive"}, GRBS - ${primaryAssessment.disability_grbs || vitalsAtArrival.grbs || "-"} mg/dL`;
+    if (primaryAssessment.disability_additional_notes) {
+      text += ` - ${primaryAssessment.disability_additional_notes}`;
+    }
+    text += `<br/>Exposure: Temp - ${primaryAssessment.exposure_temperature || vitalsAtArrival.temperature || "-"}°C`;
+    if (primaryAssessment.exposure_additional_notes) {
+      text += ` - ${primaryAssessment.exposure_additional_notes}`;
+    }
+    return text;
+  };
+  
+  // Build Examination Text
+  const buildExamText = () => {
+    let text = "";
+    
+    // General Examination
+    const generalFindings = [];
+    if (examination.general_pallor) generalFindings.push("Pallor +");
+    if (examination.general_icterus) generalFindings.push("Icterus +");
+    if (examination.general_clubbing) generalFindings.push("Clubbing +");
+    if (examination.general_lymphadenopathy) generalFindings.push("Lymphadenopathy +");
+    if (examination.general_varicose_veins) generalFindings.push("Varicose veins +");
+    
+    if (generalFindings.length > 0) {
+      text += `<strong>General:</strong> ${generalFindings.join(", ")}`;
+    } else {
+      text += `<strong>General:</strong> No pallor, icterus, clubbing, lymphadenopathy`;
+    }
+    if (examination.general_additional_notes) {
+      text += ` - ${examination.general_additional_notes}`;
+    }
+    
+    // CVS
+    text += `<br/><strong>CVS:</strong> ${examination.cvs_status || "Normal"}`;
+    if (examination.cvs_status === "Abnormal") {
+      const cvsDetails = [];
+      if (examination.cvs_s1_s2) cvsDetails.push(`S1S2: ${examination.cvs_s1_s2}`);
+      if (examination.cvs_pulse) cvsDetails.push(`Pulse: ${examination.cvs_pulse}`);
+      if (examination.cvs_murmurs) cvsDetails.push(`Murmurs: ${examination.cvs_murmurs}`);
+      if (cvsDetails.length > 0) text += ` - ${cvsDetails.join(", ")}`;
+    }
+    if (examination.cvs_additional_notes) {
+      text += ` - ${examination.cvs_additional_notes}`;
+    }
+    
+    // Respiratory
+    text += `<br/><strong>Respiratory:</strong> ${examination.respiratory_status || "Normal"}`;
+    if (examination.respiratory_status === "Abnormal") {
+      const respDetails = [];
+      if (examination.respiratory_breath_sounds) respDetails.push(`Breath sounds: ${examination.respiratory_breath_sounds}`);
+      if (examination.respiratory_added_sounds) respDetails.push(`Added sounds: ${examination.respiratory_added_sounds}`);
+      if (respDetails.length > 0) text += ` - ${respDetails.join(", ")}`;
+    }
+    if (examination.respiratory_additional_notes) {
+      text += ` - ${examination.respiratory_additional_notes}`;
+    }
+    
+    // Abdomen
+    text += `<br/><strong>Abdomen:</strong> ${examination.abdomen_status || "Normal"}`;
+    if (examination.abdomen_status === "Abnormal") {
+      const abdDetails = [];
+      if (examination.abdomen_organomegaly) abdDetails.push(`Organomegaly: ${examination.abdomen_organomegaly}`);
+      if (examination.abdomen_bowel_sounds) abdDetails.push(`Bowel sounds: ${examination.abdomen_bowel_sounds}`);
+      if (abdDetails.length > 0) text += ` - ${abdDetails.join(", ")}`;
+    }
+    if (examination.abdomen_additional_notes) {
+      text += ` - ${examination.abdomen_additional_notes}`;
+    }
+    
+    // CNS (only for adults)
+    if (!isPediatric) {
+      text += `<br/><strong>CNS:</strong> ${examination.cns_status || "Normal"}`;
+      if (examination.cns_status === "Abnormal") {
+        const cnsDetails = [];
+        if (examination.cns_higher_mental) cnsDetails.push(`Higher mental: ${examination.cns_higher_mental}`);
+        if (examination.cns_motor_system) cnsDetails.push(`Motor: ${examination.cns_motor_system}`);
+        if (examination.cns_sensory_system) cnsDetails.push(`Sensory: ${examination.cns_sensory_system}`);
+        if (cnsDetails.length > 0) text += ` - ${cnsDetails.join(", ")}`;
+      }
+      if (examination.cns_additional_notes) {
+        text += ` - ${examination.cns_additional_notes}`;
+      }
+    }
+    
+    // Extremities
+    text += `<br/><strong>Extremities:</strong> ${examination.extremities_status || "Normal"}`;
+    if (examination.extremities_findings) {
+      text += ` - ${examination.extremities_findings}`;
+    }
+    if (examination.extremities_additional_notes) {
+      text += ` - ${examination.extremities_additional_notes}`;
+    }
+    
+    return text;
+  };
+  
+  // Build Drug List
+  const buildDrugList = () => {
+    if (drugs.length === 0) return "Nil";
+    return drugs.map(d => `${d.name} ${d.dose || ""} ${d.time ? `@ ${d.time}` : ""}`).join("<br/>");
+  };
+  
+  // Build Procedure List
+  const buildProcedureList = () => {
+    if (procedures.length === 0) return "Nil";
+    return procedures.map(p => `${p.name}${p.notes ? ` - ${p.notes}` : ""}`).join("<br/>");
+  };
+  
+  // Build Course in ER
+  const buildCourseInER = () => {
+    const parts = [];
+    
+    // Opening
+    if (caseData.presenting_complaint?.text) {
+      parts.push(`Patient presented to the Emergency Department with ${caseData.presenting_complaint.text}.`);
+    } else {
+      parts.push("Patient presented to the Emergency Department with the above complaints.");
+    }
+    
+    // Triage
+    if (caseData.triage_priority) {
+      const priorityNames = { 1: "Priority I (Immediate)", 2: "Priority II (Very Urgent)", 3: "Priority III (Urgent)", 4: "Priority IV (Standard)", 5: "Priority V (Non-Urgent)" };
+      parts.push(`Triage: ${priorityNames[caseData.triage_priority] || "Standard"}.`);
+    }
+    
+    // Assessment
+    parts.push("Initial assessment and primary survey were performed.");
+    
+    // Investigations
+    if (investigations.panels_selected?.length > 0 || investigations.individual_tests?.length > 0) {
+      const invList = [...(investigations.panels_selected || []), ...(investigations.individual_tests || [])].join(", ");
+      parts.push(`Investigations ordered: ${invList}.`);
+    }
+    
+    // Treatment
+    if (treatment.intervention_notes) {
+      parts.push(`Treatment: ${treatment.intervention_notes}.`);
+    } else if (treatment.interventions?.length > 0) {
+      parts.push(`Interventions: ${treatment.interventions.join(", ")}.`);
+    }
+    
+    // Drugs
+    if (drugs.length > 0) {
+      const drugList = drugs.map(d => `${d.name} ${d.dose}`).join(", ");
+      parts.push(`Medications administered: ${drugList}.`);
+    }
+    
+    // Procedures
+    if (procedures.length > 0) {
+      const procList = procedures.map(p => p.name).join(", ");
+      parts.push(`Procedures performed: ${procList}.`);
+    }
+    
+    // Monitoring
+    if (erObservation.duration) {
+      parts.push(`Patient was monitored in ER for ${erObservation.duration}.`);
+    } else {
+      parts.push("Patient was monitored in the ER.");
+    }
+    
+    // Outcome
+    const disposition = caseData.disposition;
+    if (disposition?.type) {
+      const outcomes = {
+        "discharged": "Patient showed clinical improvement and is being discharged in stable condition.",
+        "admitted-icu": "Patient required ICU admission for further monitoring and management.",
+        "admitted-hdu": "Patient required HDU admission for close monitoring.",
+        "admitted-ward": "Patient was stabilized and admitted to ward for further care.",
+        "referred": "Patient was stabilized and referred to higher center for specialized care.",
+        "dama": "Patient opted to leave against medical advice after counseling about risks.",
+        "death": "Despite resuscitative efforts, patient could not be revived. Death declared."
+      };
+      parts.push(outcomes[disposition.type] || "Patient condition stabilized.");
+    } else {
+      parts.push("Patient showed clinical improvement.");
+    }
+    
+    return parts.join(" ");
+  };
 
   return `
     <!DOCTYPE html>
     <html>
     <head>
       <meta charset="utf-8">
-      <title>Discharge Summary</title>
+      <title>Discharge Summary - ${patient.name || "Patient"}</title>
       <style>
-        body { font-family: Arial, sans-serif; font-size: 12px; line-height: 1.5; padding: 20px; position: relative; }
-        h1 { text-align: center; font-size: 18px; margin-bottom: 20px; }
-        .section { margin-bottom: 15px; }
-        .section-title { font-weight: bold; font-size: 13px; margin-bottom: 5px; border-bottom: 1px solid #ccc; }
-        .row { display: flex; margin-bottom: 3px; }
-        .row-label { font-weight: bold; width: 150px; }
+        body { font-family: Arial, sans-serif; font-size: 11px; line-height: 1.5; padding: 15px; position: relative; margin: 0; }
+        h1 { text-align: center; font-size: 18px; margin-bottom: 15px; border-bottom: 2px solid #333; padding-bottom: 10px; }
+        .header-info { text-align: center; font-size: 10px; color: #666; margin-bottom: 5px; }
+        .section { margin-bottom: 10px; page-break-inside: avoid; }
+        .section-title { font-weight: bold; font-size: 12px; margin-bottom: 4px; background: #f0f0f0; padding: 4px 8px; border-left: 3px solid #333; }
+        .section-content { padding: 4px 8px; }
+        .row { display: flex; margin-bottom: 2px; }
+        .row-label { font-weight: bold; width: 140px; }
         .row-value { flex: 1; }
-        .vitals-line { margin-bottom: 5px; }
-        .footer { margin-top: 30px; font-size: 11px; color: #555; border-top: 1px solid #ccc; padding-top: 10px; }
-        .signatures { display: flex; justify-content: space-between; margin-top: 40px; }
+        .two-col { display: flex; gap: 20px; }
+        .two-col > div { flex: 1; }
+        .vitals-line { margin-bottom: 3px; }
+        .vitals-box { background: #f8f8f8; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        .footer { margin-top: 20px; font-size: 10px; color: #555; border-top: 1px solid #ccc; padding-top: 10px; }
+        .signatures { display: flex; justify-content: space-between; margin-top: 30px; }
         .signature-box { text-align: center; width: 45%; }
-        .signature-line { border-top: 1px solid #000; margin-top: 50px; padding-top: 5px; }
+        .signature-line { border-top: 1px solid #000; margin-top: 40px; padding-top: 5px; }
+        .mlc-badge { background: #dc2626; color: white; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 10px; }
+        .triage-badge { padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 10px; color: white; }
+        .instructions { background: #fff3cd; border: 1px solid #ffc107; padding: 8px; border-radius: 4px; margin-top: 10px; }
+        .instructions-title { font-weight: bold; margin-bottom: 5px; }
+        @media print { 
+          body { padding: 10px; } 
+          .section { page-break-inside: avoid; }
+        }
         ${watermarkCSS}
       </style>
     </head>
     <body>
       ${watermarkHTML}
+      
       <h1>DISCHARGE SUMMARY</h1>
+      <div class="header-info">(Print on Hospital Letterhead)</div>
 
+      <!-- Patient Information -->
       <div class="section">
-        <div class="row"><span class="row-label">UHID:</span><span class="row-value">${patient.uhid || "N/A"}</span></div>
-        <div class="row"><span class="row-label">Name:</span><span class="row-value">${patient.name || "N/A"}</span></div>
-        <div class="row"><span class="row-label">Age/Sex:</span><span class="row-value">${patient.age || "N/A"} / ${patient.sex || "N/A"}</span></div>
-        <div class="row"><span class="row-label">Admission Date:</span><span class="row-value">${patient.arrival_datetime ? new Date(patient.arrival_datetime).toLocaleDateString("en-IN") : "N/A"}</span></div>
-      </div>
-
-      <div class="section">
-        <div class="section-title">Vitals at Arrival</div>
-        <div class="vitals-line">
-          HR: ${vitalsAtArrival.hr || "-"}, BP: ${vitalsAtArrival.bp_systolic || "-"}/${vitalsAtArrival.bp_diastolic || "-"}, 
-          RR: ${vitalsAtArrival.rr || "-"}, SpO2: ${vitalsAtArrival.spo2 || "-"}%, GCS: ${gcsTotal || "-"}
+        <div class="section-title">PATIENT INFORMATION</div>
+        <div class="section-content">
+          <div class="two-col">
+            <div>
+              <div class="row"><span class="row-label">UHID:</span><span class="row-value">${patient.uhid || "N/A"}</span></div>
+              <div class="row"><span class="row-label">Name:</span><span class="row-value"><strong>${patient.name || "N/A"}</strong></span></div>
+              <div class="row"><span class="row-label">Age / Sex:</span><span class="row-value">${patient.age || "N/A"} / ${patient.sex || "N/A"}</span></div>
+              <div class="row"><span class="row-label">Phone:</span><span class="row-value">${patient.phone || "N/A"}</span></div>
+            </div>
+            <div>
+              <div class="row"><span class="row-label">Admission Date:</span><span class="row-value">${patient.arrival_datetime ? new Date(patient.arrival_datetime).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }) : "N/A"}</span></div>
+              <div class="row"><span class="row-label">Mode of Arrival:</span><span class="row-value">${patient.mode_of_arrival || "N/A"}</span></div>
+              <div class="row"><span class="row-label">Brought By:</span><span class="row-value">${patient.brought_by || "Self"}</span></div>
+              <div class="row"><span class="row-label">MLC Case:</span><span class="row-value">${patient.mlc ? '<span class="mlc-badge">YES</span>' : "No"}</span></div>
+            </div>
+          </div>
         </div>
       </div>
 
+      <!-- Allergy -->
       <div class="section">
-        <div class="section-title">Presenting Complaints</div>
-        <p>${caseData.presenting_complaint?.text || "N/A"}</p>
-      </div>
-
-      <div class="section">
-        <div class="section-title">Events / HOPI</div>
-        <p>${history.hpi || history.events_hopi || "N/A"}</p>
-      </div>
-
-      <div class="section">
-        <div class="section-title">Diagnosis at Discharge</div>
-        <p>${treatment.differential_diagnoses?.join(", ") || treatment.provisional_diagnoses?.join(", ") || "N/A"}</p>
-      </div>
-
-      <div class="section">
-        <div class="section-title">Discharge Medications</div>
-        <p>${dischargeData.discharge_medications || "N/A"}</p>
-      </div>
-
-      <div class="section">
-        <div class="section-title">Disposition</div>
-        <p>${dischargeData.disposition_type}</p>
-        <p>Condition: <strong>${dischargeData.condition_at_discharge}</strong></p>
-      </div>
-
-      <div class="section">
-        <div class="section-title">Vitals at Discharge</div>
-        <div class="vitals-line">
-          HR: ${dischargeVitals.hr || "-"}, BP: ${dischargeVitals.bp || "-"}, RR: ${dischargeVitals.rr || "-"}, 
-          SpO2: ${dischargeVitals.spo2 || "-"}, GCS: ${dischargeVitals.gcs || "-"}
+        <div class="section-title">ALLERGY STATUS</div>
+        <div class="section-content">
+          <strong>${history.allergies?.length > 0 ? history.allergies.join(", ") : "No Known Drug Allergies (NKDA)"}</strong>
         </div>
       </div>
 
+      <!-- Vitals at Arrival -->
       <div class="section">
-        <div class="section-title">Follow-Up Advice</div>
-        <p>${dischargeData.follow_up_advice || "N/A"}</p>
+        <div class="section-title">VITALS AT ARRIVAL</div>
+        <div class="section-content vitals-box">
+          <div class="vitals-line">
+            <strong>HR:</strong> ${vitalsAtArrival.hr || "-"} bpm | 
+            <strong>BP:</strong> ${vitalsAtArrival.bp_systolic || "-"}/${vitalsAtArrival.bp_diastolic || "-"} mmHg | 
+            <strong>RR:</strong> ${vitalsAtArrival.rr || "-"}/min | 
+            <strong>SpO2:</strong> ${vitalsAtArrival.spo2 || "-"}% | 
+            <strong>Temp:</strong> ${vitalsAtArrival.temperature || "-"}°C
+          </div>
+          <div class="vitals-line">
+            <strong>GCS:</strong> E${vitalsAtArrival.gcs_e || "-"} V${vitalsAtArrival.gcs_v || "-"} M${vitalsAtArrival.gcs_m || "-"} (Total: ${gcsTotal || "-"}/15) | 
+            <strong>GRBS:</strong> ${vitalsAtArrival.grbs || "-"} mg/dL | 
+            <strong>Pain Score:</strong> ${vitalsAtArrival.pain_score || "-"}/10
+          </div>
+        </div>
       </div>
 
+      <!-- Presenting Complaints -->
+      <div class="section">
+        <div class="section-title">PRESENTING COMPLAINTS</div>
+        <div class="section-content">
+          ${caseData.presenting_complaint?.text || "N/A"}
+          ${caseData.presenting_complaint?.duration ? `<br/><strong>Duration:</strong> ${caseData.presenting_complaint.duration}` : ""}
+          ${caseData.presenting_complaint?.onset_type ? ` | <strong>Onset:</strong> ${caseData.presenting_complaint.onset_type}` : ""}
+        </div>
+      </div>
+
+      <!-- History of Present Illness -->
+      <div class="section">
+        <div class="section-title">HISTORY OF PRESENT ILLNESS (HOPI)</div>
+        <div class="section-content">
+          ${history.hpi || history.events_hopi || history.hpi_additional_notes || "Not documented"}
+        </div>
+      </div>
+
+      <!-- Past History -->
+      <div class="section">
+        <div class="section-title">PAST MEDICAL / SURGICAL HISTORY</div>
+        <div class="section-content">
+          <div class="row"><span class="row-label">Medical History:</span><span class="row-value">${history.past_medical?.length > 0 ? history.past_medical.join(", ") : "None"}</span></div>
+          <div class="row"><span class="row-label">Surgical History:</span><span class="row-value">${history.past_surgical || "None"}</span></div>
+          <div class="row"><span class="row-label">Drug History:</span><span class="row-value">${history.drug_history || "None"}</span></div>
+          <div class="row"><span class="row-label">Family History:</span><span class="row-value">${history.family_history || "Not significant"}</span></div>
+          ${!isPediatric && history.gyn_history ? `<div class="row"><span class="row-label">Gynae History:</span><span class="row-value">${history.gyn_history}${history.lmp ? ` | LMP: ${history.lmp}` : ""}</span></div>` : ""}
+        </div>
+      </div>
+
+      <!-- Primary Assessment (ABCDE) -->
+      <div class="section">
+        <div class="section-title">PRIMARY ASSESSMENT (ABCDE)</div>
+        <div class="section-content">
+          ${buildPrimaryText()}
+        </div>
+      </div>
+
+      <!-- Systemic Examination -->
+      <div class="section">
+        <div class="section-title">SYSTEMIC EXAMINATION</div>
+        <div class="section-content">
+          ${buildExamText()}
+        </div>
+      </div>
+
+      <!-- Investigations -->
+      <div class="section">
+        <div class="section-title">INVESTIGATIONS</div>
+        <div class="section-content">
+          ${investigations.panels_selected?.length > 0 ? `<strong>Panels Ordered:</strong> ${investigations.panels_selected.join(", ")}<br/>` : ""}
+          ${investigations.individual_tests?.length > 0 ? `<strong>Individual Tests:</strong> ${investigations.individual_tests.join(", ")}<br/>` : ""}
+          ${investigations.results_notes ? `<strong>Results:</strong> ${investigations.results_notes}` : "Results: Pending / Not available"}
+        </div>
+      </div>
+
+      <!-- Medications Administered in ER -->
+      <div class="section">
+        <div class="section-title">MEDICATIONS ADMINISTERED IN ER</div>
+        <div class="section-content">
+          ${buildDrugList()}
+        </div>
+      </div>
+
+      <!-- Procedures Performed -->
+      <div class="section">
+        <div class="section-title">PROCEDURES PERFORMED</div>
+        <div class="section-content">
+          ${buildProcedureList()}
+        </div>
+      </div>
+
+      <!-- Course in Hospital -->
+      <div class="section">
+        <div class="section-title">COURSE IN EMERGENCY DEPARTMENT</div>
+        <div class="section-content">
+          ${treatment.course_in_hospital || erObservation.notes || buildCourseInER()}
+        </div>
+      </div>
+
+      <!-- Diagnosis -->
+      <div class="section">
+        <div class="section-title">DIAGNOSIS AT DISCHARGE</div>
+        <div class="section-content">
+          <strong>${treatment.provisional_diagnoses?.join(", ") || treatment.differential_diagnoses?.join(", ") || "To be determined"}</strong>
+        </div>
+      </div>
+
+      <!-- Discharge Medications -->
+      <div class="section">
+        <div class="section-title">DISCHARGE MEDICATIONS</div>
+        <div class="section-content">
+          <pre style="font-family: Arial; white-space: pre-wrap; margin: 0;">${dischargeData.discharge_medications || "Nil"}</pre>
+        </div>
+      </div>
+
+      <!-- Disposition -->
+      <div class="section">
+        <div class="section-title">DISPOSITION</div>
+        <div class="section-content">
+          <div class="row"><span class="row-label">Disposition Type:</span><span class="row-value"><strong>${dischargeData.disposition_type || "Normal Discharge"}</strong></span></div>
+          <div class="row"><span class="row-label">Condition at Discharge:</span><span class="row-value"><strong>${dischargeData.condition_at_discharge || "STABLE"}</strong></span></div>
+        </div>
+      </div>
+
+      <!-- Vitals at Discharge -->
+      <div class="section">
+        <div class="section-title">VITALS AT DISCHARGE</div>
+        <div class="section-content vitals-box">
+          <strong>HR:</strong> ${dischargeVitals.hr || "-"} | 
+          <strong>BP:</strong> ${dischargeVitals.bp || "-"} | 
+          <strong>RR:</strong> ${dischargeVitals.rr || "-"} | 
+          <strong>SpO2:</strong> ${dischargeVitals.spo2 || "-"}% | 
+          <strong>GCS:</strong> ${dischargeVitals.gcs || "-"} | 
+          <strong>GRBS:</strong> ${dischargeVitals.grbs || "-"} | 
+          <strong>Temp:</strong> ${dischargeVitals.temp || "-"}°C
+        </div>
+      </div>
+
+      <!-- Follow-Up Advice -->
+      <div class="section">
+        <div class="section-title">FOLLOW-UP ADVICE</div>
+        <div class="section-content">
+          <pre style="font-family: Arial; white-space: pre-wrap; margin: 0;">${dischargeData.follow_up_advice || "Follow up with treating physician as advised."}</pre>
+        </div>
+      </div>
+
+      <!-- General Instructions -->
+      <div class="instructions">
+        <div class="instructions-title">⚠️ GENERAL INSTRUCTIONS</div>
+        <ul style="margin: 5px 0; padding-left: 20px;">
+          <li>Take all medications as prescribed</li>
+          <li>Return to Emergency Department immediately if symptoms worsen</li>
+          <li>Watch for warning signs: high fever, difficulty breathing, chest pain, severe headache, altered consciousness</li>
+          <li>Follow up with your doctor as advised</li>
+          <li>Bring this summary for all future consultations</li>
+        </ul>
+      </div>
+
+      <!-- Signatures -->
       <div class="signatures">
         <div class="signature-box">
           <div class="signature-line">
@@ -1101,8 +1451,8 @@ function buildPrintableHTML(caseData, dischargeData, showWatermark = false) {
         <p style="text-align: center;">
           <strong>In case of emergency, contact your nearest hospital emergency department.</strong>
         </p>
-        <p style="text-align: center; font-size: 10px;">
-          Generated on: ${new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })}
+        <p style="text-align: center; font-size: 9px;">
+          Discharge Date: ${new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata", dateStyle: "medium", timeStyle: "short" })}
         </p>
         ${watermarkFooter}
       </div>
