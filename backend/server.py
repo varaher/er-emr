@@ -2752,50 +2752,56 @@ Condition: {case.get('disposition', {}).get('condition_at_discharge', 'Not docum
 Please generate a professional, well-structured discharge summary in standard medical format.
 """
     elif request.prompt_type == "red_flags":
+        # Get patient age for context
+        patient_age = case['patient'].get('age', 'Unknown')
+        patient_sex = case['patient'].get('sex', 'Unknown')
+        case_type = case.get('case_type', 'adult')
+        
+        # Build history context
+        past_medical = case['history'].get('past_medical', [])
+        allergies = case['history'].get('allergies', [])
+        hopi = case['history'].get('hpi', case['history'].get('events_hopi', ''))
+        
         prompt = f"""
-You are an expert emergency medicine physician. Analyze this case for RED FLAGS and CRITICAL FINDINGS based on established medical guidelines.
+You are a senior emergency medicine consultant providing RAPID RISK STRATIFICATION.
 
-=== PATIENT DATA ===
-Vitals at Arrival:
-• HR: {case['vitals_at_arrival'].get('hr', 'N/A')} bpm
-• BP: {case['vitals_at_arrival'].get('bp_systolic', 'N/A')}/{case['vitals_at_arrival'].get('bp_diastolic', 'N/A')} mmHg
-• RR: {case['vitals_at_arrival'].get('rr', 'N/A')} /min
-• SpO2: {case['vitals_at_arrival'].get('spo2', 'N/A')}%
-• Temperature: {case['vitals_at_arrival'].get('temperature', 'N/A')}°C
-• GCS: E{case['vitals_at_arrival'].get('gcs_e', '-')} V{case['vitals_at_arrival'].get('gcs_v', '-')} M{case['vitals_at_arrival'].get('gcs_m', '-')}
-
+=== PATIENT PROFILE ===
+Age: {patient_age} | Sex: {patient_sex} | Type: {case_type.upper()}
 Chief Complaint: {case['presenting_complaint']['text']}
 Duration: {case['presenting_complaint'].get('duration', 'Not specified')}
+HPI: {hopi if hopi else 'Not documented'}
+PMH: {', '.join(past_medical) if past_medical else 'None'}
+Allergies: {', '.join(allergies) if allergies else 'NKDA'}
 
-Primary Survey:
-• Airway: {case['primary_assessment'].get('airway_status', 'Not documented')}
-• Breathing: {case['primary_assessment'].get('breathing_work', 'Not documented')}
-• Circulation: {case['primary_assessment'].get('circulation_peripheral_pulses', 'Not documented')}
+=== VITAL SIGNS ===
+HR: {case['vitals_at_arrival'].get('hr', 'N/A')} bpm | BP: {case['vitals_at_arrival'].get('bp_systolic', 'N/A')}/{case['vitals_at_arrival'].get('bp_diastolic', 'N/A')} mmHg
+RR: {case['vitals_at_arrival'].get('rr', 'N/A')}/min | SpO2: {case['vitals_at_arrival'].get('spo2', 'N/A')}%
+Temp: {case['vitals_at_arrival'].get('temperature', 'N/A')}°C | GCS: E{case['vitals_at_arrival'].get('gcs_e', '-')}V{case['vitals_at_arrival'].get('gcs_v', '-')}M{case['vitals_at_arrival'].get('gcs_m', '-')}
 
-=== REQUIRED OUTPUT FORMAT ===
-Provide a structured analysis with:
+=== PRIMARY SURVEY ===
+Airway: {case['primary_assessment'].get('airway_status', 'Patent')} {case['primary_assessment'].get('airway_additional_notes', '')}
+Breathing: WOB {case['primary_assessment'].get('breathing_work', 'Normal')} | {case['primary_assessment'].get('breathing_additional_notes', '')}
+Circulation: CRT {case['primary_assessment'].get('circulation_crt', 'N/A')}s | Pulses {case['primary_assessment'].get('circulation_peripheral_pulses', 'Present')}
+Disability: AVPU {case['primary_assessment'].get('disability_avpu', 'Alert')} | Pupils {case['primary_assessment'].get('disability_pupils_reaction', 'Equal reactive')}
 
-🚨 CRITICAL RED FLAGS (Life-threatening):
-[List any immediately life-threatening findings]
+=== PROVIDE CONCISE RISK ANALYSIS ===
 
-⚠️ WARNING SIGNS (Urgent but stable):
-[List concerning findings requiring close monitoring]
+🚨 CRITICAL RED FLAGS:
+[List 2-4 LIFE-THREATENING conditions to rule out IMMEDIATELY based on presentation. Be specific to THIS patient's symptoms]
 
-✅ REASSURING FEATURES:
-[List any positive/stable findings]
+⚠️ URGENT CONCERNS:
+[List 2-3 serious conditions requiring workup within 1-2 hours]
 
-📋 RECOMMENDED IMMEDIATE ACTIONS:
-1. [Specific action items in priority order]
-2. [Include tests, interventions, consultations needed]
+⚡ IMMEDIATE ACTIONS:
+[3-5 specific actions: Labs/ECG/Imaging to order NOW. Be practical for Indian ER setting]
 
-🔍 THINGS TO WATCH FOR:
-[What could deteriorate? What trends to monitor?]
+🔍 CLINICAL WATCH:
+[What vital sign trends or symptoms would indicate deterioration?]
 
-📚 CLINICAL REFERENCES:
-For each major finding or recommendation, cite the relevant clinical guideline or reference (e.g., "ACLS Guidelines 2020", "NICE Guidelines", "AHA/ASA Stroke Guidelines", etc.)
+📋 DISPOSITION GUIDANCE:
+[Based on current presentation - ICU / Ward / Observation / Safe to discharge after workup?]
 
-Be concise, specific, and clinically actionable. Focus on what the ER doctor should DO right now.
-Base your analysis on evidence-based medicine and current clinical practice guidelines.
+Keep responses CONCISE and ACTIONABLE. Focus on what ER doctor should DO right now. Reference Indian protocols where applicable (NICE, ACLS, ATLS).
 """
     elif request.prompt_type == "diagnosis_suggestions":
         prompt = f"""
