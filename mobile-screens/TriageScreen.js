@@ -427,9 +427,14 @@ export default function TriageScreen({ route, navigation }) {
         console.log("AI Extraction response:", JSON.stringify(extractData, null, 2));
         
         if (extractData.success) {
-          // Apply vitals
-          if (extractData.vitals) {
-            applyExtractedVitals(extractData.vitals);
+          // FIX: Access vitals from extractData.data.vitals (nested inside "data")
+          if (extractData.data?.vitals) {
+            applyExtractedVitals(extractData.data.vitals);
+          }
+          
+          // FIX: Also apply symptoms if available
+          if (extractData.data?.symptoms) {
+            applyExtractedSymptoms(extractData.data.symptoms);
           }
           
           // Also try to extract name/age from text using regex
@@ -454,8 +459,9 @@ export default function TriageScreen({ route, navigation }) {
         
         if (regexRes.ok) {
           const regexData = await regexRes.json();
-          if (regexData.success && regexData.data) {
-            applyRegexExtractedData(regexData.data);
+          // FIX: regexData has vitals/symptoms at top level, not inside "data"
+          if (regexData.success) {
+            applyRegexExtractedData(regexData);  // Pass the whole response
             Alert.alert("✅ Voice Data Captured", "Patient info has been auto-filled from voice.");
           }
         }
