@@ -663,9 +663,21 @@ export default function TriageScreen({ route, navigation }) {
       return;
     }
 
-    // Calculate priority if not done
-    if (!triageResult) {
-      calculatePriority();
+    // Calculate priority if not done yet
+    let currentTriageResult = triageResult;
+    if (!currentTriageResult) {
+      // Calculate priority synchronously before proceeding
+      const highestPriority = calculatePrioritySync();
+      const priorityConfig = PRIORITY_LEVELS[highestPriority.level];
+      currentTriageResult = {
+        priority_level: highestPriority.level,
+        priority_color: priorityConfig.color,
+        priority_name: priorityConfig.name,
+        priority_label: priorityConfig.label,
+        time_to_see: priorityConfig.timeframe,
+        reasons: highestPriority.reasons,
+      };
+      setTriageResult(currentTriageResult);
     }
 
     setLoading(true);
@@ -673,18 +685,20 @@ export default function TriageScreen({ route, navigation }) {
       const token = await AsyncStorage.getItem("token");
       const user = JSON.parse(await AsyncStorage.getItem("user") || "{}");
 
+      // Build patient data with ONLY primitive values
       const patientData = {
-        name: fd.name || patientName || "",
-        age: fd.age || patientAge || "",
-        sex: sex,
-        phone: fd.phone || "",
-        address: fd.address || "",
+        name: String(fd.name || patientName || ""),
+        age: String(fd.age || patientAge || ""),
+        sex: String(sex || "Male"),
+        phone: String(fd.phone || ""),
+        address: String(fd.address || ""),
         arrival_datetime: new Date().toISOString(),
-        mode_of_arrival: modeOfArrival,
-        brought_by: fd.brought_by || "",
-        mlc: mlc,
+        mode_of_arrival: String(modeOfArrival || "Walk-in"),
+        brought_by: String(fd.brought_by || ""),
+        mlc: Boolean(mlc),
       };
 
+      // Build vitals data with ONLY numeric values
       const vitalsData = {
         hr: fd.hr ? parseFloat(fd.hr) : parseFloat(DEFAULT_VITALS.hr),
         bp_systolic: fd.bp_systolic ? parseFloat(fd.bp_systolic) : parseFloat(DEFAULT_VITALS.bp_systolic),
@@ -698,21 +712,22 @@ export default function TriageScreen({ route, navigation }) {
         grbs: fd.grbs ? parseFloat(fd.grbs) : parseFloat(DEFAULT_VITALS.grbs),
       };
 
-      const presentingComplaint = {
-        text: fd.chief_complaint || chiefComplaint || voiceText || "",
-        duration: "",
-        onset_type: "Sudden",
-        course: "Progressive",
-      };
+      // Chief complaint as string
+      const chiefComplaintText = String(fd.chief_complaint || chiefComplaint || voiceText || "");
 
       const payload = {
         patient: patientData,
         vitals_at_arrival: vitalsData,
-        presenting_complaint: presentingComplaint,
-        triage_priority: triageResult?.priority_level || 4,
-        triage_color: triageResult?.priority_color || "green",
-        em_resident: user.name || "",
-        case_type: patientType,
+        presenting_complaint: {
+          text: chiefComplaintText,
+          duration: "",
+          onset_type: "Sudden",
+          course: "Progressive",
+        },
+        triage_priority: currentTriageResult?.priority_level || 4,
+        triage_color: currentTriageResult?.priority_color || "green",
+        em_resident: String(user.name || ""),
+        case_type: String(patientType || "adult"),
       };
 
       const response = await fetch(`${API_URL}/cases`, {
@@ -731,34 +746,99 @@ export default function TriageScreen({ route, navigation }) {
 
       const newCase = await response.json();
 
-      // FIX: Pass primitive values, not objects
-      // This prevents "[object Object]" errors in CaseSheet screen
-      const chiefComplaintText = fd.chief_complaint || chiefComplaint || voiceText || "";
-      
+      // CRITICAL FIX: Ensure ALL navigation params are primitive values (strings/numbers/booleans)
+      // Convert any arrays to comma-separated strings
+      // Convert any objects to strings
+      const safeReasons = Array.isArray(currentTriageResult?.reasons) 
+        ? currentTriageResult.reasons.join(", ") 
+        : String(currentTriageResult?.reasons || "");
+
       navigation.replace("CaseSheet", {
-        caseId: newCase.id,
-        patientType,
-        // Pass individual fields instead of objects
-        patientName: patientData.name,
-        patientAge: patientData.age,
-        patientSex: patientData.sex,
+        // Case ID - ensure it's a string
+        caseId: String(newCase.id || newCase._id || ""),
+        
+        // Patient type - string
+        patientType: String(patientType || "adult"),
+        
+        // Patient info - all strings
+        patientName: String(patientData.name),
+        patientAge: String(patientData.age),
+        patientSex: String(patientData.sex),
+        
+        // Chief complaint - string
         chiefComplaint: chiefComplaintText,
-        voiceTranscript: voiceText || "",
-        // Pass triage info as primitives
-        triagePriority: triageResult?.priority_level || 4,
-        triagePriorityName: triageResult?.priority_name || "STANDARD",
-        triageColor: triageResult?.priority_color || "#22c55e",
-        triageReasons: triageResult?.reasons?.join(", ") || "",
+        
+        // Voice transcript - string
+        voiceTranscript: String(voiceText || ""),
+        
+        // Triage info - primitives only
+        triagePriority: Number(currentTriageResult?.priority_level) || 4,
+        triagePriorityName: String(currentTriageResult?.priority_name || "STANDARD"),
+        triageColor: String(currentTriageResult?.priority_color || "#22c55e"),
+        triageReasons: safeReasons,
       });
 
     } catch (err) {
       console.error("Create case error:", err);
+      // Ensure error message is a string, not an object
       let errorMsg = "Failed to create case";
-      if (err?.message) errorMsg = err.message;
+      if (typeof err === "string") {
+        errorMsg = err;
+      } else if (err?.message && typeof err.message === "string") {
+        errorMsg = err.message;
+      } else if (err?.detail && typeof err.detail === "string") {
+        errorMsg = err.detail;
+      }
       Alert.alert("Error", errorMsg);
     } finally {
       setLoading(false);
     }
+  };
+
+  // Helper function to calculate priority synchronously (returns result immediately)
+  const calculatePrioritySync = () => {
+    const fd = formDataRef.current;
+    let highestPriority = 5;
+    const reasons = [];
+
+    // Check selected conditions
+    Object.values(selectedConditions).forEach(({ priority, conditionId }) => {
+      const priorityNum = parseInt(priority.replace("priority_", ""));
+      if (priorityNum < highestPriority) {
+        highestPriority = priorityNum;
+        const conditions = getConditions()[priority];
+        const condition = conditions?.find(c => c.id === conditionId);
+        if (condition) {
+          reasons.push(String(condition.label));
+        }
+      }
+    });
+
+    // Check vitals for critical values
+    const gcsTotal = (parseInt(fd.gcs_e) || 0) + (parseInt(fd.gcs_v) || 0) + (parseInt(fd.gcs_m) || 0);
+    
+    if (fd.spo2 && parseFloat(fd.spo2) < 90) {
+      if (highestPriority > 1) highestPriority = 1;
+      reasons.push(`SpO2 ${fd.spo2}% (Severe Hypoxia)`);
+    }
+    if (fd.bp_systolic && parseFloat(fd.bp_systolic) < 80) {
+      if (highestPriority > 1) highestPriority = 1;
+      reasons.push(`BP ${fd.bp_systolic}/${fd.bp_diastolic} (Shock Range)`);
+    }
+    if (gcsTotal > 0 && gcsTotal <= 8) {
+      if (highestPriority > 1) highestPriority = 1;
+      reasons.push(`GCS ${gcsTotal} (Coma)`);
+    }
+    if (fd.rr && (parseFloat(fd.rr) < 8 || parseFloat(fd.rr) > 35)) {
+      if (highestPriority > 1) highestPriority = 1;
+      reasons.push(`RR ${fd.rr}/min (Critical)`);
+    }
+
+    if (reasons.length === 0) {
+      reasons.push("No critical findings - Standard triage");
+    }
+
+    return { level: highestPriority, reasons };
   };
 
   // Render Components
