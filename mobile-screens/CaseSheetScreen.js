@@ -294,10 +294,20 @@ const PROCEDURE_OPTIONS = [
 export default function CaseSheetScreen({ route, navigation }) {
   const { 
     patientType = "adult", 
+    // Old format (object-based) - for backward compatibility
     vitals = {}, 
     patient = {},
     presentingComplaint = {},
+    // New format (primitive-based) - preferred
+    patientName: routePatientName,
+    patientAge: routePatientAge,
+    patientSex: routePatientSex,
+    chiefComplaint: routeChiefComplaint,
     voiceTranscript = "",
+    triagePriority,
+    triagePriorityName,
+    triageColor,
+    triageReasons,
     caseId: existingCaseId 
   } = route.params || {};
   const isPediatric = patientType === "pediatric";
@@ -307,7 +317,8 @@ export default function CaseSheetScreen({ route, navigation }) {
   const [saving, setSaving] = useState(false);
   const [caseId, setCaseId] = useState(existingCaseId || null);
   const [activeTab, setActiveTab] = useState("patient");
-  const [showMlcFields, setShowMlcFields] = useState(patient.mlc || false);
+  // Support both old and new param formats
+  const [showMlcFields, setShowMlcFields] = useState(patient?.mlc || false);
   
   // AI Diagnosis State
   const [aiDiagnosisLoading, setAiDiagnosisLoading] = useState(false);
