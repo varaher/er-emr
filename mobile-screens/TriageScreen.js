@@ -731,15 +731,24 @@ export default function TriageScreen({ route, navigation }) {
 
       const newCase = await response.json();
 
-      // Navigate directly to Case Sheet
+      // FIX: Pass primitive values, not objects
+      // This prevents "[object Object]" errors in CaseSheet screen
+      const chiefComplaintText = fd.chief_complaint || chiefComplaint || voiceText || "";
+      
       navigation.replace("CaseSheet", {
         caseId: newCase.id,
         patientType,
-        patient: patientData,
-        vitals: vitalsData,
-        presentingComplaint: presentingComplaint,
-        voiceTranscript: voiceText,
-        triageResult: triageResult,
+        // Pass individual fields instead of objects
+        patientName: patientData.name,
+        patientAge: patientData.age,
+        patientSex: patientData.sex,
+        chiefComplaint: chiefComplaintText,
+        voiceTranscript: voiceText || "",
+        // Pass triage info as primitives
+        triagePriority: triageResult?.priority_level || 4,
+        triagePriorityName: triageResult?.priority_name || "STANDARD",
+        triageColor: triageResult?.priority_color || "#22c55e",
+        triageReasons: triageResult?.reasons?.join(", ") || "",
       });
 
     } catch (err) {
