@@ -387,14 +387,15 @@ export default function CaseSheetScreen({ route, navigation }) {
   /* ===================== FORM DATA REF ===================== */
   const formDataRef = useRef({
     // Patient Info (populated from Triage if available)
-    patient_name: patient.name || "",
-    patient_age: patient.age ? String(patient.age) : (vitals.age ? String(vitals.age) : ""),
-    patient_sex: patient.sex || "Male",
-    patient_phone: patient.phone || "",
-    patient_uhid: patient.uhid || "",
-    patient_mode_of_arrival: patient.mode_of_arrival || "Walk-in",
-    patient_mlc: patient.mlc || false,
-    patient_brought_by: patient.brought_by || "",
+    // Support both new (primitive) and old (object) param formats
+    patient_name: routePatientName || patient?.name || "",
+    patient_age: routePatientAge ? String(routePatientAge) : (patient?.age ? String(patient.age) : (vitals?.age ? String(vitals.age) : "")),
+    patient_sex: routePatientSex || patient?.sex || "Male",
+    patient_phone: patient?.phone || "",
+    patient_uhid: patient?.uhid || "",
+    patient_mode_of_arrival: patient?.mode_of_arrival || "Walk-in",
+    patient_mlc: patient?.mlc || false,
+    patient_brought_by: patient?.brought_by || "",
     
     // MLC Fields
     mlc_nature: "",
@@ -403,17 +404,18 @@ export default function CaseSheetScreen({ route, navigation }) {
     mlc_identification_mark: "",
 
     // Presenting Complaint (populated from Triage if available)
-    complaint_text: presentingComplaint.text || voiceTranscript || "",
+    // Support both new (primitive) and old (object) param formats
+    complaint_text: routeChiefComplaint || presentingComplaint?.text || voiceTranscript || "",
     complaint_duration: "",
     complaint_onset: "Sudden",
 
     // Vitals
-    vitals_hr: vitals.hr ? String(vitals.hr) : "",
-    vitals_rr: vitals.rr ? String(vitals.rr) : "",
-    vitals_bp_systolic: vitals.bp_systolic ? String(vitals.bp_systolic) : "",
-    vitals_bp_diastolic: vitals.bp_diastolic ? String(vitals.bp_diastolic) : "",
-    vitals_spo2: vitals.spo2 ? String(vitals.spo2) : "",
-    vitals_temperature: vitals.temperature ? String(vitals.temperature) : "",
+    vitals_hr: vitals?.hr ? String(vitals.hr) : "",
+    vitals_rr: vitals?.rr ? String(vitals.rr) : "",
+    vitals_bp_systolic: vitals?.bp_systolic ? String(vitals.bp_systolic) : "",
+    vitals_bp_diastolic: vitals?.bp_diastolic ? String(vitals.bp_diastolic) : "",
+    vitals_spo2: vitals?.spo2 ? String(vitals.spo2) : "",
+    vitals_temperature: vitals?.temperature ? String(vitals.temperature) : "",
     vitals_gcs_e: "",
     vitals_gcs_v: "",
     vitals_gcs_m: "",
