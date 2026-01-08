@@ -561,39 +561,86 @@ export default function TriageScreen({ route, navigation }) {
     
     const fd = formDataRef.current;
 
+    // FIX: Vitals are at top level (data.vitals), not data.data.vitals
     if (data.vitals) {
       const v = data.vitals;
-      if (v.hr) fd.hr = String(v.hr);
-      if (v.bp_sys || v.bp_systolic) fd.bp_systolic = String(v.bp_sys || v.bp_systolic);
-      if (v.bp_dia || v.bp_diastolic) fd.bp_diastolic = String(v.bp_dia || v.bp_diastolic);
-      if (v.rr) fd.rr = String(v.rr);
-      if (v.spo2) fd.spo2 = String(v.spo2);
-      if (v.temp || v.temperature) fd.temperature = String(v.temp || v.temperature);
-      if (v.gcs_e) fd.gcs_e = String(v.gcs_e);
-      if (v.gcs_v) fd.gcs_v = String(v.gcs_v);
-      if (v.gcs_m) fd.gcs_m = String(v.gcs_m);
-      if (v.grbs) fd.grbs = String(v.grbs);
+      if (v.hr != null) fd.hr = String(v.hr);
+      if (v.bp_systolic != null) fd.bp_systolic = String(v.bp_systolic);
+      if (v.bp_diastolic != null) fd.bp_diastolic = String(v.bp_diastolic);
+      if (v.rr != null) fd.rr = String(v.rr);
+      if (v.spo2 != null) fd.spo2 = String(v.spo2);
+      if (v.temperature != null) fd.temperature = String(v.temperature);
+      if (v.gcs_e != null) fd.gcs_e = String(v.gcs_e);
+      if (v.gcs_v != null) fd.gcs_v = String(v.gcs_v);
+      if (v.gcs_m != null) fd.gcs_m = String(v.gcs_m);
+      if (v.capillary_refill != null) fd.crt = String(v.capillary_refill);
+      if (v.grbs != null) fd.grbs = String(v.grbs);
     }
 
+    // FIX: Age is at top level (data.age)
     if (data.age) {
       fd.age = String(data.age);
       setPatientAge(String(data.age));
-      const isPed = checkIfPediatric(String(data.age), data.age_unit || "years");
+      
+      const unit = data.age_unit || "years";
+      setAgeUnit(unit);
+      const isPed = checkIfPediatric(String(data.age), unit);
       setPatientType(isPed ? "pediatric" : "adult");
     }
 
-    if (data.name) {
-      fd.name = data.name;
-      setPatientName(data.name);
+    // Apply symptoms to auto-select conditions
+    if (data.symptoms) {
+      applyExtractedSymptoms(data.symptoms);
     }
 
-    if (data.chief_complaint) {
-      fd.chief_complaint = data.chief_complaint;
-      setChiefComplaint(data.chief_complaint);
+    // Chief complaint from raw_text if not already set
+    if (data.raw_text && !fd.chief_complaint) {
+      extractPatientInfoFromText(data.raw_text);
     }
 
     forceUpdate();
     calculatePriority();
+  };
+
+  // Apply AI-extracted symptoms to auto-select conditions
+  const applyExtractedSymptoms = (symptoms) => {
+    if (!symptoms) return;
+    
+    // Auto-select conditions based on extracted symptoms
+    const newSelectedConditions = { ...selectedConditions };
+    
+    // Map symptom keys to condition IDs
+    const symptomToConditionMap = {
+      cardiac_arrest: { priority: "priority_1", id: "cardiac_arrest" },
+      shock: { priority: "priority_1", id: "shock" },
+      severe_respiratory_distress: { priority: "priority_1", id: "severe_respiratory_distress" },
+      chest_pain: { priority: "priority_2", id: "chest_pain_cardiac" },
+      chest_pain_with_hypotension: { priority: "priority_1", id: "ami_complications" },
+      seizure_ongoing: { priority: "priority_1", id: "active_seizures" },
+      lethargic_unconscious: { priority: "priority_1", id: "altered_consciousness" },
+      fever: { priority: "priority_4", id: "fever_sore_throat" },
+      major_trauma: { priority: "priority_1", id: "major_trauma_bleeding" },
+      moderate_trauma: { priority: "priority_3", id: "moderate_trauma" },
+      minor_injury: { priority: "priority_4", id: "minor_trauma" },
+      severe_dehydration: { priority: "priority_3", id: "severe_dehydration" },
+      moderate_dehydration: { priority: "priority_3", id: "severe_dehydration" },
+      abdominal_pain_severe: { priority: "priority_3", id: "acute_abdomen" },
+      abdominal_pain_moderate: { priority: "priority_3", id: "acute_abdomen" },
+      sepsis: { priority: "priority_2", id: "sepsis" },
+      suspected_stroke: { priority: "priority_2", id: "acute_stroke" },
+      severe_burns: { priority: "priority_1", id: "severe_burns_airway" },
+      anaphylaxis: { priority: "priority_1", id: "shock" },
+      gi_bleed: { priority: "priority_2", id: "severe_pain" },
+    };
+    
+    Object.entries(symptoms).forEach(([key, value]) => {
+      if (value === true && symptomToConditionMap[key]) {
+        const { priority, id } = symptomToConditionMap[key];
+        newSelectedConditions[`${priority}_${id}`] = { priority, conditionId: id };
+      }
+    });
+    
+    setSelectedConditions(newSelectedConditions);
   };
 
   // Fill with default normal values
