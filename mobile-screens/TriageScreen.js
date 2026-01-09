@@ -741,7 +741,21 @@ export default function TriageScreen({ route, navigation }) {
 
       if (!response.ok) {
         const errData = await response.json();
-        throw new Error(errData.detail || "Failed to create case");
+        // Handle both string and array error formats
+        let errorMessage = "Failed to create case";
+        if (typeof errData.detail === "string") {
+          errorMessage = errData.detail;
+        } else if (Array.isArray(errData.detail)) {
+          // Pydantic validation errors - extract first message
+          const firstError = errData.detail[0];
+          if (firstError?.msg) {
+            const field = firstError.loc?.slice(-1)[0] || "field";
+            errorMessage = `${field}: ${firstError.msg}`;
+          }
+        } else if (errData.message) {
+          errorMessage = errData.message;
+        }
+        throw new Error(errorMessage);
       }
 
       const newCase = await response.json();
