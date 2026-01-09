@@ -694,8 +694,12 @@ export default function TriageScreen({ route, navigation }) {
         address: String(fd.address || ""),
         arrival_datetime: new Date().toISOString(),
         mode_of_arrival: String(modeOfArrival || "Walk-in"),
-        brought_by: String(fd.brought_by || ""),
+        brought_by: String(fd.brought_by || "Self"),
         mlc: Boolean(mlc),
+        // Required fields that were missing
+        informant_name: String(fd.brought_by || "Self"),
+        informant_reliability: "Reliable",
+        identification_mark: "",
       };
 
       // Build vitals data with ONLY numeric values
