@@ -2666,6 +2666,217 @@ async def get_export_stats(current_user: UserResponse = Depends(get_current_user
         "custom_letterhead": plan.get("custom_letterhead", False)
     }
 
+
+# ========== SIMPLE AI ENDPOINTS (No LLM required) ==========
+
+@api_router.post("/ai/red-flags")
+async def detect_red_flags_simple(data: dict, current_user: UserResponse = Depends(get_current_user)):
+    """Simple rule-based red flag detection - no AI credits required"""
+    vitals = data.get("vitals", {})
+    symptoms = data.get("symptoms", "") or data.get("chief_complaint", "")
+    red_flags = []
+    
+    # Check critical vital signs
+    hr = vitals.get("heart_rate") or vitals.get("pulse") or vitals.get("hr")
+    if hr:
+        try:
+            hr = int(float(hr))
+            if hr > 150: red_flags.append({"flag": "Severe Tachycardia (HR > 150)", "priority": 1})
+            elif hr > 120: red_flags.append({"flag": "Tachycardia (HR > 120)", "priority": 2})
+            if hr < 40: red_flags.append({"flag": "Severe Bradycardia (HR < 40)", "priority": 1})
+            elif hr < 50: red_flags.append({"flag": "Bradycardia (HR < 50)", "priority": 2})
+        except: pass
+    
+    sbp = vitals.get("systolic_bp") or vitals.get("bp_systolic") or vitals.get("sbp")
+    if sbp:
+        try:
+            sbp = int(float(sbp))
+            if sbp < 80: red_flags.append({"flag": "Hypotension (SBP < 80) - Shock Range", "priority": 1})
+            elif sbp < 90: red_flags.append({"flag": "Hypotension (SBP < 90)", "priority": 2})
+            if sbp > 180: red_flags.append({"flag": "Hypertensive Crisis (SBP > 180)", "priority": 1})
+        except: pass
+    
+    spo2 = vitals.get("spo2") or vitals.get("oxygen_saturation")
+    if spo2:
+        try:
+            spo2 = int(float(spo2))
+            if spo2 < 90: red_flags.append({"flag": "Severe Hypoxia (SpO2 < 90%)", "priority": 1})
+            elif spo2 < 94: red_flags.append({"flag": "Hypoxia (SpO2 < 94%)", "priority": 2})
+        except: pass
+    
+    temp = vitals.get("temperature") or vitals.get("temp")
+    if temp:
+        try:
+            temp = float(temp)
+            if temp > 40: red_flags.append({"flag": "High Fever (>40°C) - Hyperpyrexia", "priority": 1})
+            elif temp > 39: red_flags.append({"flag": "Fever (>39°C)", "priority": 2})
+            if temp < 35: red_flags.append({"flag": "Hypothermia (<35°C)", "priority": 1})
+        except: pass
+    
+    rr = vitals.get("rr") or vitals.get("respiratory_rate")
+    if rr:
+        try:
+            rr = int(float(rr))
+            if rr < 8: red_flags.append({"flag": "Bradypnea (RR < 8) - Respiratory Failure", "priority": 1})
+            if rr > 35: red_flags.append({"flag": "Severe Tachypnea (RR > 35)", "priority": 1})
+            elif rr > 25: red_flags.append({"flag": "Tachypnea (RR > 25)", "priority": 2})
+        except: pass
+    
+    gcs = vitals.get("gcs") or vitals.get("glasgow_coma_scale")
+    if gcs:
+        try:
+            gcs = int(float(gcs))
+            if gcs <= 8: red_flags.append({"flag": "GCS ≤8 - Coma, Consider Intubation", "priority": 1})
+            elif gcs <= 12: red_flags.append({"flag": "Altered Consciousness (GCS 9-12)", "priority": 2})
+        except: pass
+    
+    grbs = vitals.get("grbs") or vitals.get("blood_sugar")
+    if grbs:
+        try:
+            grbs = float(grbs)
+            if grbs < 50: red_flags.append({"flag": "Severe Hypoglycemia (GRBS < 50)", "priority": 1})
+            elif grbs < 70: red_flags.append({"flag": "Hypoglycemia (GRBS < 70)", "priority": 2})
+            if grbs > 400: red_flags.append({"flag": "Severe Hyperglycemia (GRBS > 400)", "priority": 1})
+        except: pass
+    
+    # Symptom-based red flags
+    symptoms_lower = symptoms.lower() if symptoms else ""
+    symptom_flags = [
+        (["chest pain", "crushing", "radiating arm", "radiating to jaw"], "Possible ACS/MI - ECG Stat", 1),
+        (["sudden headache", "worst headache", "thunderclap"], "Possible SAH - CT Head Stat", 1),
+        (["seizure", "convulsion", "fitting"], "Seizure Activity", 1),
+        (["unresponsive", "unconscious", "not responding"], "Altered Consciousness", 1),
+        (["difficulty breathing", "can't breathe", "gasping", "stridor"], "Respiratory Distress", 1),
+        (["bloody stool", "hematemesis", "coffee ground vomit"], "GI Bleeding", 1),
+        (["swelling throat", "anaphylaxis", "severe allergy"], "Possible Anaphylaxis", 1),
+        (["trauma", "accident", "rta", "fall from height"], "Trauma - Assess for occult injuries", 2),
+    ]
+    
+    for keywords, flag, priority in symptom_flags:
+        if any(kw in symptoms_lower for kw in keywords):
+            red_flags.append({"flag": flag, "priority": priority})
+    
+    # Sort by priority
+    red_flags.sort(key=lambda x: x["priority"])
+    
+    return {
+        "red_flags": [f["flag"] for f in red_flags],
+        "detailed_flags": red_flags,
+        "count": len(red_flags),
+        "critical_count": len([f for f in red_flags if f["priority"] == 1])
+    }
+
+
+@api_router.post("/ai/provisional-diagnosis")
+async def provisional_diagnosis_simple(data: dict, current_user: UserResponse = Depends(get_current_user)):
+    """Simple rule-based provisional diagnosis - no AI credits required"""
+    symptoms = data.get("symptoms", "") or data.get("chief_complaint", "")
+    history = data.get("history", "")
+    vitals = data.get("vitals", {})
+    
+    diagnoses = []
+    symptoms_lower = (symptoms + " " + history).lower()
+    
+    # Pattern matching for common presentations
+    diagnosis_patterns = [
+        # Cardiac
+        (["chest pain", "crushing", "sweating", "radiating"], ["Acute Coronary Syndrome", "Angina", "GERD"]),
+        (["palpitation", "racing heart", "irregular pulse"], ["Cardiac Arrhythmia", "Anxiety", "Thyroid disorder"]),
+        
+        # Respiratory
+        (["breathless", "shortness of breath", "dyspnea"], ["COPD Exacerbation", "Pneumonia", "Heart Failure", "Asthma"]),
+        (["cough", "fever", "sputum"], ["Community Acquired Pneumonia", "Bronchitis", "TB - Rule out"]),
+        (["wheeze", "asthma", "difficulty breathing"], ["Acute Asthma", "COPD", "Bronchitis"]),
+        
+        # GI
+        (["abdominal pain", "vomiting"], ["Acute Gastritis", "Appendicitis", "Gastroenteritis"]),
+        (["diarrhea", "loose stools"], ["Acute Gastroenteritis", "Food Poisoning", "Inflammatory Bowel Disease"]),
+        (["right lower quadrant", "rlq pain"], ["Acute Appendicitis", "Ovarian Pathology", "Mesenteric Adenitis"]),
+        (["epigastric", "burning"], ["Acute Gastritis", "GERD", "Peptic Ulcer Disease"]),
+        
+        # Neurological
+        (["headache", "vomiting", "neck pain"], ["Meningitis - Rule out", "Migraine", "Tension Headache"]),
+        (["weakness", "slurred", "facial droop"], ["Acute Stroke", "TIA", "Bell's Palsy"]),
+        (["seizure", "convulsion"], ["Seizure Disorder", "Epilepsy", "Febrile Seizure"]),
+        (["giddiness", "vertigo", "spinning"], ["BPPV", "Vestibular Neuritis", "Meniere's Disease"]),
+        
+        # Infectious
+        (["fever", "body ache", "malaise"], ["Acute Febrile Illness", "Viral Fever", "Dengue - Investigate"]),
+        (["fever", "rash"], ["Dengue", "Chikungunya", "Viral Exanthem"]),
+        (["sore throat", "difficulty swallowing"], ["Acute Pharyngitis", "Tonsillitis", "Peritonsillar Abscess"]),
+        (["burning urination", "dysuria", "frequency"], ["Urinary Tract Infection", "Cystitis", "Pyelonephritis"]),
+        
+        # Trauma
+        (["fall", "injury", "trauma"], ["Soft Tissue Injury", "Fracture - X-ray needed", "Contusion"]),
+        (["head injury", "fall", "hit head"], ["Head Injury - CT if indicated", "Concussion", "Scalp Laceration"]),
+        
+        # Pediatric
+        (["not feeding", "lethargy", "irritable infant"], ["Sepsis - Workup needed", "Meningitis", "Metabolic disorder"]),
+        (["barking cough", "stridor"], ["Croup", "Laryngotracheitis", "Foreign Body - Rule out"]),
+    ]
+    
+    for keywords, dx_list in diagnosis_patterns:
+        if any(kw in symptoms_lower for kw in keywords):
+            diagnoses.extend(dx_list)
+    
+    # Remove duplicates while preserving order
+    seen = set()
+    unique_diagnoses = []
+    for dx in diagnoses:
+        if dx not in seen:
+            seen.add(dx)
+            unique_diagnoses.append(dx)
+    
+    if not unique_diagnoses:
+        unique_diagnoses = ["Requires further evaluation", "Undifferentiated illness"]
+    
+    return {
+        "diagnoses": unique_diagnoses[:5],
+        "primary_diagnosis": unique_diagnoses[0] if unique_diagnoses else None,
+        "differentials": unique_diagnoses[1:5] if len(unique_diagnoses) > 1 else [],
+        "based_on": symptoms[:100] if symptoms else "No symptoms provided"
+    }
+
+
+@api_router.post("/ai/analyze-case")
+async def analyze_case_simple(data: dict, current_user: UserResponse = Depends(get_current_user)):
+    """Combined analysis - red flags + provisional diagnosis"""
+    red_flags_result = await detect_red_flags_simple(data, current_user)
+    diagnosis_result = await provisional_diagnosis_simple(data, current_user)
+    
+    # Generate recommendations based on findings
+    recommendations = ["Monitor vitals regularly"]
+    
+    if red_flags_result["critical_count"] > 0:
+        recommendations.insert(0, "URGENT: Address critical findings immediately")
+        recommendations.append("Consider ICU/HDU admission")
+    
+    if any("ACS" in f or "MI" in f for f in red_flags_result["red_flags"]):
+        recommendations.append("ECG - Stat")
+        recommendations.append("Cardiac enzymes (Troponin)")
+    
+    if any("stroke" in dx.lower() for dx in diagnosis_result["diagnoses"]):
+        recommendations.append("CT Head - Stat")
+        recommendations.append("Check for thrombolysis window")
+    
+    if any("pneumonia" in dx.lower() or "respiratory" in dx.lower() for dx in diagnosis_result["diagnoses"]):
+        recommendations.append("Chest X-ray")
+        recommendations.append("ABG if SpO2 < 94%")
+    
+    recommendations.append("Complete blood count")
+    recommendations.append("Basic metabolic panel")
+    
+    return {
+        "red_flags": red_flags_result["red_flags"],
+        "critical_count": red_flags_result["critical_count"],
+        "provisional_diagnoses": diagnosis_result["diagnoses"],
+        "primary_diagnosis": diagnosis_result["primary_diagnosis"],
+        "differentials": diagnosis_result["differentials"],
+        "recommendations": list(dict.fromkeys(recommendations))[:8],  # Remove duplicates, limit to 8
+        "urgency": "CRITICAL" if red_flags_result["critical_count"] > 0 else "URGENT" if red_flags_result["count"] > 0 else "ROUTINE"
+    }
+
+
 @api_router.post("/ai/generate", response_model=AIResponse)
 async def generate_ai_response(request: AIGenerateRequest, current_user: UserResponse = Depends(get_current_user)):
     # Determine AI type based on prompt
